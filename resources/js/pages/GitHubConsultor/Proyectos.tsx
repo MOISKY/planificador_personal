@@ -7,6 +7,7 @@ import { ContextPanel } from '@/components/noil/context-panel';
 import { type BreadcrumbItem } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import github from '@/routes/github';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -111,14 +112,21 @@ export default function Proyectos({ repos, username }: { repos: any[], username:
                                         </div>
                                     </div>
 
-                                    {/* Columna 3: Fecha Hora */}
-                                    <div className="flex flex-col justify-center items-start md:items-end">
-                                        <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-                                            Fecha Hora
-                                        </p>
-                                        <span className="text-sm font-bold text-foreground mt-1 text-right">
-                                            {formatDate(repo.updated_at).replace(',', ' ')}
-                                        </span>
+                                    {/* Columna 3: Fecha Hora & Link */}
+                                    <div className="flex flex-col justify-center items-start md:items-end gap-2">
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+                                                Fecha Hora
+                                            </p>
+                                            <span className="text-sm font-bold text-foreground mt-1 block">
+                                                {formatDate(repo.updated_at).replace(',', ' ')}
+                                            </span>
+                                        </div>
+                                        <Button asChild size="sm" variant="outline" className="w-full md:w-auto mt-2">
+                                            <a href={github.proyecto({ owner: repo.owner.login, repo: repo.name }).url}>
+                                                Ver Detalle
+                                            </a>
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

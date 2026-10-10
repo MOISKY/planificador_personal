@@ -12,6 +12,7 @@ Route::get('/', function () {
 
 Route::get('/consultor', [GitHubConsultorController::class, 'index'])->name('github.consultor');
 Route::get('/consultor/proyectos', [GitHubConsultorController::class, 'proyectos'])->name('github.proyectos');
+Route::get('/consultor/proyectos/{owner}/{repo}', [GitHubConsultorController::class, 'proyectoDetalle'])->name('github.proyecto');
 Route::get('/dashboard', [GitHubConsultorController::class, 'index'])->name('dashboard');
 
 // Include settings routes

@@ -107,4 +107,58 @@ class GitHubConsultorController extends Controller
             'username' => $username,
         ]);
     }
+
+    public function proyectoDetalle(Request $request, $owner, $repoName)
+    {
+        $token = env('GITHUB_TOKEN');
+        $username = env('GITHUB_USERNAME');
+
+        // Fetch repo info
+        $repoInfo = Http::withToken($token)
+            ->withoutVerifying()
+            ->get("https://api.github.com/repos/{$owner}/{$repoName}")
+            ->json();
+
+        // Fetch up to 30 recent commits
+        $commitsList = Http::withToken($token)
+            ->withoutVerifying()
+            ->get("https://api.github.com/repos/{$owner}/{$repoName}/commits", [
+                'per_page' => 30
+            ])->json();
+
+        $commitsWithFiles = [];
+
+        if (is_array($commitsList)) {
+            // Pool to fetch files for each commit
+            $responses = \Illuminate\Support\Facades\Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($commitsList, $owner, $repoName, $token) {
+                foreach ($commitsList as $commit) {
+                    if (isset($commit['sha'])) {
+                        $pool->as($commit['sha'])
+                            ->withToken($token)
+                            ->withoutVerifying()
+                            ->get("https://api.github.com/repos/{$owner}/{$repoName}/commits/{$commit['sha']}");
+                    }
+                }
+            });
+
+            foreach ($commitsList as $commit) {
+                if (isset($commit['sha']) && isset($responses[$commit['sha']])) {
+                    $response = $responses[$commit['sha']];
+                    if ($response instanceof \Illuminate\Http\Client\Response && $response->ok()) {
+                        $commitDetails = $response->json();
+                        $commit['files'] = $commitDetails['files'] ?? [];
+                    } else {
+                        $commit['files'] = [];
+                    }
+                    $commitsWithFiles[] = $commit;
+                }
+            }
+        }
+
+        return Inertia::render('GitHubConsultor/ProyectoDetalle', [
+            'repo' => $repoInfo,
+            'commits' => $commitsWithFiles,
+            'username' => $username,
+        ]);
+    }
 }
