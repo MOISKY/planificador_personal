@@ -10,20 +10,21 @@ export function UserInfo({
     showEmail?: boolean;
 }) {
     const getInitials = useInitials();
+    const displayUser = user || { name: 'Invitado', email: '', avatar: '' };
 
     return (
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
+                <AvatarImage src={displayUser.avatar ?? undefined} alt={displayUser.name} />
                 <AvatarFallback className="rounded-lg bg-neutral-200 text-foreground">
-                    {getInitials(user.name)}
+                    {getInitials(displayUser.name)}
                 </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{displayUser.name}</span>
                 {showEmail && (
                     <span className="truncate text-xs text-muted-foreground">
-                        {user.email}
+                        {displayUser.email}
                     </span>
                 )}
             </div>

@@ -40,6 +40,7 @@ export interface NavItem {
     icon?: LucideIcon | null;
     isActive?: boolean;
     cacheTags?: string[];
+    badge?: React.ReactNode;
 }
 
 export interface Flash {

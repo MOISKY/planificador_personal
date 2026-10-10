@@ -12,15 +12,17 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import github from '@/routes/github';
 import ejemplo from '@/routes/ejemplo';
 import { edit as editProfile } from '@/routes/profile';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { LayoutGrid, Search, Settings, Table2 } from 'lucide-react';
-import { useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
+import { LayoutGrid, Search, Settings, Table2, FolderGit2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const mainNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+    { title: 'Proyectos', href: github.proyectos(), icon: FolderGit2 },
     {
         title: 'Ejemplo',
         href: ejemplo.index(),
@@ -39,9 +41,31 @@ const normalizar = (s: string) =>
 export function AppSidebar() {
     const [search, setSearch] = useState('');
     const term = normalizar(search.trim());
-    const items = term
+    const { repos } = usePage<any>().props;
+    const [newProjectsCount, setNewProjectsCount] = useState(0);
+
+    useEffect(() => {
+        const lastVisitStr = localStorage.getItem('last_github_visit');
+        if (lastVisitStr && repos && repos.length > 0) {
+            const lastVisit = new Date(lastVisitStr);
+            const count = repos.filter((r: any) => new Date(r.updated_at) > lastVisit).length;
+            setNewProjectsCount(count);
+        }
+    }, [repos]);
+
+    const itemsRaw = term
         ? mainNavItems.filter((i) => normalizar(i.title).includes(term))
         : mainNavItems;
+
+    const items = itemsRaw.map(item => {
+        if (item.title === 'Proyectos' && newProjectsCount > 0) {
+            return {
+                ...item,
+                badge: <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">{newProjectsCount}</span>
+            };
+        }
+        return item;
+    });
 
     return (
         <Sidebar collapsible="icon" variant="sidebar">

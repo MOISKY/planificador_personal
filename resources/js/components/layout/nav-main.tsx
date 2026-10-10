@@ -27,9 +27,17 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 href={item.href}
                                 prefetch
                                 cacheTags={item.cacheTags}
+                                className="flex items-center justify-between w-full"
                             >
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
+                                <div className="flex items-center gap-2">
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </div>
+                                {item.badge && (
+                                    <div className="ml-auto">
+                                        {item.badge}
+                                    </div>
+                                )}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
