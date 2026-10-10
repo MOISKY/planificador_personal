@@ -49,13 +49,13 @@ export default function ProyectoDetalle({ repo, commits, username }: { repo: any
         }
 
         if (period === 'day') {
-            const groupedByHour: Record<string, Set<string>> = {};
+            const groupedByTime: Record<string, Set<string>> = {};
             filtered.forEach(commit => {
-                const hourStr = new Date(commit.commit.author.date).getHours().toString().padStart(2, '0') + ':00';
-                if (!groupedByHour[hourStr]) groupedByHour[hourStr] = new Set();
-                (commit.files || []).forEach((f: any) => groupedByHour[hourStr].add(getTopLevelFolder(f.filename)));
+                const timeStr = new Date(commit.commit.author.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                if (!groupedByTime[timeStr]) groupedByTime[timeStr] = new Set();
+                (commit.files || []).forEach((f: any) => groupedByTime[timeStr].add(getTopLevelFolder(f.filename)));
             });
-            return groupedByHour;
+            return groupedByTime;
         } else {
             const folders = new Set<string>();
             filtered.forEach(commit => {
