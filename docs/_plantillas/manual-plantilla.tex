@@ -1,0 +1,436 @@
+% =====================================================================
+%  Manual técnico — Noil Web Template
+%  Compila con:  ./compilar.sh manual-plantilla.tex   (usa Docker texlive)
+% =====================================================================
+\documentclass[11pt]{article}
+\usepackage[table]{xcolor}
+\usepackage[a4paper,top=3.9cm,bottom=4.2cm,left=2.3cm,right=2.3cm]{geometry}
+\usepackage{eso-pic}
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage[default]{sourcesanspro}
+\usepackage{sourcecodepro}
+
+% ---- \code{...}: typewriter que SÍ rompe línea en / _ . - (sin escapar) ----
+\DeclareUrlCommand\code{\urlstyle{tt}}
+
+% ---- colores corporativos -------------------------------------------
+\definecolor{noilblue}{HTML}{1F71BD}
+\definecolor{noildark}{HTML}{14538C}
+\definecolor{termbg}{HTML}{1E1E2E}
+\definecolor{termtitlebg}{HTML}{2A2A3C}
+\definecolor{termtext}{HTML}{C0CAF5}
+\definecolor{termaccent}{HTML}{9ECE6A}
+\definecolor{tblhead}{HTML}{1F71BD}
+\definecolor{tblrow}{HTML}{EAF2FB}
+\definecolor{mPut}{HTML}{E65100}
+
+\AddToShipoutPictureBG{\put(0,0){\includegraphics[width=\paperwidth,height=\paperheight]{assets/plantilla_fondo.png}}}
+\pagestyle{empty}
+
+\titleformat{\section}{\Large\bfseries\color{noilblue}}{}{0pt}{}[{\color{noilblue}\titlerule[1pt]}]
+\titleformat{\subsection}{\large\bfseries\color{noildark}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\setcounter{secnumdepth}{0}
+
+\newtcolorbox{termbox}[1]{
+  enhanced, breakable,
+  colback=termbg, colframe=termbg, boxrule=0pt, arc=4pt,
+  left=4pt,right=4pt,top=2pt,bottom=4pt,
+  before skip=6pt, after skip=10pt,
+  title={\textcolor{red!70!black}{\textbullet}\,\textcolor{yellow!80!black}{\textbullet}\,\textcolor{green!70!black}{\textbullet}\hfill{\color{gray!70}\ttfamily\scriptsize #1}},
+  coltitle=white, colbacktitle=termtitlebg, fonttitle=\small,
+}
+\lstdefinestyle{plain}{
+  backgroundcolor=\color{termbg},
+  basicstyle=\ttfamily\footnotesize\color{termtext},
+  showstringspaces=false, breaklines=true, columns=fullflexible, keepspaces=true, upquote=true,
+}
+
+\newcommand{\infonote}[2]{%
+\par\addvspace{4pt}\noindent
+\begin{tcolorbox}[enhanced,breakable,colback=noilblue!7,colframe=noilblue,boxrule=0.8pt,arc=2pt,
+  left=8pt,right=8pt,top=4pt,bottom=4pt,fonttitle=\bfseries\color{white},
+  colbacktitle=noilblue,title={#1}]
+\small #2
+\end{tcolorbox}\par\addvspace{4pt}}
+\newcommand{\warnnote}[2]{%
+\par\addvspace{4pt}\noindent
+\begin{tcolorbox}[enhanced,breakable,colback=orange!8,colframe=mPut,boxrule=0.9pt,arc=2pt,
+  left=8pt,right=8pt,top=4pt,bottom=4pt,fonttitle=\bfseries\color{white},
+  colbacktitle=mPut,title={#1}]
+\small #2
+\end{tcolorbox}\par\addvspace{4pt}}
+
+\newcommand{\changelogtable}[1]{%
+\par\noindent
+\begin{tabularx}{\linewidth}{|c|c|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblhead}\textbf{\color{white}Versi\'on} & \textbf{\color{white}Fecha} & \textbf{\color{white}Autor} & \textbf{\color{white}Cambios}\\
+\hline
+#1
+\hline
+\end{tabularx}\par\addvspace{6pt}}
+
+\newcommand{\cab}[2]{\rowcolor{tblhead}\textbf{\color{white}#1} & \textbf{\color{white}#2}\\ \hline}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{document}
+\sloppy
+
+% =====================================================================
+%  PORTADA
+% =====================================================================
+\thispagestyle{empty}
+\vspace*{2.6cm}
+{\Large\bfseries\color{black} Manual t\'ecnico}\par\vspace{6pt}
+{\LARGE\bfseries\color{noilblue} Noil Web Template}\par\vspace{6pt}
+{\large\bfseries\color{noildark} C\'omo levantar un sistema Noil desde cero --- Software NOIL}\par\vspace{14pt}
+
+Qu\'e trae la plantilla base de los sistemas web de Noil, c\'omo se crea un proyecto nuevo a partir de ella, qu\'e hay que configurar paso a paso (base maestra \code{admin_tecnica}, producto, llave AES, conexiones din\'amicas por cliente) y c\'omo se trabaja dentro de ella: estructura, servicios, componentes, reglas y cierre de cada tarea. Para el equipo de desarrollo de DSAIX.\par\vspace{10pt}
+
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.8cm}|c|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblhead}\textbf{\color{white}Versi\'on} & \textbf{\color{white}Estatus} & \textbf{\color{white}Notas}\\
+\hline
+1.0.0 --- 01/10/2026 & Vigente & Plantilla con login contra \code{admin_tecnica}, tenant din\'amico y sincronizaci\'on de cat\'alogos. \\
+\hline
+\end{tabularx}
+
+\section{Control de versiones}
+\changelogtable{1.0.0 & 01/10/2026 & Equipo Noil & $\bullet$\ Versi\'on inicial del manual. \\}
+
+\section{1. Qu\'e es la plantilla}
+Es el punto de partida de todo sistema web nuevo de Noil. Trae resuelto lo que antes se copiaba de un repo a otro: el dise\~no, los componentes, el login contra Admin T\'ecnica, la conexi\'on din\'amica a la base de cada cliente, los servicios de backend que usan todos los sistemas y las reglas de trabajo para personas y agentes de IA.
+
+\begin{termbox}{repositorio}
+\begin{lstlisting}[style=plain]
+https://github.com/DSAI2017/noil_web_template
+\end{lstlisting}
+\end{termbox}
+
+\subsection{Stack}
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Capa}{Tecnolog\'ia}
+Backend & Laravel 13 sobre PHP 8.3 o superior. Fortify para autenticaci\'on, Wayfinder para rutas tipadas. \\
+Frontend & Inertia v3 + React 19 + TypeScript. Tailwind v4, shadcn/Radix, iconos lucide. \\
+Base de datos & MariaDB/MySQL en producci\'on (maestra \code{admin_tecnica} + una base por cliente). SQLite solo para desarrollo y pruebas. \\
+Herramientas & Composer, npm (Node 22), Pint, PHPStan, Vite (\code{vp}), PHPUnit. \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+
+\subsection{Qu\'e incluye}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item \textbf{Tema Noil} en \code{resources/css/app.css}: paleta, Plus Jakarta Sans, sidebar oscuro, badges de estatus. Solo modo claro.
+  \item \textbf{Sistema de dise\~no} en \code{resources/js/components/noil/}: \code{PageShell}, \code{ContextPanel}, \code{DataTable}, \code{EmptyState}, \code{confirmDialog}, \code{FlashToaster}, gr\'aficas.
+  \item \textbf{Login contra Admin T\'ecnica}, selecci\'on de cliente y sincronizaci\'on de cat\'alogos a la base del cliente (secci\'on 5).
+  \item \textbf{Servicios de backend}: \code{MaximoId}, \code{AutoFolio}, \code{DynamicQueryExecutor}, \code{Kardex}, \code{PasswordAes}, \code{TenantConnection}, \code{AdminTecnicaSync}. Con tests.
+  \item \textbf{P\'aginas demo}: \code{/dashboard} y \code{/ejemplo} (listado + drawer). Son la referencia para copiar.
+  \item \textbf{Validaci\'on en espa\~nol} (\code{lang/es}).
+  \item \textbf{Skills} en \code{.agents/skills/}: reglas que cargan Claude Code y Codex antes de escribir c\'odigo.
+\end{itemize}
+
+\section{2. Requisitos en la m\'aquina}
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Herramienta}{Versi\'on y notas}
+PHP & 8.3 o superior con extensiones \code{pdo_mysql}, \code{pdo_sqlite}, \code{openssl}, \code{mbstring}, \code{intl} (esta \'ultima la piden algunos comandos de Artisan como \code{db:show}). \\
+Composer & 2.x. \\
+Node y npm & Node 22 LTS. \\
+Base de datos & Acceso a la \code{admin_tecnica} del ambiente (desarrollo o producci\'on) y a la base del cliente con el que vas a probar. Para arrancar sin nada de eso, SQLite basta (secci\'on 3). \\
+Docker & Opcional. Solo para compilar manuales como este (\code{docs/_plantillas/compilar.sh}). \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+
+\section{3. Crear un proyecto desde cero}
+
+\subsection{Paso 1. Clonar la plantilla con el nombre del proyecto}
+\begin{termbox}{terminal}
+\begin{lstlisting}[style=plain]
+git clone https://github.com/DSAI2017/noil_web_template appweb_mi_sistema
+cd appweb_mi_sistema
+git remote rename origin plantilla
+git remote add origin https://github.com/DSAI2017/appweb_mi_sistema
+git push -u origin main
+\end{lstlisting}
+\end{termbox}
+Dejar el remoto \code{plantilla} permite traer mejoras futuras con \texttt{git pull plantilla main}. Si prefieres partir limpio, borra la carpeta \code{.git} y haz \texttt{git init}.
+
+\subsection{Paso 2. Instalar dependencias y ambiente}
+\begin{termbox}{terminal}
+\begin{lstlisting}[style=plain]
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+\end{lstlisting}
+\end{termbox}
+
+\subsection{Paso 3. Arrancar en modo demo (SQLite)}
+El \code{.env.example} viene con \code{DB_CONNECTION=sqlite} y \code{NOIL_SYNC=false}. As\'i la plantilla levanta sin ninguna base externa: la migraci\'on crea las tablas m\'inimas de Admin T\'ecnica y el seeder mete un usuario y un cliente demo.
+\begin{termbox}{terminal}
+\begin{lstlisting}[style=plain]
+php artisan migrate:fresh --seed
+composer run dev
+\end{lstlisting}
+\end{termbox}
+Entra en \code{http://localhost:8000} con \code{admin@noil.mx} / \code{password}. \texttt{composer run dev} levanta servidor, Vite, cola y logs en una sola terminal.
+
+\infonote{Para qu\'e sirve el modo demo}{Para ver la plantilla funcionando, desarrollar pantallas que todav\'ia no dependen de datos reales y correr las pruebas. Ning\'un sistema se despliega as\'i: el siguiente paso es apuntarlo a la \code{admin_tecnica} real.}
+
+\subsection{Paso 4. Conectar a Admin T\'ecnica y al producto}
+Edita el \code{.env} con los datos del ambiente. Son las \'unicas variables propias de Noil:
+\begin{termbox}{.env}
+\begin{lstlisting}[style=plain]
+APP_NAME="Mi Sistema"
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mariadb
+DB_HOST=<host de admin_tecnica>
+DB_PORT=3306
+DB_DATABASE=admin_tecnica
+DB_USERNAME=<usuario>
+DB_PASSWORD=<contrasena>
+
+NOIL_PRODUCTO_ID=<IdProducto en master_productos>
+NOIL_AES_KEY=<llave AES de admin_usuarios.SPassword>
+NOIL_SYNC=true
+\end{lstlisting}
+\end{termbox}
+
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Variable}{Qu\'e es y de d\'onde sale}
+\code{DB_CONNECTION} y \code{DB_*} & La conexi\'on \textbf{maestra}. Siempre apunta a \code{admin_tecnica}; la plantilla la usa para validar el login y leer los clientes. \\
+\code{NOIL_PRODUCTO_ID} & El \code{IdProducto} de este sistema en \code{master_productos}. Decide qu\'e m\'odulos, opciones y roles se sincronizan a la base del cliente. \\
+\code{NOIL_AES_KEY} & La llave con la que Admin T\'ecnica cifra \code{SPassword} (\code{AES_ENCRYPT}). Se pide al responsable de \code{admin_tecnica}. \textbf{Nunca} se versiona. \\
+\code{NOIL_SYNC} & \code{true} en cualquier ambiente con bases de cliente reales. \code{false} solo en el modo demo con SQLite. \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+
+\warnnote{La llave AES no va al repositorio}{\texttt{.env.example} la deja vac\'ia y \texttt{config/noil.php} no tiene valor por defecto. Si la llave aparece en un commit, hay que rotarla en Admin T\'ecnica, no basta con borrarla del historial.}
+
+Despu\'es de cambiar el \code{.env}:
+\begin{termbox}{terminal}
+\begin{lstlisting}[style=plain]
+php artisan config:clear
+php artisan migrate
+\end{lstlisting}
+\end{termbox}
+Contra una \code{admin_tecnica} real la migraci\'on de tablas de Admin T\'ecnica no hace nada (est\'a guardada con \code{Schema::hasTable}); solo crea \code{sessions}, \code{cache} y \code{jobs} si no existen.
+
+\subsection{Paso 5. Darle identidad al proyecto}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item \code{APP_NAME} en \code{.env}: aparece en el t\'itulo de las p\'aginas y en el sidebar.
+  \item Logo en \code{resources/js/components/layout/app-logo-icon.tsx} e im\'agenes en \code{public/images/} (la portada del login es \code{login-cover.webp}).
+  \item Men\'u en \code{resources/js/components/layout/app-sidebar.tsx} (\code{mainNavItems}).
+  \item Borra el m\'odulo de ejemplo cuando ya tengas el primero real: \code{EjemploController}, sus rutas, \code{pages/ejemplo}, \code{components/ejemplo}, \code{hooks/use-ejemplo-*} y \code{tests/Feature/EjemploTest.php}.
+  \item Actualiza el \code{README.md} con el nombre y prop\'osito del sistema.
+\end{itemize}
+
+\section{4. Estructura del proyecto}
+\begin{termbox}{\'arbol}
+\begin{lstlisting}[style=plain]
+app/
+  Domain/<Modulo>/       modelo, interfaz, repositorios, casos de uso
+  Http/Controllers/      controladores delgados (+ Settings/, TenantController)
+  Http/Middleware/       HandleInertiaRequests, SetTenantConnection
+  Http/Requests/         Form Requests con atributos en espanol
+  Models/User.php        usuario de admin_usuarios (conexion maestra)
+  Providers/             AppServiceProvider, FortifyServiceProvider
+  Services/              MaximoId, AutoFolio, DynamicQueryExecutor, Kardex,
+                         PasswordAes, TenantConnection, AdminTecnicaSync
+config/noil.php          producto_id, master_connection, aes_key, sincronizar
+database/migrations/     sessions, cache, jobs, admin_tecnica (guardada)
+database/seeders/        usuario y cliente demo
+resources/js/
+  components/            ui/ noil/ layout/ auth/ <modulo>/
+  hooks/                 use-<modulo>-<cosa>.ts
+  layouts/               app (sidebar), auth, settings
+  lib/                   fechas, utils, datos de muestra
+  pages/                 una carpeta por modulo (+ tenant/, settings/)
+  types/                 tipos compartidos
+  actions/ routes/       generados por Wayfinder (no se editan)
+.agents/skills/          ui-noil, backend-noil, flujo-noil
+docs/_plantillas/        kit LaTeX para manuales como este
+\end{lstlisting}
+\end{termbox}
+
+\section{5. Login, cliente activo y sincronizaci\'on}
+Es la parte que hace multi-cliente a los sistemas Noil. Est\'a repartida en piezas peque\~nas que no se conocen entre s\'i.
+
+\subsection{Flujo}
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+  \item El usuario escribe correo y contrase\~na en \code{/login}.
+  \item \code{FortifyServiceProvider} busca el correo en \code{admin_usuarios} (conexi\'on maestra), verifica que est\'e activo, que la contrase\~na coincida con \code{PasswordAes} y que tenga al menos un cliente en \code{admin_clientes_roles_usuarios}. Si algo falla, el error es ``credenciales incorrectas''.
+  \item En la siguiente petici\'on, el middleware \code{SetTenantConnection} ve que no hay cliente en sesi\'on:
+  \begin{itemize}[leftmargin=1.2em,itemsep=1pt]
+    \item Un solo cliente: lo selecciona, sincroniza y sigue.
+    \item Varios: redirige a \code{/cliente} (\code{pages/tenant/seleccionar.tsx}) para que elija.
+  \end{itemize}
+  \item Seleccionar un cliente (\code{TenantConnection::seleccionar}) hace tres cosas: configura la conexi\'on \code{cliente_{IdCliente}} y la deja como conexi\'on por defecto, guarda \code{tenant_id} en sesi\'on y corre \code{AdminTecnicaSync} si \code{NOIL_SYNC} est\'a activo.
+  \item A partir de ah\'i, cada petici\'on restaura la conexi\'on del cliente. Todo lo que use \code{DB::table()} o un modelo sin conexi\'on expl\'icita cae en la base del cliente. El usuario puede cambiar de cliente desde su men\'u.
+\end{enumerate}
+
+\subsection{Piezas}
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4.4cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Pieza}{Responsabilidad}
+\code{App\Models\User} & Tabla \code{admin_usuarios}, llave \code{IdUsuario}. Siempre en la conexi\'on maestra: no sigue al tenant. Expone \code{name} y \code{email} como alias de \code{SNombre} y \code{SMail} para el frontend. \\
+\code{PasswordAes} & \code{AES_ENCRYPT}/\code{AES_DECRYPT} de MySQL en PHP (AES-128-ECB con la llave plegada a 16 bytes). Valida sin mandar la llave a la base. \\
+\code{TenantConnection} & \'Unico lugar que conoce las credenciales de \code{admin_clientes}. M\'etodos: \code{usar}, \code{cliente}, \code{clientesDe}, \code{actual}, \code{seleccionar}. La sesi\'on guarda solo el \code{IdCliente}. \\
+\code{AdminTecnicaSync} & Espejea en la base del cliente los cat\'alogos del producto: \code{admin_clientes}, \code{master_productos}, \code{master_idioma}, \code{admin_clientes_roles}, \code{admin_usuarios}, \code{master_modulos} (destino \code{master_modulos_admin}), \code{master_opciones}, \code{admin_roles_modulos}, \code{admin_clientes_roles_usuarios}. Borra e inserta por bloques de 500 dentro de una transacci\'on, con un lock por cliente para que dos logins simult\'aneos no se pisen. \\
+\code{SetTenantConnection} & Middleware del grupo \code{web}. Restaura la conexi\'on en cada petici\'on y resuelve el primer ingreso. \\
+\code{TenantController} & \texttt{GET /cliente} muestra los clientes del usuario; \texttt{POST /cliente/\textbackslash{}\{id\textbackslash{}\}} lo selecciona (rechaza con 403 un cliente ajeno). \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+
+\subsection{Lo que la plantilla ya no trae}
+Registro, recuperar o cambiar contrase\~na, borrar cuenta, 2FA y passkeys. Las cuentas se administran desde Admin T\'ecnica. Queda el perfil (nombre y correo) y la pantalla de apariencia.
+
+\warnnote{sContrato no lo pone el login}{El servicio \texttt{Kardex} toma \texttt{sContrato} de la sesi\'on. El contrato es por proyecto, no por cliente, as\'i que el m\'odulo que elija proyecto debe dejarlo con \texttt{session(['sContrato' => ...])}. Hasta entonces el kardex escribe con contrato vac\'io.}
+
+\section{6. Servicios de backend}
+Todos reciben una conexi\'on opcional; sin ella usan la conexi\'on activa (la del cliente).
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Necesito}{Usar}
+Siguiente ID de una tabla & \texttt{(new MaximoId)->getIdMaximo(\$contrato, 'tabla', 'IdCampo')}. Nunca \code{MAX(Id)+1} a mano. \\
+Folio con prefijo y consecutivo & \texttt{(new AutoFolio)->generar('tabla')}, con \code{$idDepartamento} para series por departamento. \\
+Bit\'acora del sistema & \texttt{\$kardex->registrar('Puesto 7 [Gerente] registrado', 'Catalogo de Puestos')} en toda alta, edici\'on o baja. \\
+SQL guardado en \code{master_consultassql} & \texttt{(new DynamicQueryExecutor)->executeQueryByName('nombre', [...])} o la versi\'on paginada. Nunca copiar el SQL al c\'odigo. \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+Sus tests est\'an en \code{tests/Feature/ServiciosNoilTest.php}; los del login y la sincronizaci\'on en \code{AuthTest.php} y \code{AdminTecnicaSyncTest.php}.
+
+\section{7. Reglas de backend}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item \textbf{Un m\'odulo, una carpeta} en \code{app/Domain/<Modulo>/}: modelo (solo tipado), interfaz del repositorio, \code{DynamicQuery*Repository} (consultas nombradas, la v\'ia principal), \code{Eloquent*Repository} (solo para prototipar) y caso de uso cuando hay reglas de negocio. El \code{bind} va en \code{AppServiceProvider}.
+  \item \textbf{Controlador delgado}: Form Request, llamada al repositorio o caso de uso, respuesta. Sin \code{DB::} ni modelos directos.
+  \item \textbf{Rutas con nombre} (\code{modulo.accion}) y despu\'es \texttt{php artisan wayfinder:generate --with-form}. No reutilizar nombres de Fortify (\code{login}, \code{logout}, \code{password.*}).
+  \item \textbf{Columnas con prefijo Noil}: \code{IdCliente}, \code{SNombre}, \code{EActivo} (\code{Si}/\code{No}), \code{ICantidad}, \code{DFechaInicio}, \code{URL_Icono}. Nada de snake\_case nuevo.
+  \item \textbf{Validaci\'on} en Form Requests con \code{attributes()} en espa\~nol. Los errores 422 los reparte Inertia por campo.
+  \item \textbf{Respuestas de escritura}: \texttt{back()->with('success', ...)} o \texttt{->with('error', ...)}; el toast ya est\'a montado.
+\end{itemize}
+
+\section{8. Reglas de frontend}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item \textbf{Sin colores a mano}: \code{bg-primary}, \code{text-muted-foreground}, \code{bg-success}, \code{bg-warning}, \code{bg-info}, \code{bg-destructive}. Sin \code{dark:}.
+  \item \textbf{Listado} = \code{PageShell} + \code{ContextPanel} + \code{DataTable}. El paginador de Laravel entra directo. B\'usqueda, exportar, columnas y paginaci\'on ya vienen.
+  \item \textbf{Captura} en un \code{Sheet} derecho (\code{*-form-drawer.tsx}) con \code{Field}, \code{FieldLabel}, \code{FieldError} y \code{FormErrorBanner}. Detalle en \code{Dialog}. Borrado con \code{confirmDialog}.
+  \item \textbf{Fechas}: \code{DateInputPicker} para capturar, \code{formatDate} para mostrar (\code{dd-mm-aaaa}); viajan al backend como \code{aaaa-mm-dd}. Nunca \texttt{<input type="date">}.
+  \item \textbf{Componentes sin l\'ogica}: todo \code{useForm}, \code{router.*} y c\'alculo vive en \code{hooks/use-<modulo>-<cosa>.ts}. M\'aximo 200 l\'ineas por archivo.
+  \item \textbf{Rutas por Wayfinder} (\code{@/routes}, \code{@/actions}), nunca strings. Sin \code{fetch} ni axios: \code{Inertia::defer()} o \code{useHttp}.
+  \item \textbf{Cach\'e de prefetch}: \code{Link} del men\'u con \code{cacheTags}, y toda escritura con \code{invalidateCacheTags}.
+\end{itemize}
+
+\section{9. Arrancar un m\'odulo nuevo}
+Pasos, en orden, para un cat\'alogo ``Proveedores''. Cada paso deja la app funcionando.
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+  \item Consulta nombrada del listado en \code{master_consultassql}.
+  \item \code{app/Domain/Proveedor/}: modelo, interfaz, \code{DynamicQueryProveedorRepository} (o \code{Eloquent*} mientras no existe la consulta).
+  \item \texttt{php artisan make:request Proveedores/StoreProveedorRequest} y \code{Update...}.
+  \item \texttt{php artisan make:controller ProveedorController} con \code{index/store/update/destroy}.
+  \item Rutas \code{proveedores.*} en \code{routes/web.php} dentro del grupo \code{auth}; luego \code{wayfinder:generate}.
+  \item Hooks \code{use-proveedor-listado.ts} y \code{use-proveedor-form.ts} copiando los de \code{ejemplo}.
+  \item Columnas y badge en \code{components/proveedor/columnas.tsx}.
+  \item P\'agina \code{pages/proveedores/index.tsx} copiando \code{pages/ejemplo/index.tsx}.
+  \item Drawer \code{components/proveedor/form-drawer.tsx}.
+  \item \code{NavItem} en \code{app-sidebar.tsx}.
+  \item \texttt{php artisan make:test ProveedorTest}: index con b\'usqueda, store con 422 y con \'exito, destroy.
+\end{enumerate}
+
+\section{10. Skills para agentes de IA}
+Las reglas de las secciones 7, 8 y 9 viven en \code{.agents/skills/} y se cargan solas:
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Skill}{Cu\'ando se carga}
+\code{ui-noil} & Antes de tocar \code{resources/js}: qu\'e componente usar, tema, drawers, tablas, hooks. \\
+\code{backend-noil} & Antes de tocar \code{app/}, \code{routes/}, \code{database/}: servicios, dominio, consultas nombradas, columnas, validaci\'on, login y tenant. \\
+\code{flujo-noil} & Al arrancar un m\'odulo y antes de dar por terminada una tarea. \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+Claude Code las ve por los symlinks de \code{.claude/skills/}; Codex por \code{AGENTS.md}. Cuando una regla cambia, se edita la skill (es la fuente de verdad) y se versiona. Las gu\'ias de Laravel Boost se regeneran con \texttt{php artisan boost:update} y no se editan.
+
+\section{11. Comandos y cierre de cada tarea}
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{5.2cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{Qu\'e}{Comando}
+Servidor + Vite + cola + logs & \texttt{composer run dev} \\
+Pruebas & \texttt{php artisan test --compact} \\
+Formato PHP & \texttt{vendor/bin/pint --dirty} \\
+Lint y formato JS & \texttt{npx vp check --fix} \\
+Tipos TypeScript & \texttt{npx tsc --noEmit} \\
+Rutas tipadas tras cambiar rutas & \texttt{php artisan wayfinder:generate --with-form} \\
+Build de producci\'on & \texttt{npm run build} \\
+Agregar un primitivo shadcn & \texttt{npx shadcn@latest add <nombre>} \\
+Compilar un manual & \texttt{docs/\_plantillas/compilar.sh archivo.tex} \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+
+Ninguna tarea se da por terminada sin esto en verde:
+\begin{termbox}{cierre obligatorio}
+\begin{lstlisting}[style=plain]
+vendor/bin/pint --dirty
+php artisan test --compact
+npx vp check --fix
+npx tsc --noEmit
+\end{lstlisting}
+\end{termbox}
+Si el cambio es visual, adem\'as se abre la pantalla y se revisa el estado vac\'io, un error de validaci\'on y el flujo completo de alta, edici\'on y borrado.
+
+\section{12. Pruebas}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item Corren sobre SQLite en memoria (\code{phpunit.xml}), con \code{NOIL_SYNC=true} y una llave AES de prueba.
+  \item \code{tests/TestCase.php} fija la transacci\'on de \code{RefreshDatabase} sobre la conexi\'on maestra: un test que cambie de cliente no ensucia a los dem\'as.
+  \item Para probar algo que requiera un usuario con cliente, inserta el cliente y la relaci\'on y mockea \code{AdminTecnicaSync} (ver \code{AuthTest}). Para probar la sincronizaci\'on real, \code{AdminTecnicaSyncTest} crea un SQLite temporal como base de cliente.
+  \item \code{User::factory()} crea usuarios de \code{admin_usuarios} con contrase\~na \code{password}; \code{->inactivo()} los deja en \texttt{EActivo = No}.
+\end{itemize}
+
+\section{13. Antes de desplegar}
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item \code{APP_ENV=production}, \code{APP_DEBUG=false}, \code{APP_URL} real.
+  \item \code{DB_*} apuntando a la \code{admin_tecnica} del ambiente, \code{NOIL_PRODUCTO_ID} correcto, \code{NOIL_AES_KEY} cargada, \code{NOIL_SYNC=true}.
+  \item \code{SESSION_DRIVER} y \code{CACHE_STORE} en \code{database} requieren que \code{sessions} y \code{cache} existan en la base maestra (\texttt{php artisan migrate}). El lock de sincronizaci\'on usa el cache.
+  \item \texttt{npm run build} y \texttt{php artisan config:cache}.
+  \item El seeder no se corre en producci\'on: los usuarios viven en Admin T\'ecnica.
+  \item M\'odulo de ejemplo borrado.
+\end{itemize}
+
+\section{14. Problemas comunes}
+\par\noindent\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{5.2cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\cab{S\'intoma}{Causa y soluci\'on}
+``Unable to locate file in Vite manifest'' & No hay build ni Vite corriendo. \texttt{npm run build} o \texttt{composer run dev}. \\
+TypeScript no encuentra \code{@/routes/...} o \code{@/actions/...} & Falta regenerar Wayfinder tras cambiar rutas: \texttt{php artisan wayfinder:generate --with-form}. \\
+Login dice credenciales incorrectas con datos buenos & Revisa \code{NOIL_AES_KEY}, que \code{EActivo} sea \code{Si} y que el usuario tenga fila en \code{admin_clientes_roles_usuarios}. \\
+Error al seleccionar cliente: tabla \code{master_modulos_admin} no existe & La base del cliente no tiene las tablas espejo, o est\'as en SQLite con \code{NOIL_SYNC=true}. En demo ponlo en \code{false}. \\
+Cambi\'e el \code{.env} y no pasa nada & \texttt{php artisan config:clear}. \\
+``The intl PHP extension is required'' & Instala \code{php-intl}; lo piden algunos comandos de Artisan, no la app. \\
+Residuos con due\~no root al compilar un manual & El PDF lo genera Docker como root. \code{compilar.sh} limpia los auxiliares; si queda algo, \texttt{sudo rm}. \\
+\hline
+\end{tabularx}\par\addvspace{6pt}
+
+\section{15. Este manual}
+Vive en \code{docs/_plantillas/manual-plantilla.tex} y se compila con Docker (imagen \code{texlive/texlive}) sin LaTeX instalado:
+\begin{termbox}{terminal}
+\begin{lstlisting}[style=plain]
+cd docs/_plantillas
+./compilar.sh manual-plantilla.tex
+\end{lstlisting}
+\end{termbox}
+Para un manual nuevo, copia \code{plantilla_base.tex}, edita portada y cuerpo, y sigue el \code{README.md} de la carpeta. Cuando cambie algo de lo que aqu\'i se describe, sube la versi\'on en la portada y en el control de versiones.
+
+\end{document}

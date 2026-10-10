@@ -1,0 +1,227 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+/* Tema "Noil" (portado de appweb_proveedores/resources/css/island.css .theme-noil).
+   ponytail: solo light; dark mode eliminado a propósito. Las clases dark:* sueltas en tsx son inertes. */
+:root {
+    --background: hsl(213 100% 98%);
+    --foreground: hsl(222 47% 11%);
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(222 47% 11%);
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(222 47% 11%);
+    --primary: hsl(221 83% 53%);
+    --primary-foreground: hsl(0 0% 100%);
+    --secondary: hsl(214 32% 95%);
+    --secondary-foreground: hsl(222 47% 18%);
+    --muted: hsl(214 32% 95%);
+    --muted-foreground: hsl(215 19% 47%);
+    --accent: hsl(213 97% 94%);
+    --accent-foreground: hsl(221 83% 38%);
+    --destructive: hsl(0 72% 51%);
+    --destructive-foreground: hsl(0 0% 100%);
+    --border: hsl(214 32% 89%);
+    --input: hsl(214 32% 89%);
+    --ring: hsl(221 83% 53%);
+
+    /* Estados: paleta de badge.tsx de referencia (emerald/amber/blue 700 sobre 100) */
+    --success: hsl(149 80% 90%);
+    --success-foreground: hsl(163 94% 24%);
+    --warning: hsl(48 96% 89%);
+    --warning-foreground: hsl(26 90% 37%);
+    --info: hsl(214 95% 93%);
+    --info-foreground: hsl(224 76% 48%);
+
+    --chart-1: hsl(221 83% 53%);
+    --chart-2: hsl(160 84% 39%);
+    --chart-3: hsl(38 92% 50%);
+    --chart-4: hsl(199 89% 48%);
+    --chart-5: hsl(0 72% 51%);
+
+    /* Sidebar oscuro (Sidebar.jsx de referencia: slate-900/950, activo azul) */
+    --sidebar: hsl(222 47% 11%);
+    --sidebar-foreground: hsl(213 27% 84%);
+    --sidebar-primary: hsl(221 83% 53%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(217 33% 17%);
+    --sidebar-accent-foreground: hsl(0 0% 100%);
+    --sidebar-border: hsl(217 33% 17%);
+    --sidebar-ring: hsl(221 83% 53%);
+
+    --radius: 0.75rem;
+
+    /* Sombras azuladas en vez de grises */
+    --shadow-sm:
+        0 1px 2px hsl(221 40% 30% / 0.06), 0 1px 3px hsl(221 40% 30% / 0.04);
+    --shadow-lg:
+        0 12px 32px -8px hsl(221 60% 30% / 0.18),
+        0 4px 12px -4px hsl(221 60% 30% / 0.1);
+}
+
+@theme inline {
+    --font-sans:
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+
+    --shadow-sm: var(--shadow-sm);
+    --shadow-lg: var(--shadow-lg);
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+
+    h1,
+    h2,
+    h3 {
+        letter-spacing: -0.02em;
+    }
+}
+
+/* Sidebar estilo referencia (Sidebar.jsx de appweb_proveedores). Sin capa: gana a las utilidades de ui/sidebar.tsx.
+   ponytail: override por data-attrs en vez de reescribir el componente shadcn. */
+[data-sidebar='sidebar'] {
+    background: linear-gradient(to bottom, hsl(222 47% 11%), hsl(229 84% 5%));
+}
+[data-sidebar='group'] {
+    padding: 1rem;
+}
+[data-sidebar='menu'] {
+    gap: 0.5rem;
+}
+/* Top-level: px-4 py-3 rounded-lg text-base font-medium, icono 20px mr-3 */
+[data-sidebar='menu-button'] {
+    gap: 0.75rem;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+}
+[data-sidebar='menu-button'] > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+[data-sidebar='menu-button'][data-active='true'] {
+    background: linear-gradient(to right, hsl(217 91% 60%), hsl(221 83% 53%));
+    color: #fff;
+    box-shadow: var(--shadow-lg);
+}
+/* Hijos: ml-6 px-4 py-2.5 text-sm, icono 16px mr-3, sin línea vertical */
+[data-sidebar='menu-sub'] {
+    margin: 0.25rem 0 0 1.5rem;
+    padding: 0;
+    gap: 0.25rem;
+    border-left: 0;
+}
+[data-sidebar='menu-sub-button'] {
+    gap: 0.75rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: hsl(215 20% 65%);
+}
+[data-sidebar='menu-sub-button'][data-active='true'] {
+    background: hsl(217 91% 60% / 0.2);
+    color: hsl(213 94% 68%);
+    border-left: 2px solid hsl(213 94% 68%);
+}
+[data-sidebar='menu-button'][data-size='lg'] {
+    color: #fff;
+}
+
+/* Scrollbar fina reutilizable (tablas, drawers, sidebar) */
+.scroll-thin,
+[data-sidebar='content'] {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+.scroll-thin::-webkit-scrollbar,
+[data-sidebar='content']::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb,
+[data-sidebar='content']::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover,
+[data-sidebar='content']::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148, 163, 184, 0.6);
+}
+
+/* Shimmer para ui/skeleton.tsx */
+@keyframes shimmer {
+    from {
+        background-position: 200% 0;
+    }
+    to {
+        background-position: -200% 0;
+    }
+}
+.skeleton-shimmer {
+    background: linear-gradient(
+        100deg,
+        hsl(215 25% 92%) 40%,
+        hsl(0 0% 100% / 0.9) 50%,
+        hsl(215 25% 92%) 60%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s linear infinite;
+}

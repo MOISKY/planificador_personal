@@ -1,0 +1,154 @@
+% =====================================================================
+%  PLANTILLA BASE — Documentación corporativa Noil / Makers Ferretería
+%  Copia este archivo, renómbralo (ej. mi_documento.tex) y edita el
+%  cuerpo (entre "EMPIEZA EL CUERPO" y \end{document}).
+%  Compila con:  ./compilar.sh mi_documento.tex   (usa Docker texlive)
+%  Requiere:  assets/plantilla_fondo.png  (fondo corporativo de cada hoja)
+% =====================================================================
+\documentclass[11pt]{article}
+\usepackage[table]{xcolor}
+\usepackage[a4paper,top=3.9cm,bottom=4.2cm,left=2.3cm,right=2.3cm]{geometry}
+\usepackage{eso-pic}
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage[default]{sourcesanspro}   % tipografía corporativa (sans)
+\usepackage{sourcecodepro}            % monoespaciada para código
+
+% ---- colores corporativos -------------------------------------------
+\definecolor{noilblue}{HTML}{1F71BD}   % azul principal (títulos, cabeceras)
+\definecolor{noildark}{HTML}{14538C}   % azul oscuro (subtítulos, énfasis)
+\definecolor{termbg}{HTML}{1E1E2E}     % fondo de cajas de código/terminal
+\definecolor{termtitlebg}{HTML}{2A2A3C}% barra de título de la terminal
+\definecolor{termtext}{HTML}{C0CAF5}   % texto dentro de la terminal
+\definecolor{termaccent}{HTML}{9ECE6A} % verde acento
+\definecolor{tblhead}{HTML}{1F71BD}    % cabecera de tablas
+\definecolor{tblrow}{HTML}{EAF2FB}     % fila alterna (zebra) opcional
+\definecolor{mPut}{HTML}{E65100}       % naranja de advertencia
+
+% ---- fondo de plantilla en cada página ------------------------------
+\AddToShipoutPictureBG{\put(0,0){\includegraphics[width=\paperwidth,height=\paperheight]{assets/plantilla_fondo.png}}}
+\pagestyle{empty}
+
+% ---- títulos --------------------------------------------------------
+\titleformat{\section}{\Large\bfseries\color{noilblue}}{}{0pt}{}[{\color{noilblue}\titlerule[1pt]}]
+\titleformat{\subsection}{\large\bfseries\color{noildark}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\setcounter{secnumdepth}{0}   % secciones sin numerar
+
+% ---- caja "terminal" (3 puntitos) para nombres / URLs / código ------
+\newtcolorbox{termbox}[1]{
+  enhanced, breakable,
+  colback=termbg, colframe=termbg, boxrule=0pt, arc=4pt,
+  left=4pt,right=4pt,top=2pt,bottom=4pt,
+  before skip=6pt, after skip=10pt,
+  title={\textcolor{red!70!black}{\textbullet}\,\textcolor{yellow!80!black}{\textbullet}\,\textcolor{green!70!black}{\textbullet}\hfill{\color{gray!70}\ttfamily\scriptsize #1}},
+  coltitle=white, colbacktitle=termtitlebg, fonttitle=\small,
+}
+\lstdefinestyle{plain}{
+  backgroundcolor=\color{termbg},
+  basicstyle=\ttfamily\footnotesize\color{termtext},
+  showstringspaces=false, breaklines=true, columns=fullflexible, keepspaces=true, upquote=true,
+}
+
+% ---- nota informativa (azul) / advertencia (naranja) ----------------
+\newcommand{\infonote}[2]{%
+\par\addvspace{4pt}\noindent
+\begin{tcolorbox}[enhanced,breakable,colback=noilblue!7,colframe=noilblue,boxrule=0.8pt,arc=2pt,
+  left=8pt,right=8pt,top=4pt,bottom=4pt,fonttitle=\bfseries\color{white},
+  colbacktitle=noilblue,title={#1}]
+\small #2
+\end{tcolorbox}\par\addvspace{4pt}}
+\newcommand{\warnnote}[2]{%
+\par\addvspace{4pt}\noindent
+\begin{tcolorbox}[enhanced,breakable,colback=orange!8,colframe=mPut,boxrule=0.9pt,arc=2pt,
+  left=8pt,right=8pt,top=4pt,bottom=4pt,fonttitle=\bfseries\color{white},
+  colbacktitle=mPut,title={#1}]
+\small #2
+\end{tcolorbox}\par\addvspace{4pt}}
+
+% ---- tabla de control de versiones ----------------------------------
+\newcommand{\changelogtable}[1]{%
+\par\noindent
+\begin{tabularx}{\linewidth}{|c|c|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblhead}\textbf{\color{white}Versi\'on} & \textbf{\color{white}Fecha} & \textbf{\color{white}Autor} & \textbf{\color{white}Cambios}\\
+\hline
+#1
+\hline
+\end{tabularx}\par\addvspace{6pt}}
+
+% ---- espaciado global -----------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{document}
+\sloppy
+
+% =====================================================================
+%  PORTADA  — edita título, subtítulo y descripción
+% =====================================================================
+\thispagestyle{empty}
+\vspace*{3.2cm}
+{\Large\bfseries\color{black} Categor\'ia del documento}\par\vspace{6pt}
+{\LARGE\bfseries\color{noilblue} T\'itulo principal del documento}\par\vspace{6pt}
+{\large\bfseries\color{noildark} Subt\'itulo / sistema --- Makers Ferreter\'ia}\par\vspace{16pt}
+
+Resumen de una o dos l\'ineas que explica de qu\'e trata el documento y a qui\'en va dirigido.\par\vspace{10pt}
+
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{4.2cm}|c|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblhead}\textbf{\color{white}Versi\'on del documento} & \textbf{\color{white}Estatus} & \textbf{\color{white}Notas}\\
+\hline
+1.0.0 -- Fecha: 01/01/2026 & Beta & Detalle relevante \\
+\hline
+\end{tabularx}
+
+% =====================================================================
+%  EMPIEZA EL CUERPO  — borra los ejemplos y escribe tu contenido
+% =====================================================================
+
+\section{Control de versiones}
+Versi\'on actual del documento: \textbf{1.0.0}. Bit\'acora de cambios (m\'as reciente primero):
+\changelogtable{1.0.0 & 01/01/2026 & Equipo Noil & $\bullet$\ Versi\'on inicial. \\}
+
+\section{Una secci\'on de ejemplo}
+Texto normal de p\'arrafo. Usa \texttt{\textbackslash texttt\{\}} para c\'odigo en l\'inea y
+\textbf{negritas} para resaltar.
+
+% --- caja de código/terminal
+\begin{termbox}{etiqueta}
+\begin{lstlisting}[style=plain]
+ejemplo de comando o nombre de archivo
+segunda linea
+\end{lstlisting}
+\end{termbox}
+
+% --- tabla estándar (cabecera azul)
+\begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\rowcolor{tblhead}\textbf{\color{white}Campo} & \textbf{\color{white}Descripci\'on}\\
+\hline
+Ejemplo & Valor o explicaci\'on del campo. \\
+\hline
+\end{tabularx}
+
+% --- listas
+\begin{itemize}[leftmargin=1.2em,itemsep=2pt]
+  \item Primer punto.
+  \item Segundo punto.
+\end{itemize}
+
+% --- nota informativa (azul) y advertencia (naranja)
+\infonote{T\'itulo de la nota}{Contenido informativo de apoyo para el lector.}
+\warnnote{T\'itulo de la advertencia}{Algo importante que el lector NO debe pasar por alto.}
+
+\end{document}
