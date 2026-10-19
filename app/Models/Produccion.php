@@ -140,4 +140,19 @@ class Produccion extends Model
         return $this->hasOne(ProduccionEstatus::class, 'IdProduccion', 'IdProduccion')
             ->latestOfMany('FechaRegistro');
     }
+
+    /**
+     * Busca una producción por nombre de forma insensible a mayúsculas/minúsculas compatible con MySQL y PostgreSQL.
+     */
+    public static function buscarPorNombre(string $nombre): ?self
+    {
+        $nombreLimpio = trim($nombre);
+        if ($nombreLimpio === '') {
+            return null;
+        }
+
+        $col = (new static)->getConnection()->getQueryGrammar()->wrap('NombreProduccion');
+
+        return static::whereRaw("LOWER({$col}) = ?", [mb_strtolower($nombreLimpio)])->first();
+    }
 }

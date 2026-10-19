@@ -64,4 +64,19 @@ class Director extends Model
             'IdProduccion'
         )->withPivot('IdProduccionDirector', 'FechaRegistro');
     }
+
+    /**
+     * Busca un director por nombre de forma insensible a mayúsculas/minúsculas compatible con MySQL y PostgreSQL.
+     */
+    public static function buscarPorNombre(string $nombre): ?self
+    {
+        $nombreLimpio = trim($nombre);
+        if ($nombreLimpio === '') {
+            return null;
+        }
+
+        $col = (new static)->getConnection()->getQueryGrammar()->wrap('NombreDirector');
+
+        return static::whereRaw("LOWER({$col}) = ?", [mb_strtolower($nombreLimpio)])->first();
+    }
 }

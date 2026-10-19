@@ -18,7 +18,7 @@ class TipoOpinionController extends Controller
 
         $items = TipoOpinion::query()
             ->when($search !== '', function ($query) use ($search): void {
-                $query->where('Nombre', 'like', "%{$search}%");
+                $query->whereLike('Nombre', "%{$search}%");
             })
             ->withCount('comentarios')
             ->orderBy('IdTipoOpinion', 'desc')

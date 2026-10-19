@@ -20,9 +20,9 @@ class ProduccionSeguimientoController extends Controller
         $items = ProduccionSeguimiento::query()
             ->with('produccion.recursos')
             ->when($search !== '', function ($query) use ($search): void {
-                $query->where('Descripcion', 'like', "%{$search}%")
+                $query->whereLike('Descripcion', "%{$search}%")
                     ->orWhereHas('produccion', function ($q) use ($search): void {
-                        $q->where('NombreProduccion', 'like', "%{$search}%");
+                        $q->whereLike('NombreProduccion', "%{$search}%");
                     });
             })
             ->orderBy('Fecha', 'desc')

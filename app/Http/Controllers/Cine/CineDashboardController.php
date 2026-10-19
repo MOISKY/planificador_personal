@@ -166,7 +166,7 @@ class CineDashboardController extends Controller
         $nombre = trim($validated['titulo']);
 
         // Evitar duplicados
-        $existente = Produccion::whereRaw('LOWER(NombreProduccion) = ?', [mb_strtolower($nombre)])->first();
+        $existente = Produccion::buscarPorNombre($nombre);
         if ($existente) {
             return back()->with('info', "La producción '{$nombre}' ya está en tu lista.");
         }
@@ -191,7 +191,7 @@ class CineDashboardController extends Controller
                         continue;
                     }
 
-                    $director = Director::whereRaw('LOWER(NombreDirector) = ?', [mb_strtolower($nombreDir)])->first();
+                    $director = Director::buscarPorNombre($nombreDir);
                     if (! $director) {
                         $director = Director::create([
                             'NombreDirector' => $nombreDir,

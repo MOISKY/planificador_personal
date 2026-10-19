@@ -21,9 +21,9 @@ class ProduccionRecursoController extends Controller
         $items = ProduccionRecurso::query()
             ->with('produccion.recursos')
             ->when($search !== '', function ($query) use ($search): void {
-                $query->where('URL_produccion_recurso', 'like', "%{$search}%")
+                $query->whereLike('URL_produccion_recurso', "%{$search}%")
                     ->orWhereHas('produccion', function ($q) use ($search): void {
-                        $q->where('NombreProduccion', 'like', "%{$search}%");
+                        $q->whereLike('NombreProduccion', "%{$search}%");
                     });
             })
             ->when($tipo !== '', function ($query) use ($tipo): void {

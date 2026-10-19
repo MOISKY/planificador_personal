@@ -24,8 +24,8 @@ class DirectorController extends Controller
 
         $items = Director::query()
             ->when($search !== '', function ($query) use ($search): void {
-                $query->where('NombreDirector', 'like', "%{$search}%")
-                    ->orWhere('Descripcion', 'like', "%{$search}%");
+                $query->whereLike('NombreDirector', "%{$search}%")
+                    ->orWhereLike('Descripcion', "%{$search}%");
             })
             ->withCount('producciones')
             ->orderBy('IdDirector', 'desc')

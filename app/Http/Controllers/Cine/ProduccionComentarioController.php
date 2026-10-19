@@ -21,10 +21,10 @@ class ProduccionComentarioController extends Controller
         $items = ProduccionComentario::query()
             ->with(['produccion.recursos', 'tipoOpinion:IdTipoOpinion,Nombre'])
             ->when($search !== '', function ($query) use ($search): void {
-                $query->where('titulo', 'like', "%{$search}%")
-                    ->orWhere('comentario', 'like', "%{$search}%")
+                $query->whereLike('titulo', "%{$search}%")
+                    ->orWhereLike('comentario', "%{$search}%")
                     ->orWhereHas('produccion', function ($q) use ($search): void {
-                        $q->where('NombreProduccion', 'like', "%{$search}%");
+                        $q->whereLike('NombreProduccion', "%{$search}%");
                     });
             })
             ->orderBy('IdProduccionComentario', 'desc')

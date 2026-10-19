@@ -22,7 +22,7 @@ class ProduccionEstatusController extends Controller
             ->with('produccion.recursos')
             ->when($search !== '', function ($query) use ($search): void {
                 $query->whereHas('produccion', function ($q) use ($search): void {
-                    $q->where('NombreProduccion', 'like', "%{$search}%");
+                    $q->whereLike('NombreProduccion', "%{$search}%");
                 });
             })
             ->when($estatus !== '', function ($query) use ($estatus): void {

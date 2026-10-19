@@ -19,8 +19,8 @@ class ProduccionController extends Controller
 
         $items = Produccion::query()
             ->when($search !== '', function ($query) use ($search): void {
-                $query->where('NombreProduccion', 'like', "%{$search}%")
-                    ->orWhere('Sinopsis', 'like', "%{$search}%");
+                $query->whereLike('NombreProduccion', "%{$search}%")
+                    ->orWhereLike('Sinopsis', "%{$search}%");
             })
             ->with(['directores', 'estatusActual', 'recursos'])
             ->withCount(['comentarios', 'seguimientos', 'recursos'])
@@ -156,7 +156,7 @@ class ProduccionController extends Controller
             }
 
             // Si ya existe el director en el sistema (por nombre), se toma directamente
-            $director = Director::whereRaw('LOWER(NombreDirector) = ?', [mb_strtolower($nombreLimpio)])->first();
+            $director = Director::buscarPorNombre($nombreLimpio);
 
             // Si no existe, se genera con insert en cine_directores
             if (! $director) {
