@@ -38,7 +38,7 @@ export function useEjemploListado(searchValue: string) {
             description: `Se eliminará "${r.nombre}". Esta acción no se puede deshacer.`,
         });
         if (ok) {
-            router.delete(destroy({ id: r.id }).url, {
+            router.delete(destroy({ ejemplo: r.id }).url, {
                 preserveScroll: true,
                 invalidateCacheTags: ['ejemplo'],
             });

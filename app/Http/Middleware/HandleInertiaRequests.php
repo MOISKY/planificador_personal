@@ -2,7 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Produccion;
+use App\Models\ProduccionEstatus;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -46,6 +50,18 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
+            'cineEstrenosProximosCount' => function (): int {
+                if (! Schema::hasTable('cine_produccion')) {
+                    return 0;
+                }
+
+                return Produccion::whereHas('estatusActual', function ($q): void {
+                    $q->where('Estatus', ProduccionEstatus::ESTATUS_POR_VER);
+                })
+                    ->whereNotNull('FechaProduccion')
+                    ->whereBetween('FechaProduccion', [Carbon::today(), Carbon::today()->addDays(30)])
+                    ->count();
+            },
         ];
     }
 }

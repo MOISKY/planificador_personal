@@ -1,3 +1,4 @@
+
 <?php
 
 return [
@@ -33,6 +34,13 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+    'tmdb' => [
+        'key' => env('TMDB_API_KEY'),
+        'token' => env('TMDB_ACCESS_TOKEN'),
+        'base_url' => env('TMDB_BASE_URL', 'https://api.themoviedb.org/3'),
+        'image_url' => env('TMDB_IMAGE_BASE_URL', 'https://image.tmdb.org/t/p'),
     ],
 
 ];

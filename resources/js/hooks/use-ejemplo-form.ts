@@ -70,7 +70,7 @@ export function useEjemploForm({
         };
 
         if (item?.id) {
-            put(update({ id: item.id }).url, opciones);
+            put(update({ ejemplo: item.id }).url, opciones);
         } else {
             post(store().url, opciones);
         }

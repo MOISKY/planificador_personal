@@ -36,11 +36,12 @@ export interface NavGroup {
 
 export interface NavItem {
     title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
+    href?: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
     cacheTags?: string[];
     badge?: React.ReactNode;
+    subItems?: NavItem[];
 }
 
 export interface Flash {
@@ -53,5 +54,6 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     flash: Flash;
+    cineEstrenosProximosCount?: number;
     [key: string]: unknown;
 }

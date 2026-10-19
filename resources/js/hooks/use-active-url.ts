@@ -13,7 +13,8 @@ interface UrlActiveOptions {
 
 export function useActiveUrl() {
     const page = usePage();
-    const currentUrlPath = new URL(page.url, window?.location.origin).pathname;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+    const currentUrlPath = new URL(page.url, origin).pathname;
 
     function urlIsActive(
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
