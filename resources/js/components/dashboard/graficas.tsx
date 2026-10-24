@@ -1,4 +1,4 @@
-import { Donut, type DonutSeg } from '@/components/noil/charts';
+import { Donut, type DonutSeg } from '@/components/charts';
 import {
     Card,
     CardContent,

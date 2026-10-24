@@ -1,4 +1,4 @@
-import { confirmDialog } from '@/components/noil/confirm-dialog';
+import { confirmDialog } from '@/components/confirm-dialog';
 import { type ComentarioFormData } from '@/hooks/use-comentario-form';
 import cine from '@/routes/cine';
 import { router } from '@inertiajs/react';

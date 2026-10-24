@@ -1,4 +1,4 @@
-import AppLogoIcon from '@/components/layout/app-logo-icon';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { LoginForm } from '@/components/auth/login-form';
 import { Head } from '@inertiajs/react';
 
@@ -11,7 +11,7 @@ export default function LoginPage() {
                     <div className="flex justify-center gap-2 md:justify-start">
                         <span className="flex items-center gap-2 font-medium">
                             <AppLogoIcon className="size-8" />
-                            Software NOIL
+                            PLANIFICADOR PERSONAL
                         </span>
                     </div>
                     <div className="flex flex-1 items-center justify-center">

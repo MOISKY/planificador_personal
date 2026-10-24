@@ -1,4 +1,4 @@
-import { FormErrorBanner } from '@/components/noil/form-error-banner';
+import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import { DateInputPicker } from '@/components/ui/date-input-picker';
 import {
@@ -8,8 +8,10 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
+    SheetClose,
     SheetContent,
     SheetDescription,
     SheetFooter,
@@ -61,18 +63,23 @@ export default function DirectorFormDrawer({
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="overflow-y-auto sm:max-w-xl">
-                <form onSubmit={submit} className="flex flex-col h-full">
-                    <SheetHeader>
-                        <SheetTitle className="flex items-center gap-2">
-                            <UserCheck className="size-5 text-primary" />
-                            {esEdicion ? 'Editar Director' : 'Nuevo Director'}
-                        </SheetTitle>
-                        <SheetDescription>
-                            {esEdicion
-                                ? 'Modifica los datos del director.'
-                                : 'Busca el nombre en TMDB para autocompletar o ingresa los datos manualmente.'}
-                        </SheetDescription>
-                    </SheetHeader>
+                <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                        <UserCheck className="size-5 text-primary" />
+                        {esEdicion ? 'Editar Director' : 'Nuevo Director'}
+                    </SheetTitle>
+                    <SheetDescription>
+                        {esEdicion
+                            ? 'Modifica los datos del director.'
+                            : 'Busca el nombre en TMDB para autocompletar o ingresa los datos manualmente.'}
+                    </SheetDescription>
+                </SheetHeader>
+
+                <form
+                    id="director-form"
+                    onSubmit={submit}
+                    className="flex flex-col gap-5 px-6 py-4"
+                >
 
                     <div className="py-6 flex-1 space-y-6">
                         <FormErrorBanner
@@ -156,20 +163,37 @@ export default function DirectorFormDrawer({
                             </div>
                         )}
 
+                        <div className="space-y-1">
+                            <h4 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                <UserCheck className="size-4" />
+                                Información del director
+                            </h4>
+                            <p className="text-xs text-muted-foreground">
+                                Datos biográficos y trayectoria del cineasta
+                            </p>
+                        </div>
+
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="NombreDirector">
+                                <FieldLabel htmlFor="NombreDirector" required>
                                     Nombre del Director
                                 </FieldLabel>
-                                <Input
-                                    id="NombreDirector"
-                                    placeholder="Nombre completo"
-                                    value={data.NombreDirector}
-                                    onChange={(e) =>
-                                        setData('NombreDirector', e.target.value)
-                                    }
-                                    autoFocus={esEdicion}
-                                />
+                                <div className="relative">
+                                    <UserCheck className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="NombreDirector"
+                                        placeholder="Nombre completo"
+                                        className="pl-10"
+                                        value={data.NombreDirector}
+                                        onChange={(e) =>
+                                            setData('NombreDirector', e.target.value)
+                                        }
+                                        autoFocus={esEdicion}
+                                        required
+                                        disabled={processing}
+                                        aria-invalid={!!errors.NombreDirector}
+                                    />
+                                </div>
                                 <FieldError>{errors.NombreDirector}</FieldError>
                             </Field>
 
@@ -204,8 +228,12 @@ export default function DirectorFormDrawer({
                             </Field>
                         </FieldGroup>
                     </div>
+                </form>
 
-                    <SheetFooter className="flex-row justify-end gap-2 border-t pt-4">
+                <Separator className="my-2" />
+
+                <SheetFooter>
+                    <SheetClose asChild>
                         <Button
                             type="button"
                             variant="outline"
@@ -213,21 +241,27 @@ export default function DirectorFormDrawer({
                                 reset();
                                 onOpenChange(false);
                             }}
+                            className="flex-1 sm:flex-none"
                             disabled={processing}
                         >
                             <X className="mr-1.5 size-4" />
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
-                            )}
-                            {esEdicion ? 'Guardar Cambios' : 'Registrar Director'}
-                        </Button>
-                    </SheetFooter>
-                </form>
+                    </SheetClose>
+                    <Button
+                        type="submit"
+                        form="director-form"
+                        className="flex-1 sm:flex-none"
+                        disabled={processing}
+                    >
+                        {processing ? (
+                            <Loader2 className="mr-1.5 size-4 animate-spin" />
+                        ) : (
+                            <Save className="mr-1.5 size-4" />
+                        )}
+                        {esEdicion ? 'Actualizar' : 'Guardar'}
+                    </Button>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     );

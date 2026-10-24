@@ -1,4 +1,4 @@
-import Heading from '@/components/noil/heading';
+import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useActiveUrl } from '@/hooks/use-active-url';

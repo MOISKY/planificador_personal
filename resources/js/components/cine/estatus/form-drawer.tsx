@@ -1,4 +1,4 @@
-import { FormErrorBanner } from '@/components/noil/form-error-banner';
+import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -13,8 +13,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
+    SheetClose,
     SheetContent,
     SheetDescription,
     SheetFooter,
@@ -25,7 +27,7 @@ import {
     useEstatusForm,
     type EstatusFormData,
 } from '@/hooks/use-estatus-form';
-import { Activity, Loader2, Save, X } from 'lucide-react';
+import { Activity, Clapperboard, Loader2, Save, X } from 'lucide-react';
 
 interface EstatusFormDrawerProps {
     registro: EstatusFormData | null;
@@ -48,66 +50,85 @@ export default function EstatusFormDrawer({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="overflow-y-auto sm:max-w-md">
-                <form onSubmit={submit} className="flex flex-col h-full">
-                    <SheetHeader>
-                        <SheetTitle className="flex items-center gap-2">
-                            <Activity className="size-5 text-primary" />
-                            Actualizar Estatus
-                        </SheetTitle>
-                        <SheetDescription>
-                            Modifica el estado de visualización de la producción en el kardex.
-                        </SheetDescription>
-                    </SheetHeader>
+            <SheetContent className="overflow-y-auto sm:max-w-xl">
+                <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                        <Activity className="size-5 text-primary" />
+                        Actualizar Estatus
+                    </SheetTitle>
+                    <SheetDescription>
+                        Modifica el estado de visualización de la producción en el kardex.
+                    </SheetDescription>
+                </SheetHeader>
 
-                    <div className="py-6 flex-1 space-y-4">
-                        <FormErrorBanner
-                            errors={errors}
-                            campos={['Estatus']}
-                        />
+                <form
+                    id="estatus-form"
+                    onSubmit={submit}
+                    className="flex flex-col gap-5 px-6 py-4"
+                >
+                    <FormErrorBanner
+                        errors={errors}
+                        campos={['Estatus']}
+                    />
 
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel>Producción</FieldLabel>
-                                <div className="p-2.5 rounded-md border bg-muted/40 text-sm font-semibold text-foreground">
+                    <div className="space-y-1">
+                        <h4 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <Activity className="size-4" />
+                            Estado de visualización
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                            Control de seguimiento y progreso en el catálogo
+                        </p>
+                    </div>
+
+                    <FieldGroup>
+                        <Field>
+                            <FieldLabel>Producción</FieldLabel>
+                            <div className="flex items-center gap-2 p-2.5 rounded-lg border bg-muted/40 text-sm font-semibold text-foreground">
+                                <Clapperboard className="size-4 text-primary shrink-0" />
+                                <span className="truncate">
                                     {registro?.nombreProduccion ??
                                         (data.IdProduccion
                                             ? `Producción #${data.IdProduccion}`
                                             : '—')}
-                                </div>
-                            </Field>
+                                </span>
+                            </div>
+                        </Field>
 
-                            <Field>
-                                <FieldLabel htmlFor="Estatus">
-                                    Nuevo Estatus
-                                </FieldLabel>
-                                <Select
-                                    value={data.Estatus}
-                                    onValueChange={(val: any) =>
-                                        setData('Estatus', val)
-                                    }
-                                >
-                                    <SelectTrigger id="Estatus">
-                                        <SelectValue placeholder="Estatus" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="por ver">
-                                            Por ver (En lista de espera)
-                                        </SelectItem>
-                                        <SelectItem value="viendo">
-                                            Viendo (Actualmente en curso)
-                                        </SelectItem>
-                                        <SelectItem value="visto">
-                                            Visto (Completada)
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FieldError>{errors.Estatus}</FieldError>
-                            </Field>
-                        </FieldGroup>
-                    </div>
+                        <Field>
+                            <FieldLabel htmlFor="Estatus" required>
+                                Nuevo Estatus
+                            </FieldLabel>
+                            <Select
+                                value={data.Estatus}
+                                onValueChange={(val: any) =>
+                                    setData('Estatus', val)
+                                }
+                            >
+                                <SelectTrigger id="Estatus">
+                                    <SelectValue placeholder="Estatus" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="por ver">
+                                        Por ver (En lista de espera)
+                                    </SelectItem>
+                                    <SelectItem value="viendo">
+                                        Viendo (Actualmente en curso)
+                                    </SelectItem>
+                                    <SelectItem value="visto">
+                                        Visto (Completada)
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FieldError>{errors.Estatus}</FieldError>
+                        </Field>
+                    </FieldGroup>
+                </form>
 
-                    <SheetFooter className="flex-row justify-end gap-2 border-t pt-4">
+                <Separator className="my-2" />
+
+                <SheetFooter>
+                    <SheetClose asChild>
                         <Button
                             type="button"
                             variant="outline"
@@ -115,21 +136,27 @@ export default function EstatusFormDrawer({
                                 reset();
                                 onOpenChange(false);
                             }}
+                            className="flex-1 sm:flex-none"
                             disabled={processing}
                         >
                             <X className="mr-1.5 size-4" />
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
-                            )}
-                            Actualizar Estatus
-                        </Button>
-                    </SheetFooter>
-                </form>
+                    </SheetClose>
+                    <Button
+                        type="submit"
+                        form="estatus-form"
+                        className="flex-1 sm:flex-none"
+                        disabled={processing}
+                    >
+                        {processing ? (
+                            <Loader2 className="mr-1.5 size-4 animate-spin" />
+                        ) : (
+                            <Save className="mr-1.5 size-4" />
+                        )}
+                        Actualizar Estatus
+                    </Button>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     );

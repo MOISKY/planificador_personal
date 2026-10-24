@@ -1,5 +1,5 @@
 import { BotonFichaTmdb, PosterColumna } from '@/components/cine/poster-columna';
-import { type Column } from '@/components/noil/data-table';
+import { type Column } from '@/components/data-table';
 import { type SeguimientoItem } from '@/hooks/use-seguimiento-listado';
 import { formatDate } from '@/lib/fechas';
 import { Clock } from 'lucide-react';

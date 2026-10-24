@@ -2,8 +2,8 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Form, Head, usePage } from '@inertiajs/react';
 
-import HeadingSmall from '@/components/noil/heading-small';
-import InputError from '@/components/noil/input-error';
+import HeadingSmall from '@/components/heading-small';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';

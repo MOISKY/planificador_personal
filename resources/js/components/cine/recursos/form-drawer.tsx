@@ -1,4 +1,4 @@
-import { FormErrorBanner } from '@/components/noil/form-error-banner';
+import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -14,8 +14,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
+    SheetClose,
     SheetContent,
     SheetDescription,
     SheetFooter,
@@ -49,93 +51,116 @@ export default function RecursoFormDrawer({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="overflow-y-auto sm:max-w-md">
-                <form onSubmit={submit} className="flex flex-col h-full">
-                    <SheetHeader>
-                        <SheetTitle className="flex items-center gap-2">
-                            <Link2 className="size-5 text-primary" />
-                            {esEdicion ? 'Editar Recurso' : 'Nuevo Recurso'}
-                        </SheetTitle>
-                        <SheetDescription>
-                            {esEdicion
-                                ? 'Modifica los datos del enlace o multimedia.'
-                                : 'Registra enlaces para ver la producción, trailers, sitio web o imágenes.'}
-                        </SheetDescription>
-                    </SheetHeader>
+            <SheetContent className="overflow-y-auto sm:max-w-xl">
+                <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                        <Link2 className="size-5 text-primary" />
+                        {esEdicion ? 'Editar Recurso' : 'Nuevo Recurso'}
+                    </SheetTitle>
+                    <SheetDescription>
+                        {esEdicion
+                            ? 'Modifica los datos del enlace o multimedia.'
+                            : 'Registra enlaces para ver la producción, trailers, sitio web o imágenes.'}
+                    </SheetDescription>
+                </SheetHeader>
 
-                    <div className="py-6 flex-1 space-y-4">
-                        <FormErrorBanner
-                            errors={errors}
-                            campos={['IdProduccion', 'Tipo', 'URL_produccion_recurso']}
-                        />
+                <form
+                    id="recurso-form"
+                    onSubmit={submit}
+                    className="flex flex-col gap-5 px-6 py-4"
+                >
+                    <FormErrorBanner
+                        errors={errors}
+                        campos={['IdProduccion', 'Tipo', 'URL_produccion_recurso']}
+                    />
 
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel htmlFor="IdProduccion">
-                                    Producción
-                                </FieldLabel>
-                                <Select
-                                    value={data.IdProduccion ? String(data.IdProduccion) : ''}
-                                    onValueChange={(val) =>
-                                        setData('IdProduccion', Number(val))
-                                    }
-                                >
-                                    <SelectTrigger id="IdProduccion">
-                                        <SelectValue placeholder="Selecciona una producción" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {producciones.map((p) => (
-                                            <SelectItem
-                                                key={p.IdProduccion}
-                                                value={String(p.IdProduccion)}
-                                            >
-                                                {p.NombreProduccion}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FieldError>{errors.IdProduccion}</FieldError>
-                            </Field>
+                    <div className="space-y-1">
+                        <h4 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <Link2 className="size-4" />
+                            Información del recurso
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                            Enlaces web, trailers y material multimedia
+                        </p>
+                    </div>
 
-                            <Field>
-                                <FieldLabel htmlFor="Tipo">Tipo de Recurso</FieldLabel>
-                                <Select
-                                    value={data.Tipo}
-                                    onValueChange={(val: any) => setData('Tipo', val)}
-                                >
-                                    <SelectTrigger id="Tipo">
-                                        <SelectValue placeholder="Tipo" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="ver">Plataforma (Ver)</SelectItem>
-                                        <SelectItem value="video">Video / Tráiler</SelectItem>
-                                        <SelectItem value="sitio">Sitio Web Oficial</SelectItem>
-                                        <SelectItem value="imagen">Imagen / Póster</SelectItem>
-                                        <SelectItem value="documento">Documento / Guion</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FieldError>{errors.Tipo}</FieldError>
-                            </Field>
+                    <FieldGroup>
+                        <Field>
+                            <FieldLabel htmlFor="IdProduccion" required>
+                                Producción
+                            </FieldLabel>
+                            <Select
+                                value={data.IdProduccion ? String(data.IdProduccion) : ''}
+                                onValueChange={(val) =>
+                                    setData('IdProduccion', Number(val))
+                                }
+                            >
+                                <SelectTrigger id="IdProduccion">
+                                    <SelectValue placeholder="Selecciona una producción" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {producciones.map((p) => (
+                                        <SelectItem
+                                            key={p.IdProduccion}
+                                            value={String(p.IdProduccion)}
+                                        >
+                                            {p.NombreProduccion}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FieldError>{errors.IdProduccion}</FieldError>
+                        </Field>
 
-                            <Field>
-                                <FieldLabel htmlFor="URL_produccion_recurso">
-                                    URL / Enlace Web
-                                </FieldLabel>
+                        <Field>
+                            <FieldLabel htmlFor="Tipo" required>Tipo de Recurso</FieldLabel>
+                            <Select
+                                value={data.Tipo}
+                                onValueChange={(val: any) => setData('Tipo', val)}
+                            >
+                                <SelectTrigger id="Tipo">
+                                    <SelectValue placeholder="Tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ver">Plataforma (Ver)</SelectItem>
+                                    <SelectItem value="video">Video / Tráiler</SelectItem>
+                                    <SelectItem value="sitio">Sitio Web Oficial</SelectItem>
+                                    <SelectItem value="imagen">Imagen / Póster</SelectItem>
+                                    <SelectItem value="documento">Documento / Guion</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FieldError>{errors.Tipo}</FieldError>
+                        </Field>
+
+                        <Field>
+                            <FieldLabel htmlFor="URL_produccion_recurso" required>
+                                URL / Enlace Web
+                            </FieldLabel>
+                            <div className="relative">
+                                <Link2 className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     id="URL_produccion_recurso"
                                     type="url"
                                     placeholder="https://..."
+                                    className="pl-10"
                                     value={data.URL_produccion_recurso}
                                     onChange={(e) =>
                                         setData('URL_produccion_recurso', e.target.value)
                                     }
+                                    required
+                                    disabled={processing}
+                                    aria-invalid={!!errors.URL_produccion_recurso}
                                 />
-                                <FieldError>{errors.URL_produccion_recurso}</FieldError>
-                            </Field>
-                        </FieldGroup>
-                    </div>
+                            </div>
+                            <FieldError>{errors.URL_produccion_recurso}</FieldError>
+                        </Field>
+                    </FieldGroup>
+                </form>
 
-                    <SheetFooter className="flex-row justify-end gap-2 border-t pt-4">
+                <Separator className="my-2" />
+
+                <SheetFooter>
+                    <SheetClose asChild>
                         <Button
                             type="button"
                             variant="outline"
@@ -143,21 +168,27 @@ export default function RecursoFormDrawer({
                                 reset();
                                 onOpenChange(false);
                             }}
+                            className="flex-1 sm:flex-none"
                             disabled={processing}
                         >
                             <X className="mr-1.5 size-4" />
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
-                            )}
-                            {esEdicion ? 'Guardar Cambios' : 'Registrar'}
-                        </Button>
-                    </SheetFooter>
-                </form>
+                    </SheetClose>
+                    <Button
+                        type="submit"
+                        form="recurso-form"
+                        className="flex-1 sm:flex-none"
+                        disabled={processing}
+                    >
+                        {processing ? (
+                            <Loader2 className="mr-1.5 size-4 animate-spin" />
+                        ) : (
+                            <Save className="mr-1.5 size-4" />
+                        )}
+                        {esEdicion ? 'Actualizar' : 'Guardar'}
+                    </Button>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     );

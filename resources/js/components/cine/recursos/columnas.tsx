@@ -4,7 +4,7 @@ import {
     StatusBadge,
     WarningBadge,
     type Column,
-} from '@/components/noil/data-table';
+} from '@/components/data-table';
 import { type RecursoItem } from '@/hooks/use-recurso-listado';
 import { ExternalLink, FileText, Globe, Play, Tv } from 'lucide-react';
 

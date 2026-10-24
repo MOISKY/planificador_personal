@@ -1,5 +1,5 @@
 import { destroy } from '@/actions/App/Http/Controllers/EjemploController';
-import { confirmDialog } from '@/components/noil/confirm-dialog';
+import { confirmDialog } from '@/components/confirm-dialog';
 import { type EjemploFormData } from '@/hooks/use-ejemplo-form';
 import ejemplo from '@/routes/ejemplo';
 import { router } from '@inertiajs/react';

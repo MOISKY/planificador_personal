@@ -1,6 +1,6 @@
 import { BotonFichaTmdb, PosterColumna } from '@/components/cine/poster-columna';
 import { ProduccionEstatusBadge } from '@/components/cine/producciones/columnas';
-import { type Column } from '@/components/noil/data-table';
+import { type Column } from '@/components/data-table';
 import { type EstatusItem } from '@/hooks/use-estatus-listado';
 import { formatDate } from '@/lib/fechas';
 

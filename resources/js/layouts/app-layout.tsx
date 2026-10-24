@@ -1,5 +1,5 @@
-import { ConfirmDialogHost } from '@/components/noil/confirm-dialog';
-import { FlashToaster } from '@/components/noil/flash-toaster';
+import { ConfirmDialogHost } from '@/components/confirm-dialog';
+import { FlashToaster } from '@/components/flash-toaster';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type ReactNode } from 'react';

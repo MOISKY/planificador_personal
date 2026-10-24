@@ -2,7 +2,7 @@ import { DashboardGraficas } from '@/components/dashboard/graficas';
 import { DashboardHero } from '@/components/dashboard/hero';
 import { DashboardKpis } from '@/components/dashboard/kpis';
 import { DashboardListas } from '@/components/dashboard/listas';
-import { PageContent, PageShell } from '@/components/noil/page-shell';
+import { PageContent, PageShell } from '@/components/page-shell';
 import AppLayout from '@/layouts/app-layout';
 import { BARRAS, DONA, KPIS, RECIENTES } from '@/lib/dashboard-demo';
 import ejemplo from '@/routes/ejemplo';

@@ -3,11 +3,11 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { displayToIso, isoToDisplay, maskDate } from '@/lib/fechas';
 import { cn } from '@/lib/utils';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import * as React from 'react';
 
 /*
- | Captura de fecha del estándar (portado de appweb_proveedores). Campo con máscara dd-mm-aaaa
+ | Captura de fecha del estándar (portado de appweb_proveedores). Campo con máscara dd/mm/aaaa
  | y calendario propio en español (semana inicia lunes). Hacia afuera siempre viaja 'aaaa-mm-dd'
  | o '' mientras la fecha esté incompleta. Sustituye a <input type="date">, cuyo formato lo
  | decide el idioma del navegador.
@@ -90,6 +90,21 @@ export function DateInputPicker({
         return day > 0 ? day : null;
     });
 
+    const years = React.useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        const startYear = minDate && ISO.test(minDate) ? Number(minDate.split('-')[0]) : 1930;
+        const endYear = maxDate && ISO.test(maxDate) ? Number(maxDate.split('-')[0]) : currentYear + 15;
+        const list: number[] = [];
+        for (let y = startYear; y <= endYear; y++) {
+            list.push(y);
+        }
+        if (!list.includes(year)) {
+            list.push(year);
+            list.sort((a, b) => a - b);
+        }
+        return list;
+    }, [minDate, maxDate, year]);
+
     const commitText = (text: string) => {
         const masked = maskDate(text);
         setInputValue(masked);
@@ -111,7 +126,7 @@ export function DateInputPicker({
                 {...rest}
                 id={id}
                 inputMode="numeric"
-                placeholder="dd-mm-aaaa"
+                placeholder="dd/mm/aaaa"
                 value={inputValue}
                 onChange={(event) => commitText(event.target.value)}
                 readOnly={readOnly}
@@ -133,29 +148,84 @@ export function DateInputPicker({
                         <CalendarDays className="size-4" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-72 p-3">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setVisibleMonth(new Date(year, monthIndex - 1, 1))}
-                            aria-label="Mes anterior"
-                        >
-                            <ChevronLeft className="size-4" />
-                        </Button>
-                        <div className="text-sm font-semibold">
-                            {MONTHS[monthIndex]} {year}
+                <PopoverContent align="end" className="w-80 p-3">
+                    <div className="mb-3 flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-0.5">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-7"
+                                onClick={() => setVisibleMonth(new Date(year - 1, monthIndex, 1))}
+                                title="Año anterior"
+                                aria-label="Año anterior"
+                            >
+                                <ChevronsLeft className="size-3.5" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-7"
+                                onClick={() => setVisibleMonth(new Date(year, monthIndex - 1, 1))}
+                                title="Mes anterior"
+                                aria-label="Mes anterior"
+                            >
+                                <ChevronLeft className="size-3.5" />
+                            </Button>
                         </div>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setVisibleMonth(new Date(year, monthIndex + 1, 1))}
-                            aria-label="Mes siguiente"
-                        >
-                            <ChevronRight className="size-4" />
-                        </Button>
+
+                        <div className="flex items-center gap-1.5">
+                            <select
+                                value={monthIndex}
+                                onChange={(e) => setVisibleMonth(new Date(year, Number(e.target.value), 1))}
+                                className="h-7 cursor-pointer rounded-md border border-input bg-background px-1 py-0.5 text-xs font-medium text-foreground shadow-xs focus:outline-none focus:ring-1 focus:ring-ring dark:bg-card"
+                                aria-label="Seleccionar mes"
+                            >
+                                {MONTHS.map((m, idx) => (
+                                    <option key={m} value={idx}>
+                                        {m}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={year}
+                                onChange={(e) => setVisibleMonth(new Date(Number(e.target.value), monthIndex, 1))}
+                                className="h-7 cursor-pointer rounded-md border border-input bg-background px-1.5 py-0.5 text-xs font-semibold text-foreground shadow-xs focus:outline-none focus:ring-1 focus:ring-ring dark:bg-card"
+                                aria-label="Seleccionar año"
+                            >
+                                {years.map((y) => (
+                                    <option key={y} value={y}>
+                                        {y}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-0.5">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-7"
+                                onClick={() => setVisibleMonth(new Date(year, monthIndex + 1, 1))}
+                                title="Mes siguiente"
+                                aria-label="Mes siguiente"
+                            >
+                                <ChevronRight className="size-3.5" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-7"
+                                onClick={() => setVisibleMonth(new Date(year + 1, monthIndex, 1))}
+                                title="Año siguiente"
+                                aria-label="Año siguiente"
+                            >
+                                <ChevronsRight className="size-3.5" />
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground">

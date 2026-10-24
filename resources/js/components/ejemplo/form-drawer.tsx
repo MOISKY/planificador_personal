@@ -1,4 +1,4 @@
-import { FormErrorBanner } from '@/components/noil/form-error-banner';
+import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -16,12 +16,14 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import {
+    SheetClose,
     Sheet,
     SheetContent,
     SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
+
 } from '@/components/ui/sheet';
 import {
     ESTATUS_EJEMPLO,
@@ -167,7 +169,8 @@ export default function EjemploFormDrawer({
                 <Separator className="my-2" />
 
                 <SheetFooter>
-                    <Button
+                    <SheetClose asChild>
+                        <Button
                         type="button"
                         variant="outline"
                         onClick={() => cambiarAbierto(false)}
@@ -177,6 +180,7 @@ export default function EjemploFormDrawer({
                         <X className="mr-1.5 size-4" />
                         Cancelar
                     </Button>
+                    </SheetClose>
                     <Button
                         type="submit"
                         form="ejemplo-form"

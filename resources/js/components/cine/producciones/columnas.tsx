@@ -4,7 +4,7 @@ import {
     StatusBadge,
     WarningBadge,
     type Column,
-} from '@/components/noil/data-table';
+} from '@/components/data-table';
 import { type ProduccionItem } from '@/hooks/use-produccion-listado';
 import { formatDate } from '@/lib/fechas';
 import { MessageSquare, Paperclip } from 'lucide-react';

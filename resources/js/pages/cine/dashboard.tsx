@@ -7,8 +7,8 @@ import { QuieresMasDe, type DirectorMasItem } from '@/components/cine/dashboard/
 import type { ProduccionTmdbItem } from '@/components/cine/dashboard/tarjeta-produccion-tmdb';
 import { TendenciasMes } from '@/components/cine/dashboard/tendencias-mes';
 import { UltimosVistos, type UltimoVistoItem } from '@/components/cine/dashboard/ultimos-vistos';
-import { ContextPanel } from '@/components/noil/context-panel';
-import { PageContent, PageShell } from '@/components/noil/page-shell';
+import { ContextPanel } from '@/components/context-panel';
+import { PageContent, PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import cine from '@/routes/cine';

@@ -9,6 +9,15 @@ use App\Http\Controllers\Cine\ProduccionRecursoController;
 use App\Http\Controllers\Cine\ProduccionSeguimientoController;
 use App\Http\Controllers\Cine\TipoOpinionController;
 use App\Http\Controllers\Cine\TmdbController;
+use App\Http\Controllers\Contabilidad\AlumnoController;
+use App\Http\Controllers\Contabilidad\AsesorController;
+use App\Http\Controllers\Contabilidad\CicloController;
+use App\Http\Controllers\Contabilidad\GrupoController;
+use App\Http\Controllers\Contabilidad\ModuloController;
+use App\Http\Controllers\Contabilidad\ModuloLeccionController;
+use App\Http\Controllers\Contabilidad\ModuloRetoController;
+use App\Http\Controllers\Contabilidad\OportunidadController;
+use App\Http\Controllers\Contabilidad\PeriodoController;
 use App\Http\Controllers\EjemploController;
 use App\Http\Controllers\GitHubConsultorController;
 use App\Http\Controllers\TenantController;
@@ -59,4 +68,42 @@ Route::prefix('cine')->name('cine.')->group(function () {
     Route::resource('comentarios', ProduccionComentarioController::class)->names('comentarios');
     Route::resource('seguimiento', ProduccionSeguimientoController::class)->names('seguimiento');
     Route::resource('estatus', ProduccionEstatusController::class)->names('estatus');
+});
+
+// ==========================================================
+// Módulo: Contabilidad (Planificación Personal)
+// ==========================================================
+Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
+    // Catálogos
+    Route::resource('alumnos', AlumnoController::class)->names('alumnos');
+    Route::resource('oportunidades', OportunidadController::class)->names('oportunidades');
+    Route::resource('periodos', PeriodoController::class)->names('periodos');
+    Route::resource('grupos', GrupoController::class)->names('grupos');
+    Route::resource('asesores', AsesorController::class)->names('asesores');
+    Route::resource('ciclos', CicloController::class)->names('ciclos');
+
+    // Módulos (Eje de donde parten Retos y Lecciones)
+    Route::resource('modulos', ModuloController::class)->names('modulos');
+
+    // Retos y sus anidaciones (Recursos y Actividades Alumnos)
+    Route::post('retos', [ModuloRetoController::class, 'store'])->name('retos.store');
+    Route::put('retos/{reto}', [ModuloRetoController::class, 'update'])->name('retos.update');
+    Route::delete('retos/{reto}', [ModuloRetoController::class, 'destroy'])->name('retos.destroy');
+
+    Route::post('retos/{reto}/recursos', [ModuloRetoController::class, 'storeRecurso'])->name('retos.recursos.store');
+    Route::put('retos-recursos/{recurso}', [ModuloRetoController::class, 'updateRecurso'])->name('retos.recursos.update');
+    Route::delete('retos-recursos/{recurso}', [ModuloRetoController::class, 'destroyRecurso'])->name('retos.recursos.destroy');
+
+    Route::post('retos/{reto}/alumnos', [ModuloRetoController::class, 'storeAlumno'])->name('retos.alumnos.store');
+    Route::put('retos-alumnos/{alumnoActividad}', [ModuloRetoController::class, 'updateAlumno'])->name('retos.alumnos.update');
+    Route::delete('retos-alumnos/{alumnoActividad}', [ModuloRetoController::class, 'destroyAlumno'])->name('retos.alumnos.destroy');
+
+    // Lecciones y sus anidaciones (Recursos)
+    Route::post('lecciones', [ModuloLeccionController::class, 'store'])->name('lecciones.store');
+    Route::put('lecciones/{leccion}', [ModuloLeccionController::class, 'update'])->name('lecciones.update');
+    Route::delete('lecciones/{leccion}', [ModuloLeccionController::class, 'destroy'])->name('lecciones.destroy');
+
+    Route::post('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'storeRecurso'])->name('lecciones.recursos.store');
+    Route::put('lecciones-recursos/{recurso}', [ModuloLeccionController::class, 'updateRecurso'])->name('lecciones.recursos.update');
+    Route::delete('lecciones-recursos/{recurso}', [ModuloLeccionController::class, 'destroyRecurso'])->name('lecciones.recursos.destroy');
 });

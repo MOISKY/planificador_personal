@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { Head, usePoll } from '@inertiajs/react';
 import { GitCommit, Github, FolderGit2, User, Clock } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
-import { PageShell, PageContent } from '@/components/noil/page-shell';
-import { ContextPanel } from '@/components/noil/context-panel';
+import { PageShell, PageContent } from '@/components/page-shell';
+import { ContextPanel } from '@/components/context-panel';
 import { type BreadcrumbItem } from '@/types';
 import { Badge } from '@/components/ui/badge';
 

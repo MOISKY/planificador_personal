@@ -105,7 +105,7 @@ export function Combobox({
                             {normalizedOptions.map((option) => (
                                 <CommandItem
                                     key={option.value}
-                                    value={option.label}
+                                    value={`${option.label} ${option.value}`}
                                     keywords={option.keywords}
                                     disabled={option.disabled}
                                     onSelect={() => {

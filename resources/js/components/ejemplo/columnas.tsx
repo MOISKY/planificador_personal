@@ -4,7 +4,7 @@ import {
     StatusBadge,
     WarningBadge,
     type Column,
-} from '@/components/noil/data-table';
+} from '@/components/data-table';
 import { type Ejemplo } from '@/hooks/use-ejemplo-listado';
 import { formatDate } from '@/lib/fechas';
 

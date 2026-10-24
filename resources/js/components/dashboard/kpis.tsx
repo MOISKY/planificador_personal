@@ -1,4 +1,4 @@
-import { Sparkline } from '@/components/noil/charts';
+import { Sparkline } from '@/components/charts';
 import { Card, CardContent } from '@/components/ui/card';
 import { type Kpi } from '@/lib/dashboard-demo';
 

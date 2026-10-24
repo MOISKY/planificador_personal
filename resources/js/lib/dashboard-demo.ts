@@ -1,4 +1,4 @@
-import { type DonutSeg } from '@/components/noil/charts';
+import { type DonutSeg } from '@/components/charts';
 import { type Badge } from '@/components/ui/badge';
 import {
     ClipboardList,

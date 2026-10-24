@@ -1,8 +1,8 @@
 import { tipoOpinionColumnas } from '@/components/cine/tipo-opinion/columnas';
 import TipoOpinionFormDrawer from '@/components/cine/tipo-opinion/form-drawer';
-import { ContextPanel } from '@/components/noil/context-panel';
-import { DataTable } from '@/components/noil/data-table';
-import { PageContent, PageShell } from '@/components/noil/page-shell';
+import { ContextPanel } from '@/components/context-panel';
+import { DataTable } from '@/components/data-table';
+import { PageContent, PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import {
     useTipoOpinionListado,

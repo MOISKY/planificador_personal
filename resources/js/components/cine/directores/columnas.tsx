@@ -1,5 +1,5 @@
 import { BotonFichaTmdb, PosterColumna } from '@/components/cine/poster-columna';
-import { type Column } from '@/components/noil/data-table';
+import { type Column } from '@/components/data-table';
 import { type DirectorItem } from '@/hooks/use-director-listado';
 import { formatDate } from '@/lib/fechas';
 import { Clapperboard } from 'lucide-react';

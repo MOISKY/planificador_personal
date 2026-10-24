@@ -1,4 +1,4 @@
-import { type Column } from '@/components/noil/data-table';
+import { type Column } from '@/components/data-table';
 import { type TipoOpinionItem } from '@/hooks/use-tipo-opinion-listado';
 
 export const tipoOpinionColumnas: Column<TipoOpinionItem>[] = [

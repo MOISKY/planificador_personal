@@ -1,4 +1,4 @@
-import HeadingSmall from '@/components/noil/heading-small';
+import HeadingSmall from '@/components/heading-small';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { FONT_SIZES, useFontSize, type FontSize } from '@/hooks/use-font-size';

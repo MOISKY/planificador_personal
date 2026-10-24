@@ -1,5 +1,5 @@
 import { cambiar } from '@/actions/App/Http/Controllers/TenantController';
-import AppLogoIcon from '@/components/layout/app-logo-icon';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { logout } from '@/routes';
@@ -21,7 +21,7 @@ export default function SeleccionarCliente({
                 <header className="flex items-center justify-between">
                     <span className="flex items-center gap-2 font-medium">
                         <AppLogoIcon className="size-8" />
-                        Software NOIL
+                        PLANIFICADOR PERSONAL
                     </span>
                     <Button variant="ghost" size="sm" asChild>
                         <Link href={logout()} as="button">

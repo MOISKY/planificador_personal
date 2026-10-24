@@ -1,8 +1,8 @@
 import { comentarioColumnas } from '@/components/cine/comentarios/columnas';
 import ComentarioFormDrawer from '@/components/cine/comentarios/form-drawer';
-import { ContextPanel } from '@/components/noil/context-panel';
-import { DataTable } from '@/components/noil/data-table';
-import { PageContent, PageShell } from '@/components/noil/page-shell';
+import { ContextPanel } from '@/components/context-panel';
+import { DataTable } from '@/components/data-table';
+import { PageContent, PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import {
     useComentarioListado,
