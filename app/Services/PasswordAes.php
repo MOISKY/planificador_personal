@@ -8,9 +8,7 @@ namespace App\Services;
  */
 class PasswordAes
 {
-    public function __construct(private readonly string $key)
-    {
-    }
+    public function __construct(private readonly string $key) {}
 
     public function cifrar(string $plano): string
     {

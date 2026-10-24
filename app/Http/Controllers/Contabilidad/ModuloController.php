@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Contabilidad;
 use App\Http\Controllers\Controller;
 use App\Models\Contabilidad\Alumno;
 use App\Models\Contabilidad\Modulo;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -73,5 +74,90 @@ class ModuloController extends Controller
         $modulo->delete();
 
         return back()->with('success', 'Módulo eliminado correctamente.');
+    }
+
+    // --- API MÉTODOS ---
+
+    public function apiIndex(Request $request): JsonResponse
+    {
+        $search = trim((string) ($request->input('Nombre') ?? $request->input('search') ?? ''));
+
+        $items = Modulo::query()
+            ->withCount(['retos', 'lecciones'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->whereLike('Modulo', "%{$search}%");
+            })
+            ->orderBy('IdModulo', 'desc')
+            ->get()
+            ->map(function (Modulo $item): array {
+                return [
+                    'id' => (int) $item->IdModulo,
+                    'IdModulo' => (int) $item->IdModulo,
+                    'Modulo' => $item->Modulo,
+                    'FechaRegistro' => $item->FechaRegistro,
+                    'lecciones_count' => (int) ($item->lecciones_count ?? 0),
+                    'retos_count' => (int) ($item->retos_count ?? 0),
+                ];
+            });
+
+        return response()->json($items);
+    }
+
+    public function apiStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'Modulo' => ['required', 'string', 'max:150'],
+        ], [], [
+            'Modulo' => 'nombre del módulo',
+        ]);
+
+        $modulo = Modulo::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Módulo registrado correctamente.',
+            'id' => (int) $modulo->IdModulo,
+            'data' => [
+                'id' => (int) $modulo->IdModulo,
+                'IdModulo' => (int) $modulo->IdModulo,
+                'Modulo' => $modulo->Modulo,
+                'FechaRegistro' => $modulo->FechaRegistro,
+            ],
+        ], 201);
+    }
+
+    public function apiUpdate(Request $request, Modulo $modulo): JsonResponse
+    {
+        $validated = $request->validate([
+            'Modulo' => ['required', 'string', 'max:150'],
+        ], [], [
+            'Modulo' => 'nombre del módulo',
+        ]);
+
+        $modulo->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Módulo actualizado correctamente.',
+            'id' => (int) $modulo->IdModulo,
+            'data' => [
+                'id' => (int) $modulo->IdModulo,
+                'IdModulo' => (int) $modulo->IdModulo,
+                'Modulo' => $modulo->Modulo,
+                'FechaRegistro' => $modulo->FechaRegistro,
+            ],
+        ]);
+    }
+
+    public function apiDestroy(Modulo $modulo): JsonResponse
+    {
+        $id = (int) $modulo->IdModulo;
+        $modulo->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Módulo eliminado correctamente.',
+            'id' => $id,
+        ]);
     }
 }

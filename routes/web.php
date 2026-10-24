@@ -86,24 +86,49 @@ Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
     Route::resource('modulos', ModuloController::class)->names('modulos');
 
     // Retos y sus anidaciones (Recursos y Actividades Alumnos)
+    Route::get('retos', [ModuloRetoController::class, 'index'])->name('retos.index');
     Route::post('retos', [ModuloRetoController::class, 'store'])->name('retos.store');
     Route::put('retos/{reto}', [ModuloRetoController::class, 'update'])->name('retos.update');
     Route::delete('retos/{reto}', [ModuloRetoController::class, 'destroy'])->name('retos.destroy');
 
+    Route::get('retos/{reto}/recursos', [ModuloRetoController::class, 'indexRecurso'])->name('retos.recursos.index');
     Route::post('retos/{reto}/recursos', [ModuloRetoController::class, 'storeRecurso'])->name('retos.recursos.store');
     Route::put('retos-recursos/{recurso}', [ModuloRetoController::class, 'updateRecurso'])->name('retos.recursos.update');
     Route::delete('retos-recursos/{recurso}', [ModuloRetoController::class, 'destroyRecurso'])->name('retos.recursos.destroy');
 
+    Route::get('retos/{reto}/alumnos', [ModuloRetoController::class, 'indexAlumno'])->name('retos.alumnos.index');
     Route::post('retos/{reto}/alumnos', [ModuloRetoController::class, 'storeAlumno'])->name('retos.alumnos.store');
     Route::put('retos-alumnos/{alumnoActividad}', [ModuloRetoController::class, 'updateAlumno'])->name('retos.alumnos.update');
     Route::delete('retos-alumnos/{alumnoActividad}', [ModuloRetoController::class, 'destroyAlumno'])->name('retos.alumnos.destroy');
 
     // Lecciones y sus anidaciones (Recursos)
+    Route::get('lecciones', [ModuloLeccionController::class, 'index'])->name('lecciones.index');
     Route::post('lecciones', [ModuloLeccionController::class, 'store'])->name('lecciones.store');
     Route::put('lecciones/{leccion}', [ModuloLeccionController::class, 'update'])->name('lecciones.update');
     Route::delete('lecciones/{leccion}', [ModuloLeccionController::class, 'destroy'])->name('lecciones.destroy');
 
+    Route::get('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'indexRecurso'])->name('lecciones.recursos.index');
     Route::post('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'storeRecurso'])->name('lecciones.recursos.store');
     Route::put('lecciones-recursos/{recurso}', [ModuloLeccionController::class, 'updateRecurso'])->name('lecciones.recursos.update');
     Route::delete('lecciones-recursos/{recurso}', [ModuloLeccionController::class, 'destroyRecurso'])->name('lecciones.recursos.destroy');
+});
+
+// ==========================================================
+// API Contabilidad (Endpoints Dedicados JSON)
+// ==========================================================
+Route::prefix('api/contabilidad')->name('api.contabilidad.')->group(function () {
+    // API Módulos
+    Route::get('modulos', [ModuloController::class, 'apiIndex'])->name('modulos.index');
+    Route::post('modulos', [ModuloController::class, 'apiStore'])->name('modulos.store');
+    Route::put('modulos/{modulo}', [ModuloController::class, 'apiUpdate'])->name('modulos.update');
+    Route::delete('modulos/{modulo}', [ModuloController::class, 'apiDestroy'])->name('modulos.destroy');
+
+    // API Lecciones
+    Route::get('lecciones', [ModuloLeccionController::class, 'apiIndex'])->name('lecciones.index');
+    Route::post('lecciones', [ModuloLeccionController::class, 'apiStore'])->name('lecciones.store');
+    Route::put('lecciones/{leccion}', [ModuloLeccionController::class, 'apiUpdate'])->name('lecciones.update');
+    Route::delete('lecciones/{leccion}', [ModuloLeccionController::class, 'apiDestroy'])->name('lecciones.destroy');
+
+    // API Recursos de Lección (Solo lectura)
+    Route::get('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'indexRecurso'])->name('lecciones.recursos.index');
 });

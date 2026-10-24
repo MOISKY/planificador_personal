@@ -6,11 +6,43 @@ use App\Http\Controllers\Controller;
 use App\Models\Contabilidad\ModuloReto;
 use App\Models\Contabilidad\ModuloRetoAlumno;
 use App\Models\Contabilidad\ModuloRetoRecurso;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class ModuloRetoController extends Controller
 {
+    /**
+     * Lista de retos (Web / Lectura).
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $idModulo = $request->integer('IdModulo');
+        $nombre = trim((string) ($request->input('Nombre') ?? $request->input('search') ?? ''));
+
+        $items = ModuloReto::query()
+            ->when($idModulo > 0, function ($query) use ($idModulo): void {
+                $query->where('IdModulo', $idModulo);
+            })
+            ->when($nombre !== '', function ($query) use ($nombre): void {
+                $query->whereLike('Nombre', "%{$nombre}%");
+            })
+            ->orderBy('IdReto', 'asc')
+            ->get()
+            ->map(function (ModuloReto $item): array {
+                return [
+                    'id' => (int) $item->IdReto,
+                    'IdReto' => (int) $item->IdReto,
+                    'IdModulo' => (int) $item->IdModulo,
+                    'Nombre' => $item->Nombre,
+                    'UrlReto' => $item->UrlReto,
+                    'FechaRegistro' => $item->FechaRegistro,
+                ];
+            });
+
+        return response()->json($items);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -51,6 +83,34 @@ class ModuloRetoController extends Controller
     }
 
     // --- RECURSOS DENTRO DE RETOS ---
+
+    /**
+     * Lista de recursos asociados a un reto.
+     */
+    public function indexRecurso(Request $request, ?ModuloReto $reto = null): JsonResponse
+    {
+        $idReto = $reto?->IdReto ?? ($request->integer('IdReto') ?: null);
+
+        $items = ModuloRetoRecurso::query()
+            ->when($idReto !== null, function ($query) use ($idReto): void {
+                $query->where('IdReto', $idReto);
+            })
+            ->orderBy('IdRetoRecurso', 'asc')
+            ->get()
+            ->map(function (ModuloRetoRecurso $recurso): array {
+                return [
+                    'id' => (int) $recurso->IdRetoRecurso,
+                    'IdRetoRecurso' => (int) $recurso->IdRetoRecurso,
+                    'IdReto' => (int) $recurso->IdReto,
+                    'IdModuloDetalle' => $recurso->IdModuloDetalle,
+                    'Nombre' => $recurso->Nombre,
+                    'URLRecurso' => $recurso->URLRecurso,
+                    'FechaRegistro' => $recurso->FechaRegistro,
+                ];
+            });
+
+        return response()->json($items);
+    }
 
     public function storeRecurso(Request $request, ModuloReto $reto): RedirectResponse
     {
@@ -94,6 +154,42 @@ class ModuloRetoController extends Controller
     }
 
     // --- ACTIVIDADES ALUMNOS DENTRO DE RETOS ---
+
+    /**
+     * Lista de actividades de alumnos asociadas a un reto.
+     */
+    public function indexAlumno(Request $request, ?ModuloReto $reto = null): JsonResponse
+    {
+        $idReto = $reto?->IdReto ?? ($request->integer('IdReto') ?: null);
+        $idAlumno = $request->integer('IdAlumno') ?: null;
+
+        $items = ModuloRetoAlumno::query()
+            ->with(['alumno:IdAlumno,Nombre,ApellidoPaterno,ApellidoMaterno'])
+            ->when($idReto !== null, function ($query) use ($idReto): void {
+                $query->where('IdReto', $idReto);
+            })
+            ->when($idAlumno !== null, function ($query) use ($idAlumno): void {
+                $query->where('IdAlumno', $idAlumno);
+            })
+            ->orderBy('IdRetoAlumno', 'asc')
+            ->get()
+            ->map(function (ModuloRetoAlumno $actividad): array {
+                return [
+                    'id' => (int) $actividad->IdRetoAlumno,
+                    'IdRetoAlumno' => (int) $actividad->IdRetoAlumno,
+                    'IdReto' => (int) $actividad->IdReto,
+                    'IdAlumno' => (int) $actividad->IdAlumno,
+                    'IdRetoRecurso' => $actividad->IdRetoRecurso,
+                    'IdModuloDetalle' => $actividad->IdModuloDetalle,
+                    'Nombre' => $actividad->Nombre,
+                    'URLRecurso' => $actividad->URLRecurso,
+                    'FechaRegistro' => $actividad->FechaRegistro,
+                    'alumno' => $actividad->alumno,
+                ];
+            });
+
+        return response()->json($items);
+    }
 
     public function storeAlumno(Request $request, ModuloReto $reto): RedirectResponse
     {

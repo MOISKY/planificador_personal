@@ -24,19 +24,14 @@ class AdminTecnicaSync
     public const COLUMNAS = [
         'admin_clientes' => ['IdCliente', 'SCodigoCliente', 'SNombre', 'URL_logo', 'EActivo', 'FechaHora'],
         'master_idioma' => ['IdIdioma', 'SCodigo', 'SDescripcion', 'EActivo', 'FechaHora'],
-        'master_productos' =>
-        ['IdProducto', 'SNombreProducto', 'SDescripcion', 'URL_imagen', 'URL_Icono', 'EActivo', 'EVisible'],
+        'master_productos' => ['IdProducto', 'SNombreProducto', 'SDescripcion', 'URL_imagen', 'URL_Icono', 'EActivo', 'EVisible'],
         'master_modulos_admin' => ['IdModulo', 'IdModuloPadre', 'IdProducto', 'SCodigo', 'SNombre', 'SDescripcion', 'URL_Icono', 'IdTag', 'ETipoModulo', 'EActivo', 'IOrdenamiento', 'FechaHora', 'URL_Modulo'],
-        'master_opciones' =>
-        ['IdOpcion', 'IdModulo', 'IdIdioma', 'ETipoOpcion', 'IdOpcionPadre', 'NombreForm_Programa', 'URL_Ruta', 'URL_icono', 'IOrdenamiento', 'SOpcion', 'IdTag', 'EVisible', 'EActivo', 'FechaHora'],
-        'admin_usuarios' =>
-        ['IdUsuario', 'SIdUsuario', 'SPassword', 'SNombre', 'SMail',
+        'master_opciones' => ['IdOpcion', 'IdModulo', 'IdIdioma', 'ETipoOpcion', 'IdOpcionPadre', 'NombreForm_Programa', 'URL_Ruta', 'URL_icono', 'IOrdenamiento', 'SOpcion', 'IdTag', 'EVisible', 'EActivo', 'FechaHora'],
+        'admin_usuarios' => ['IdUsuario', 'SIdUsuario', 'SPassword', 'SNombre', 'SMail',
             'STelefono', 'EActivo', 'remember_token', 'FechaHora'],
-        'admin_roles_modulos' =>
-        ['IdModulo', 'IdRol', 'IdOpcion', 'Acceder', 'Insertar', 'Editar', 'Eliminar',
+        'admin_roles_modulos' => ['IdModulo', 'IdRol', 'IdOpcion', 'Acceder', 'Insertar', 'Editar', 'Eliminar',
             'Exportar', 'Importar', 'Imprimir', 'FechaHora'],
-        'admin_clientes_roles' =>
-        ['IdRol', 'IdCliente', 'SCodigo', 'SDescripcion', 'ETipoUsuario', 'EActivo', 'FechaHora'],
+        'admin_clientes_roles' => ['IdRol', 'IdCliente', 'SCodigo', 'SDescripcion', 'ETipoUsuario', 'EActivo', 'FechaHora'],
         'admin_clientes_roles_usuarios' => ['IdRolUsuario', 'IdCliente', 'IdRol', 'IdUsuario', 'FechaHora'],
     ];
 
@@ -48,9 +43,7 @@ class AdminTecnicaSync
 
     private int $idProducto;
 
-    public function __construct(private readonly TenantConnection $conexiones)
-    {
-    }
+    public function __construct(private readonly TenantConnection $conexiones) {}
 
     /**
      * Sincroniza al cliente con un lock por cliente: dos logins simultáneos no se pisan.
@@ -141,7 +134,7 @@ class AdminTecnicaSync
     private function foreignKeyChecks(bool $activo): void
     {
         if (in_array($this->tenant->getDriverName(), ['mysql', 'mariadb'], true)) {
-            $this->tenant->statement('SET FOREIGN_KEY_CHECKS=' . ($activo ? 1 : 0));
+            $this->tenant->statement('SET FOREIGN_KEY_CHECKS='.($activo ? 1 : 0));
         }
     }
 }

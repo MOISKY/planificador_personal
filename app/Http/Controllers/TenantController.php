@@ -12,9 +12,8 @@ class TenantController extends Controller
 {
     public function __construct(private readonly TenantConnection $tenant)
     {
-        //boot
+        // boot
     }
-
 
     public function seleccionar(Request $request): Response
     {

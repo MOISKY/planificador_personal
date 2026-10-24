@@ -59,8 +59,8 @@ class TenantConnection
             "tenant:cliente:{$idCliente}",
             self::CACHE_TTL,
             fn () => (array) DB::connection($this->master())
-            ->table('admin_clientes')
-            ->where('IdCliente', $idCliente)
+                ->table('admin_clientes')
+                ->where('IdCliente', $idCliente)
                 ->first()
         );
 
