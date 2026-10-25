@@ -20,15 +20,6 @@ export const getLeccionColumnas = (
         ),
     },
     {
-        key: 'modulo',
-        label: 'Módulo / Materia',
-        render: (r) => (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-muted text-foreground">
-                {r.modulo?.Modulo ?? '—'}
-            </span>
-        ),
-    },
-    {
         key: 'UrlLeccion',
         label: 'Presentación / Contenido',
         render: (r) => {

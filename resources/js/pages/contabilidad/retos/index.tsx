@@ -233,7 +233,6 @@ export default function RetosIndex({
                     registro={retoSeleccionado}
                     open={drawerAbierto}
                     onOpenChange={setDrawerAbierto}
-                    modulos={modulos}
                     defaultModuloId={idModulo}
                 />
             </PageShell>

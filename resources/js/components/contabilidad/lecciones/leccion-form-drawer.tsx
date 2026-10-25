@@ -27,7 +27,6 @@ interface Props {
     registro: ModuloLeccionItem | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    modulos: ModuloItem[];
     defaultModuloId?: number | null;
 }
 
@@ -35,7 +34,6 @@ export default function LeccionFormDrawer({
     registro,
     open,
     onOpenChange,
-    modulos,
     defaultModuloId,
 }: Props) {
     const esEdicion = Boolean(registro?.IdLeccion);
@@ -46,15 +44,6 @@ export default function LeccionFormDrawer({
         UrlLeccion: '',
     });
 
-    const moduloOptions = useMemo<ComboboxOption[]>(
-        () =>
-            modulos.map((m) => ({
-                value: String(m.IdModulo),
-                label: m.Modulo,
-            })),
-        [modulos],
-    );
-
     useEffect(() => {
         if (registro) {
             form.setData({
@@ -64,7 +53,7 @@ export default function LeccionFormDrawer({
             });
         } else {
             form.setData({
-                IdModulo: String(defaultModuloId ?? (modulos[0]?.IdModulo ?? '')),
+                IdModulo: String(defaultModuloId ?? ''),
                 Nombre: '',
                 UrlLeccion: '',
             });
@@ -127,27 +116,10 @@ export default function LeccionFormDrawer({
                 >
                     <FormErrorBanner
                         errors={form.errors}
-                        campos={['IdModulo', 'Nombre', 'UrlLeccion']}
+                        campos={['Nombre', 'UrlLeccion', 'IdModulo']}
                     />
 
                     <FieldGroup>
-                        <Field>
-                            <FieldLabel htmlFor="IdModulo" className="required">
-                                Módulo / Materia
-                            </FieldLabel>
-                            <Combobox
-                                options={moduloOptions}
-                                value={form.data.IdModulo}
-                                onValueChange={(val: string) => form.setData('IdModulo', val)}
-                                placeholder="Selecciona un módulo..."
-                                searchPlaceholder="Buscar materia..."
-                                emptyMessage="No se encontraron módulos."
-                                disabled={esEdicion}
-                            />
-                            {form.errors.IdModulo && (
-                                <FieldError>{form.errors.IdModulo}</FieldError>
-                            )}
-                        </Field>
 
                         <Field>
                             <FieldLabel htmlFor="Nombre" className="required">

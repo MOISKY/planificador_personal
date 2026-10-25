@@ -171,7 +171,6 @@ export default function LeccionesIndex({
                     registro={leccionSeleccionada}
                     open={drawerAbierto}
                     onOpenChange={setDrawerAbierto}
-                    modulos={modulos}
                     defaultModuloId={idModulo}
                 />
 

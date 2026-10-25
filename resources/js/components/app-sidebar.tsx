@@ -304,16 +304,6 @@ export function AppSidebar() {
                     href: '/contabilidad/modulos',
                     icon: BookOpen,
                 },
-                {
-                    title: 'Retos',
-                    href: '/contabilidad/retos',
-                    icon: Target,
-                },
-                {
-                    title: 'Lecciones',
-                    href: '/contabilidad/lecciones',
-                    icon: BookOpen,
-                },
             ],
         },
         {

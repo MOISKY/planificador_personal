@@ -31,15 +31,6 @@ export const retoColumnas: Column<ModuloRetoItem>[] = [
         ),
     },
     {
-        key: 'modulo',
-        label: 'Módulo / Materia',
-        render: (r) => (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-muted text-foreground">
-                {r.modulo?.Modulo ?? '—'}
-            </span>
-        ),
-    },
-    {
         key: 'actividades_alumnos_count',
         label: 'Alumnos',
         className: 'w-32 text-center',

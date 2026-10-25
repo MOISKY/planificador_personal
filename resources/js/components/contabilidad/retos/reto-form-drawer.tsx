@@ -27,7 +27,6 @@ interface Props {
     registro: ModuloRetoItem | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    modulos: ModuloItem[];
     defaultModuloId?: number | null;
 }
 
@@ -35,7 +34,6 @@ export default function RetoFormDrawer({
     registro,
     open,
     onOpenChange,
-    modulos,
     defaultModuloId,
 }: Props) {
     const esEdicion = Boolean(registro?.IdReto);
@@ -46,15 +44,6 @@ export default function RetoFormDrawer({
         UrlReto: '',
     });
 
-    const moduloOptions = useMemo<ComboboxOption[]>(
-        () =>
-            modulos.map((m) => ({
-                value: String(m.IdModulo),
-                label: m.Modulo,
-            })),
-        [modulos],
-    );
-
     useEffect(() => {
         if (registro) {
             form.setData({
@@ -64,7 +53,7 @@ export default function RetoFormDrawer({
             });
         } else {
             form.setData({
-                IdModulo: String(defaultModuloId ?? (modulos[0]?.IdModulo ?? '')),
+                IdModulo: String(defaultModuloId ?? ''),
                 Nombre: '',
                 UrlReto: '',
             });
@@ -127,30 +116,10 @@ export default function RetoFormDrawer({
                 >
                     <FormErrorBanner
                         errors={form.errors}
-                        campos={['IdModulo', 'Nombre', 'UrlReto']}
+                        campos={['Nombre', 'UrlReto', 'IdModulo']}
                     />
 
                     <FieldGroup>
-                        <Field>
-                            <FieldLabel htmlFor="IdModulo" className="required">
-                                Módulo / Materia
-                            </FieldLabel>
-                            <div className="relative">
-                                <Combobox
-                                    options={moduloOptions}
-                                    value={form.data.IdModulo}
-                                    onValueChange={(val: string) => form.setData('IdModulo', val)}
-                                    placeholder="Selecciona un módulo..."
-                                    searchPlaceholder="Buscar materia..."
-                                    emptyMessage="No se encontraron módulos."
-                                    disabled={esEdicion}
-                                />
-                            </div>
-                            {form.errors.IdModulo && (
-                                <FieldError>{form.errors.IdModulo}</FieldError>
-                            )}
-                        </Field>
-
                         <Field>
                             <FieldLabel htmlFor="Nombre" className="required">
                                 Nombre del Reto
