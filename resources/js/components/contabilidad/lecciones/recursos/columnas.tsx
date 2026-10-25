@@ -1,6 +1,7 @@
 import { type Column } from '@/components/data-table';
+import { Button } from '@/components/ui/button';
 import { type ModuloLeccionRecursoItem } from '@/types/contabilidad';
-import { ExternalLink, Paperclip } from 'lucide-react';
+import { Paperclip } from 'lucide-react';
 
 export const leccionRecursoColumnas: Column<ModuloLeccionRecursoItem>[] = [
     {
@@ -18,18 +19,22 @@ export const leccionRecursoColumnas: Column<ModuloLeccionRecursoItem>[] = [
     },
     {
         key: 'URLRecurso',
-        label: 'Enlace del Recurso',
+        label: 'Recurso',
         render: (r) => (
-            <a
-                href={r.URLRecurso}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline max-w-md truncate font-medium"
-                title={r.URLRecurso}
+            <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs font-medium"
             >
-                <ExternalLink className="size-3.5 shrink-0" />
-                <span className="truncate">{r.URLRecurso}</span>
-            </a>
+                <a
+                    href={r.URLRecurso}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                >
+                    Abrir Recurso
+                </a>
+            </Button>
         ),
     },
 ];

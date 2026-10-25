@@ -5,14 +5,13 @@ import LeccionFormDrawer from '@/components/contabilidad/lecciones/leccion-form-
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable } from '@/components/data-table';
 import { PageContent, PageShell } from '@/components/page-shell';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type ModuloItem, type ModuloLeccionItem } from '@/types/contabilidad';
 import { type PaginatedData } from '@/types/pagination';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, Paperclip, Plus, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Paperclip, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface Props {
@@ -75,17 +74,6 @@ export default function LeccionesIndex({
         }
     };
 
-    const limpiarFiltroModulo = () => {
-        const params = new URLSearchParams(window.location.search);
-        params.delete('IdModulo');
-        params.delete('page');
-        router.get(
-            `/contabilidad/lecciones${params.toString() ? `?${params.toString()}` : ''}`,
-            {},
-            { preserveState: true, preserveScroll: true },
-        );
-    };
-
     const columnas = useMemo(() => getLeccionColumnas(abrirVisor), []);
 
     return (
@@ -119,23 +107,6 @@ export default function LeccionesIndex({
                     }
                 />
 
-                {moduloSeleccionado && (
-                    <div className="flex items-center gap-2 px-6 pt-2">
-                        <span className="text-xs text-muted-foreground">Filtrando por módulo:</span>
-                        <Badge variant="secondary" className="gap-1.5 text-xs">
-                            {moduloSeleccionado.Modulo}
-                            <button
-                                type="button"
-                                onClick={limpiarFiltroModulo}
-                                className="hover:opacity-75"
-                                title="Quitar filtro de módulo"
-                            >
-                                <X className="size-3" />
-                            </button>
-                        </Badge>
-                    </div>
-                )}
-
                 <PageContent>
                     <DataTable
                         data={items.data}
@@ -148,16 +119,17 @@ export default function LeccionesIndex({
                         onEdit={abrirEditar}
                         onDelete={eliminar}
                         customActions={(item) => (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1">
                                 <Button
                                     asChild
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs font-medium hover:border-purple-500/50 hover:bg-purple-500/10"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400"
+                                    title={`Recursos (${item.recursos_count ?? item.recursos?.length ?? 0})`}
+                                    aria-label="Recursos"
                                 >
                                     <Link href={`/contabilidad/lecciones/${item.IdLeccion}/recursos`}>
-                                        <Paperclip className="mr-1.5 size-3.5 text-purple-600 dark:text-purple-400" />
-                                        Recursos ({item.recursos_count ?? item.recursos?.length ?? 0})
+                                        <Paperclip className="h-4 w-4" />
                                     </Link>
                                 </Button>
                             </div>

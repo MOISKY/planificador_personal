@@ -69,7 +69,7 @@ export default function RetoRecursosIndex({
                 <ContextPanel
                     icon={<Paperclip className="text-purple-600 dark:text-purple-400" />}
                     title={`Recursos: ${reto.Nombre}`}
-                    description={`Materia: ${reto.modulo?.Modulo ?? 'Módulo'} — Documentos, plantillas y enlaces de apoyo.`}
+                    description="Documentos, plantillas y enlaces de apoyo del reto."
                     actions={
                         <div className="flex items-center gap-2">
                             <Button asChild size="sm" variant="outline">

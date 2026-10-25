@@ -79,28 +79,30 @@ export default function ModulosIndex({ items, searchValue }: Props) {
                         onEdit={abrirEditar}
                         onDelete={eliminar}
                         customActions={(item) => (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1">
                                 <Button
                                     asChild
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs font-medium hover:border-amber-500/50 hover:bg-amber-500/10"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
+                                    title={`Retos (${item.retos_count ?? item.retos?.length ?? 0})`}
+                                    aria-label="Retos"
                                 >
                                     <Link href={`/contabilidad/retos?IdModulo=${item.IdModulo}`}>
-                                        <Target className="mr-1.5 size-3.5 text-amber-600 dark:text-amber-400" />
-                                        Retos ({item.retos_count ?? item.retos?.length ?? 0})
+                                        <Target className="h-4 w-4" />
                                     </Link>
                                 </Button>
 
                                 <Button
                                     asChild
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs font-medium hover:border-blue-500/50 hover:bg-blue-500/10"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400"
+                                    title={`Lecciones (${item.lecciones_count ?? item.lecciones?.length ?? 0})`}
+                                    aria-label="Lecciones"
                                 >
                                     <Link href={`/contabilidad/lecciones?IdModulo=${item.IdModulo}`}>
-                                        <BookOpen className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
-                                        Lecciones ({item.lecciones_count ?? item.lecciones?.length ?? 0})
+                                        <BookOpen className="h-4 w-4" />
                                     </Link>
                                 </Button>
                             </div>

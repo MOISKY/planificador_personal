@@ -75,7 +75,7 @@ export default function RetoAlumnosIndex({
                 <ContextPanel
                     icon={<Users className="text-emerald-600 dark:text-emerald-400" />}
                     title={`Alumnos: ${reto.Nombre}`}
-                    description={`Materia: ${reto.modulo?.Modulo ?? 'Módulo'} — Entregas y tareas subidas por los estudiantes.`}
+                    description="Entregas y tareas subidas por los estudiantes para este reto."
                     actions={
                         <div className="flex items-center gap-2">
                             <Button asChild size="sm" variant="outline">

@@ -1,6 +1,7 @@
 import { type Column } from '@/components/data-table';
+import { Button } from '@/components/ui/button';
 import { type ModuloRetoAlumnoItem } from '@/types/contabilidad';
-import { ExternalLink, Paperclip, User } from 'lucide-react';
+import { Paperclip, User } from 'lucide-react';
 
 export const retoAlumnoColumnas: Column<ModuloRetoAlumnoItem>[] = [
     {
@@ -35,18 +36,22 @@ export const retoAlumnoColumnas: Column<ModuloRetoAlumnoItem>[] = [
     },
     {
         key: 'URLRecurso',
-        label: 'Enlace Entregado',
+        label: 'Entrega',
         render: (r) => (
-            <a
-                href={r.URLRecurso}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline max-w-xs truncate font-medium"
-                title={r.URLRecurso}
+            <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs font-medium"
             >
-                <ExternalLink className="size-3.5 shrink-0" />
-                <span className="truncate">{r.URLRecurso}</span>
-            </a>
+                <a
+                    href={r.URLRecurso}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                >
+                    Ver Entrega
+                </a>
+            </Button>
         ),
     },
     {

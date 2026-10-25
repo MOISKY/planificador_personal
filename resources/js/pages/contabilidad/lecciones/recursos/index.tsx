@@ -69,7 +69,7 @@ export default function LeccionRecursosIndex({
                 <ContextPanel
                     icon={<Paperclip className="text-purple-600 dark:text-purple-400" />}
                     title={`Recursos: ${leccion.Nombre}`}
-                    description={`Materia: ${leccion.modulo?.Modulo ?? 'Módulo'} — Documentos y materiales de apoyo de la lección.`}
+                    description="Documentos y materiales de apoyo de la lección."
                     actions={
                         <div className="flex items-center gap-2">
                             <Button asChild size="sm" variant="outline">
