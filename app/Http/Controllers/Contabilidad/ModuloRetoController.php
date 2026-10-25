@@ -3,44 +3,85 @@
 namespace App\Http\Controllers\Contabilidad;
 
 use App\Http\Controllers\Controller;
+use App\Models\Contabilidad\Alumno;
+use App\Models\Contabilidad\Ciclo;
+use App\Models\Contabilidad\Modulo;
 use App\Models\Contabilidad\ModuloReto;
 use App\Models\Contabilidad\ModuloRetoAlumno;
 use App\Models\Contabilidad\ModuloRetoRecurso;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ModuloRetoController extends Controller
 {
     /**
-     * Lista de retos (Web / Lectura).
+     * Lista de retos (Página Inertia o JSON si es API).
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): Response|JsonResponse
     {
         $idModulo = $request->integer('IdModulo');
-        $nombre = trim((string) ($request->input('Nombre') ?? $request->input('search') ?? ''));
+        $idCiclo = $request->integer('IdCiclo');
+        $search = trim((string) ($request->input('search') ?? $request->input('Nombre') ?? ''));
+        $perPage = max(1, (int) $request->integer('per_page', 10));
 
-        $items = ModuloReto::query()
-            ->when($idModulo > 0, function ($query) use ($idModulo): void {
-                $query->where('IdModulo', $idModulo);
-            })
-            ->when($nombre !== '', function ($query) use ($nombre): void {
-                $query->whereLike('Nombre', "%{$nombre}%");
-            })
-            ->orderBy('IdReto', 'asc')
-            ->get()
-            ->map(function (ModuloReto $item): array {
-                return [
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            $apiItems = ModuloReto::query()
+                ->when($idModulo > 0, function ($query) use ($idModulo): void {
+                    $query->where('IdModulo', $idModulo);
+                })
+                ->when($search !== '', function ($query) use ($search): void {
+                    $query->whereLike('Nombre', "%{$search}%");
+                })
+                ->orderBy('IdReto', 'asc')
+                ->get()
+                ->map(fn (ModuloReto $item): array => [
                     'id' => (int) $item->IdReto,
                     'IdReto' => (int) $item->IdReto,
                     'IdModulo' => (int) $item->IdModulo,
                     'Nombre' => $item->Nombre,
                     'UrlReto' => $item->UrlReto,
                     'FechaRegistro' => $item->FechaRegistro,
-                ];
-            });
+                ]);
 
-        return response()->json($items);
+            return response()->json($apiItems);
+        }
+
+        $items = ModuloReto::query()
+            ->with(['modulo:IdModulo,Modulo'])
+            ->withCount(['recursos', 'actividadesAlumnos'])
+            ->when($idModulo > 0, function ($query) use ($idModulo): void {
+                $query->where('IdModulo', $idModulo);
+            })
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->whereLike('Nombre', "%{$search}%");
+            })
+            ->orderBy('IdReto', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $modulos = Modulo::query()
+            ->orderBy('Modulo')
+            ->get(['IdModulo', 'Modulo']);
+
+        $ciclos = Ciclo::query()
+            ->with(['periodo', 'oportunidad', 'grupo', 'asesor'])
+            ->orderBy('IdCiclo', 'desc')
+            ->get();
+
+        $moduloSeleccionado = $idModulo > 0 ? Modulo::find($idModulo) : null;
+
+        return Inertia::render('contabilidad/retos/index', [
+            'items' => $items,
+            'modulos' => $modulos,
+            'ciclos' => $ciclos,
+            'moduloSeleccionado' => $moduloSeleccionado,
+            'idModulo' => $idModulo > 0 ? $idModulo : null,
+            'idCiclo' => $idCiclo > 0 ? $idCiclo : null,
+            'searchValue' => $search,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -87,18 +128,20 @@ class ModuloRetoController extends Controller
     /**
      * Lista de recursos asociados a un reto.
      */
-    public function indexRecurso(Request $request, ?ModuloReto $reto = null): JsonResponse
+    public function indexRecurso(Request $request, ModuloReto $reto): Response|JsonResponse
     {
-        $idReto = $reto?->IdReto ?? ($request->integer('IdReto') ?: null);
+        $search = trim((string) ($request->input('search') ?? $request->input('Nombre') ?? ''));
+        $perPage = max(1, (int) $request->integer('per_page', 10));
 
-        $items = ModuloRetoRecurso::query()
-            ->when($idReto !== null, function ($query) use ($idReto): void {
-                $query->where('IdReto', $idReto);
-            })
-            ->orderBy('IdRetoRecurso', 'asc')
-            ->get()
-            ->map(function (ModuloRetoRecurso $recurso): array {
-                return [
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            $apiItems = ModuloRetoRecurso::query()
+                ->where('IdReto', $reto->IdReto)
+                ->when($search !== '', function ($query) use ($search): void {
+                    $query->whereLike('Nombre', "%{$search}%");
+                })
+                ->orderBy('IdRetoRecurso', 'asc')
+                ->get()
+                ->map(fn (ModuloRetoRecurso $recurso): array => [
                     'id' => (int) $recurso->IdRetoRecurso,
                     'IdRetoRecurso' => (int) $recurso->IdRetoRecurso,
                     'IdReto' => (int) $recurso->IdReto,
@@ -106,10 +149,27 @@ class ModuloRetoController extends Controller
                     'Nombre' => $recurso->Nombre,
                     'URLRecurso' => $recurso->URLRecurso,
                     'FechaRegistro' => $recurso->FechaRegistro,
-                ];
-            });
+                ]);
 
-        return response()->json($items);
+            return response()->json($apiItems);
+        }
+
+        $items = ModuloRetoRecurso::query()
+            ->where('IdReto', $reto->IdReto)
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->whereLike('Nombre', "%{$search}%");
+            })
+            ->orderBy('IdRetoRecurso', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $reto->load('modulo:IdModulo,Modulo');
+
+        return Inertia::render('contabilidad/retos/recursos/index', [
+            'reto' => $reto,
+            'items' => $items,
+            'searchValue' => $search,
+        ]);
     }
 
     public function storeRecurso(Request $request, ModuloReto $reto): RedirectResponse
@@ -158,23 +218,25 @@ class ModuloRetoController extends Controller
     /**
      * Lista de actividades de alumnos asociadas a un reto.
      */
-    public function indexAlumno(Request $request, ?ModuloReto $reto = null): JsonResponse
+    public function indexAlumno(Request $request, ModuloReto $reto): Response|JsonResponse
     {
-        $idReto = $reto?->IdReto ?? ($request->integer('IdReto') ?: null);
+        $search = trim((string) ($request->input('search') ?? $request->input('Nombre') ?? ''));
         $idAlumno = $request->integer('IdAlumno') ?: null;
+        $perPage = max(1, (int) $request->integer('per_page', 10));
 
-        $items = ModuloRetoAlumno::query()
-            ->with(['alumno:IdAlumno,Nombre,ApellidoPaterno,ApellidoMaterno'])
-            ->when($idReto !== null, function ($query) use ($idReto): void {
-                $query->where('IdReto', $idReto);
-            })
-            ->when($idAlumno !== null, function ($query) use ($idAlumno): void {
-                $query->where('IdAlumno', $idAlumno);
-            })
-            ->orderBy('IdRetoAlumno', 'asc')
-            ->get()
-            ->map(function (ModuloRetoAlumno $actividad): array {
-                return [
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            $apiItems = ModuloRetoAlumno::query()
+                ->with(['alumno:IdAlumno,Nombre,ApellidoPaterno,ApellidoMaterno'])
+                ->where('IdReto', $reto->IdReto)
+                ->when($idAlumno !== null, function ($query) use ($idAlumno): void {
+                    $query->where('IdAlumno', $idAlumno);
+                })
+                ->when($search !== '', function ($query) use ($search): void {
+                    $query->whereLike('Nombre', "%{$search}%");
+                })
+                ->orderBy('IdRetoAlumno', 'asc')
+                ->get()
+                ->map(fn (ModuloRetoAlumno $actividad): array => [
                     'id' => (int) $actividad->IdRetoAlumno,
                     'IdRetoAlumno' => (int) $actividad->IdRetoAlumno,
                     'IdReto' => (int) $actividad->IdReto,
@@ -185,10 +247,52 @@ class ModuloRetoController extends Controller
                     'URLRecurso' => $actividad->URLRecurso,
                     'FechaRegistro' => $actividad->FechaRegistro,
                     'alumno' => $actividad->alumno,
-                ];
-            });
+                ]);
 
-        return response()->json($items);
+            return response()->json($apiItems);
+        }
+
+        $items = ModuloRetoAlumno::query()
+            ->with([
+                'alumno:IdAlumno,Nombre,ApellidoPaterno,ApellidoMaterno',
+                'recursoAsociado:IdRetoRecurso,Nombre',
+            ])
+            ->where('IdReto', $reto->IdReto)
+            ->when($idAlumno !== null, function ($query) use ($idAlumno): void {
+                $query->where('IdAlumno', $idAlumno);
+            })
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($q) use ($search): void {
+                    $q->whereLike('Nombre', "%{$search}%")
+                        ->orWhereHas('alumno', function ($aq) use ($search): void {
+                            $aq->whereLike('Nombre', "%{$search}%")
+                                ->orWhereLike('ApellidoPaterno', "%{$search}%")
+                                ->orWhereLike('ApellidoMaterno', "%{$search}%");
+                        });
+                });
+            })
+            ->orderBy('IdRetoAlumno', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $reto->load('modulo:IdModulo,Modulo');
+
+        $alumnos = Alumno::query()
+            ->orderBy('Nombre')
+            ->get(['IdAlumno', 'Nombre', 'ApellidoPaterno', 'ApellidoMaterno']);
+
+        $recursos = ModuloRetoRecurso::query()
+            ->where('IdReto', $reto->IdReto)
+            ->orderBy('Nombre')
+            ->get(['IdRetoRecurso', 'Nombre']);
+
+        return Inertia::render('contabilidad/retos/alumnos/index', [
+            'reto' => $reto,
+            'items' => $items,
+            'alumnos' => $alumnos,
+            'recursos' => $recursos,
+            'searchValue' => $search,
+        ]);
     }
 
     public function storeAlumno(Request $request, ModuloReto $reto): RedirectResponse

@@ -47,6 +47,7 @@ import {
     Search,
     Settings,
     Table2,
+    Target,
     TriangleAlert,
     User,
     UserCheck,
@@ -301,6 +302,16 @@ export function AppSidebar() {
                 {
                     title: 'Módulos',
                     href: '/contabilidad/modulos',
+                    icon: BookOpen,
+                },
+                {
+                    title: 'Retos',
+                    href: '/contabilidad/retos',
+                    icon: Target,
+                },
+                {
+                    title: 'Lecciones',
+                    href: '/contabilidad/lecciones',
                     icon: BookOpen,
                 },
             ],

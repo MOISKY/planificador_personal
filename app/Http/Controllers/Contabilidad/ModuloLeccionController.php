@@ -3,43 +3,74 @@
 namespace App\Http\Controllers\Contabilidad;
 
 use App\Http\Controllers\Controller;
+use App\Models\Contabilidad\Modulo;
 use App\Models\Contabilidad\ModuloLeccion;
 use App\Models\Contabilidad\ModuloLeccionRecurso;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ModuloLeccionController extends Controller
 {
     /**
-     * Lista de lecciones (Web / Lectura).
+     * Lista de lecciones (Web Inertia o JSON para API/Extensión).
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): Response|JsonResponse
     {
         $idModulo = $request->integer('IdModulo');
-        $nombre = trim((string) ($request->input('Nombre') ?? $request->input('search') ?? ''));
+        $search = trim((string) ($request->input('search') ?? $request->input('Nombre') ?? ''));
+        $perPage = max(1, (int) $request->integer('per_page', 10));
 
-        $items = ModuloLeccion::query()
-            ->when($idModulo > 0, function ($query) use ($idModulo): void {
-                $query->where('IdModulo', $idModulo);
-            })
-            ->when($nombre !== '', function ($query) use ($nombre): void {
-                $query->whereLike('Nombre', "%{$nombre}%");
-            })
-            ->orderBy('IdLeccion', 'asc')
-            ->get()
-            ->map(function (ModuloLeccion $item): array {
-                return [
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            $apiItems = ModuloLeccion::query()
+                ->when($idModulo > 0, function ($query) use ($idModulo): void {
+                    $query->where('IdModulo', $idModulo);
+                })
+                ->when($search !== '', function ($query) use ($search): void {
+                    $query->whereLike('Nombre', "%{$search}%");
+                })
+                ->orderBy('IdLeccion', 'asc')
+                ->get()
+                ->map(fn (ModuloLeccion $item): array => [
                     'id' => (int) $item->IdLeccion,
                     'IdLeccion' => (int) $item->IdLeccion,
                     'IdModulo' => (int) $item->IdModulo,
                     'Nombre' => $item->Nombre,
                     'UrlLeccion' => $item->UrlLeccion,
                     'FechaRegistro' => $item->FechaRegistro,
-                ];
-            });
+                ]);
 
-        return response()->json($items);
+            return response()->json($apiItems);
+        }
+
+        $items = ModuloLeccion::query()
+            ->with(['modulo:IdModulo,Modulo'])
+            ->withCount(['recursos'])
+            ->when($idModulo > 0, function ($query) use ($idModulo): void {
+                $query->where('IdModulo', $idModulo);
+            })
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->whereLike('Nombre', "%{$search}%");
+            })
+            ->orderBy('IdLeccion', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $modulos = Modulo::query()
+            ->orderBy('Modulo')
+            ->get(['IdModulo', 'Modulo']);
+
+        $moduloSeleccionado = $idModulo > 0 ? Modulo::find($idModulo) : null;
+
+        return Inertia::render('contabilidad/lecciones/index', [
+            'items' => $items,
+            'modulos' => $modulos,
+            'moduloSeleccionado' => $moduloSeleccionado,
+            'idModulo' => $idModulo > 0 ? $idModulo : null,
+            'searchValue' => $search,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -86,28 +117,47 @@ class ModuloLeccionController extends Controller
     /**
      * Lista de recursos asociados a una lección.
      */
-    public function indexRecurso(Request $request, ?ModuloLeccion $leccion = null): JsonResponse
+    public function indexRecurso(Request $request, ModuloLeccion $leccion): Response|JsonResponse
     {
-        $idLeccion = $leccion?->IdLeccion ?? ($request->integer('IdLeccion') ?: null);
+        $search = trim((string) ($request->input('search') ?? $request->input('Nombre') ?? ''));
+        $perPage = max(1, (int) $request->integer('per_page', 10));
 
-        $items = ModuloLeccionRecurso::query()
-            ->when($idLeccion !== null, function ($query) use ($idLeccion): void {
-                $query->where('IdLeccion', $idLeccion);
-            })
-            ->orderBy('IdLeccionRecurso', 'asc')
-            ->get()
-            ->map(function (ModuloLeccionRecurso $recurso): array {
-                return [
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            $apiItems = ModuloLeccionRecurso::query()
+                ->where('IdLeccion', $leccion->IdLeccion)
+                ->when($search !== '', function ($query) use ($search): void {
+                    $query->whereLike('Nombre', "%{$search}%");
+                })
+                ->orderBy('IdLeccionRecurso', 'asc')
+                ->get()
+                ->map(fn (ModuloLeccionRecurso $recurso): array => [
                     'id' => (int) $recurso->IdLeccionRecurso,
                     'IdLeccionRecurso' => (int) $recurso->IdLeccionRecurso,
                     'IdLeccion' => (int) $recurso->IdLeccion,
                     'Nombre' => $recurso->Nombre,
                     'URLRecurso' => $recurso->URLRecurso,
                     'FechaRegistro' => $recurso->FechaRegistro,
-                ];
-            });
+                ]);
 
-        return response()->json($items);
+            return response()->json($apiItems);
+        }
+
+        $items = ModuloLeccionRecurso::query()
+            ->where('IdLeccion', $leccion->IdLeccion)
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->whereLike('Nombre', "%{$search}%");
+            })
+            ->orderBy('IdLeccionRecurso', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $leccion->load('modulo:IdModulo,Modulo');
+
+        return Inertia::render('contabilidad/lecciones/recursos/index', [
+            'leccion' => $leccion,
+            'items' => $items,
+            'searchValue' => $search,
+        ]);
     }
 
     public function storeRecurso(Request $request, ModuloLeccion $leccion): RedirectResponse

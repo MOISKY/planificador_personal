@@ -77,10 +77,12 @@ export interface ModuloRetoItem {
     Nombre: string;
     UrlReto?: string | null;
     FechaRegistro?: string;
+    modulo?: ModuloItem;
     recursos?: ModuloRetoRecursoItem[];
     actividades_alumnos?: ModuloRetoAlumnoItem[];
     recursos_count?: number;
     alumnos_count?: number;
+    actividades_alumnos_count?: number;
 }
 
 export interface ModuloLeccionRecursoItem {
@@ -97,6 +99,7 @@ export interface ModuloLeccionItem {
     Nombre: string;
     UrlLeccion?: string | null;
     FechaRegistro?: string;
+    modulo?: ModuloItem;
     recursos?: ModuloLeccionRecursoItem[];
     recursos_count?: number;
 }
