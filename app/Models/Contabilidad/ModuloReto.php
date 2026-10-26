@@ -75,4 +75,14 @@ class ModuloReto extends Model
     {
         return $this->hasMany(ModuloRetoAlumno::class, 'IdReto', 'IdReto');
     }
+
+    /**
+     * Alias snake_case para actividadesAlumnos.
+     *
+     * @return HasMany<ModuloRetoAlumno, $this>
+     */
+    public function actividades_alumnos(): HasMany
+    {
+        return $this->actividadesAlumnos();
+    }
 }

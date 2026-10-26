@@ -59,7 +59,7 @@ class ContabilidadDashboardController extends Controller
         // 4. Los últimos 12 retos agregados
         $ultimosRetos = ModuloReto::query()
             ->with(['modulo:IdModulo,Modulo'])
-            ->withCount(['recursos', 'actividades_alumnos'])
+            ->withCount(['recursos', 'actividadesAlumnos as actividades_alumnos_count'])
             ->orderBy('IdReto', 'desc')
             ->take(12)
             ->get();
