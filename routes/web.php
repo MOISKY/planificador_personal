@@ -12,10 +12,13 @@ use App\Http\Controllers\Cine\TmdbController;
 use App\Http\Controllers\Contabilidad\AlumnoController;
 use App\Http\Controllers\Contabilidad\AsesorController;
 use App\Http\Controllers\Contabilidad\CicloController;
+use App\Http\Controllers\Contabilidad\ContabilidadDashboardController;
 use App\Http\Controllers\Contabilidad\GrupoController;
 use App\Http\Controllers\Contabilidad\ModuloController;
 use App\Http\Controllers\Contabilidad\ModuloLeccionController;
+use App\Http\Controllers\Contabilidad\ModuloLeccionEstatusController;
 use App\Http\Controllers\Contabilidad\ModuloRetoController;
+use App\Http\Controllers\Contabilidad\ModuloRetoRecursoEstatusController;
 use App\Http\Controllers\Contabilidad\OportunidadController;
 use App\Http\Controllers\Contabilidad\PeriodoController;
 use App\Http\Controllers\EjemploController;
@@ -74,6 +77,9 @@ Route::prefix('cine')->name('cine.')->group(function () {
 // Módulo: Contabilidad (Planificación Personal)
 // ==========================================================
 Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
+    // Dashboard principal de Contabilidad
+    Route::get('dashboard', [ContabilidadDashboardController::class, 'index'])->name('dashboard');
+
     // Catálogos
     Route::resource('alumnos', AlumnoController::class)->names('alumnos');
     Route::resource('oportunidades', OportunidadController::class)->names('oportunidades');
@@ -111,6 +117,15 @@ Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
     Route::post('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'storeRecurso'])->name('lecciones.recursos.store');
     Route::put('lecciones-recursos/{recurso}', [ModuloLeccionController::class, 'updateRecurso'])->name('lecciones.recursos.update');
     Route::delete('lecciones-recursos/{recurso}', [ModuloLeccionController::class, 'destroyRecurso'])->name('lecciones.recursos.destroy');
+
+    // Kardex Estatus de Lecciones y Recursos de Retos
+    Route::get('modulo-leccion-estatus', [ModuloLeccionEstatusController::class, 'index'])->name('modulo-leccion-estatus.index');
+    Route::put('modulo-leccion-estatus/{estatus}', [ModuloLeccionEstatusController::class, 'update'])->name('modulo-leccion-estatus.update');
+    Route::delete('modulo-leccion-estatus/{estatus}', [ModuloLeccionEstatusController::class, 'destroy'])->name('modulo-leccion-estatus.destroy');
+
+    Route::get('modulo-reto-recurso-estatus', [ModuloRetoRecursoEstatusController::class, 'index'])->name('modulo-reto-recurso-estatus.index');
+    Route::put('modulo-reto-recurso-estatus/{estatus}', [ModuloRetoRecursoEstatusController::class, 'update'])->name('modulo-reto-recurso-estatus.update');
+    Route::delete('modulo-reto-recurso-estatus/{estatus}', [ModuloRetoRecursoEstatusController::class, 'destroy'])->name('modulo-reto-recurso-estatus.destroy');
 });
 
 // ==========================================================

@@ -28,10 +28,12 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Activity,
     Award,
+    BookmarkCheck,
     BookOpen,
     Calculator,
     CalendarCheck2,
     CalendarRange,
+    CheckSquare,
     Clapperboard,
     Film,
     Boxes,
@@ -264,6 +266,11 @@ export function AppSidebar() {
             icon: Calculator,
             items: [
                 {
+                    title: 'Dashboard',
+                    href: '/contabilidad/dashboard',
+                    icon: LayoutGrid,
+                },
+                {
                     title: 'Catálogos',
                     icon: Boxes,
                     children: [
@@ -303,6 +310,16 @@ export function AppSidebar() {
                     title: 'Módulos',
                     href: '/contabilidad/modulos',
                     icon: BookOpen,
+                },
+                {
+                    title: 'Módulo Lección Estatus',
+                    href: '/contabilidad/modulo-leccion-estatus',
+                    icon: BookmarkCheck,
+                },
+                {
+                    title: 'Módulo Reto Estatus',
+                    href: '/contabilidad/modulo-reto-recurso-estatus',
+                    icon: CheckSquare,
                 },
             ],
         },

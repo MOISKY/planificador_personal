@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Lección perteneciente a un Módulo.
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonInterface $FechaRegistro
  * @property-read Modulo $modulo
  * @property-read Collection<int, ModuloLeccionRecurso> $recursos
+ * @property-read Collection<int, ModuloLeccionEstatus> $estatusKardex
+ * @property-read ModuloLeccionEstatus|null $estatusActual
  */
 class ModuloLeccion extends Model
 {
@@ -50,6 +53,20 @@ class ModuloLeccion extends Model
         ];
     }
 
+    /**
+     * Registro automático de estatus inicial 'No leido' al dar de alta una lección.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (ModuloLeccion $leccion): void {
+            if (! $leccion->estatusKardex()->exists()) {
+                $leccion->estatusKardex()->create([
+                    'Estatus' => ModuloLeccionEstatus::ESTATUS_NO_LEIDO,
+                ]);
+            }
+        });
+    }
+
     public function modulo(): BelongsTo
     {
         return $this->belongsTo(Modulo::class, 'IdModulo', 'IdModulo');
@@ -63,5 +80,27 @@ class ModuloLeccion extends Model
     public function recursos(): HasMany
     {
         return $this->hasMany(ModuloLeccionRecurso::class, 'IdLeccion', 'IdLeccion');
+    }
+
+    /**
+     * Historial completo de estatus (kardex) de la lección.
+     *
+     * @return HasMany<ModuloLeccionEstatus, $this>
+     */
+    public function estatusKardex(): HasMany
+    {
+        return $this->hasMany(ModuloLeccionEstatus::class, 'IdLeccion', 'IdLeccion')
+            ->orderBy('FechaRegistro', 'desc');
+    }
+
+    /**
+     * Último estatus registrado de la lección.
+     *
+     * @return HasOne<ModuloLeccionEstatus, $this>
+     */
+    public function estatusActual(): HasOne
+    {
+        return $this->hasOne(ModuloLeccionEstatus::class, 'IdLeccion', 'IdLeccion')
+            ->latestOfMany('FechaRegistro');
     }
 }

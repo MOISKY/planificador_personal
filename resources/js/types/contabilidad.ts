@@ -113,3 +113,28 @@ export interface ModuloItem {
     retos?: ModuloRetoItem[];
     lecciones?: ModuloLeccionItem[];
 }
+
+export type LeccionEstatusTipo = 'No leido' | 'Leyendo' | 'Leido';
+
+export interface ModuloLeccionEstatusItem {
+    IdLeccionEstatus: number;
+    IdLeccion: number;
+    Estatus: LeccionEstatusTipo;
+    FechaRegistro?: string;
+    leccion?: ModuloLeccionItem;
+}
+
+export type RetoRecursoEstatusTipo = 'No Realizado' | 'En Proceso' | 'Realizado';
+
+export interface ModuloRetoRecursoEstatusItem {
+    IdRetoRecursoEstatus: number;
+    IdRetoRecurso: number;
+    Estatus: RetoRecursoEstatusTipo;
+    FechaRegistro?: string;
+    recurso?: ModuloRetoRecursoItem & {
+        reto?: ModuloRetoItem & {
+            modulo?: ModuloItem;
+        };
+    };
+}
+
