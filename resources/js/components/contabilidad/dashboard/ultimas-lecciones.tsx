@@ -13,10 +13,8 @@ interface Props {
 }
 
 export function UltimasLecciones({ items = [], onVerLeccion }: Props) {
-    const hasScroll = items.length > 3;
-
     return (
-        <Card className="flex flex-col h-[280px] shadow-xs">
+        <Card className="flex flex-col h-[270px] py-0 gap-0 shadow-xs">
             <CardHeader className="py-2 px-3 border-b flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
                     <BookmarkCheck className="size-3.5 sm:size-4 text-primary shrink-0" />
@@ -37,13 +35,7 @@ export function UltimasLecciones({ items = [], onVerLeccion }: Props) {
                         No hay lecciones registradas.
                     </div>
                 ) : (
-                    <div
-                        className={`h-full p-2 pr-1.5 space-y-1.5 ${
-                            hasScroll
-                                ? 'overflow-y-auto [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary'
-                                : 'overflow-y-hidden'
-                        }`}
-                    >
+                    <div className="h-full overflow-y-auto p-2 pr-1.5 space-y-1.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary">
                         {items.map((l: any) => (
                             <div
                                 key={l.IdLeccion}

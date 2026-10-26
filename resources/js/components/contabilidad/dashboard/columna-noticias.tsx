@@ -27,7 +27,7 @@ export function ColumnaNoticias({
     emptyMessage = 'No hay noticias recientes disponibles.',
 }: ColumnaNoticiasProps) {
     return (
-        <Card className="flex flex-col h-[340px] shadow-xs">
+        <Card className="flex flex-col h-[340px] py-0 gap-0 shadow-xs">
             <CardHeader className="py-2 px-3 border-b flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-2">
                     <div className="shrink-0">{icon}</div>
