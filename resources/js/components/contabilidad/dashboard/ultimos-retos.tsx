@@ -12,66 +12,65 @@ interface Props {
 
 export function UltimosRetos({ items = [] }: Props) {
     return (
-        <Card className="flex flex-col h-[580px] shadow-xs">
-            <CardHeader className="pb-3 border-b flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Target className="size-4 text-primary" />
+        <Card className="flex flex-col h-[260px] shadow-xs">
+            <CardHeader className="py-2 px-3 border-b flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                    <Target className="size-3.5 sm:size-4 text-primary shrink-0" />
                     <span>Últimos 12 Retos</span>
                 </CardTitle>
-                <Button asChild variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground">
+                <Button asChild variant="ghost" size="sm" className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground">
                     <Link href="/contabilidad/retos">
                         Ver todos
-                        <ChevronRight className="ml-1 size-3.5" />
+                        <ChevronRight className="ml-0.5 size-3" />
                     </Link>
                 </Button>
             </CardHeader>
 
             <CardContent className="p-0 flex-1 min-h-0">
                 {items.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full">
-                        <Target className="size-8 text-muted-foreground/40 mb-2" />
-                        No hay retos registrados en el sistema.
+                    <div className="p-4 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full">
+                        <Target className="size-5 text-muted-foreground/40 mb-1" />
+                        No hay retos registrados.
                     </div>
                 ) : (
-                    <div className="h-full overflow-y-auto p-3.5 pr-2 space-y-2.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)]">
+                    <div className="h-full overflow-y-auto p-2 pr-1.5 space-y-1.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary">
                         {items.map((r) => (
                             <div
                                 key={r.IdReto}
-                                className="flex flex-col gap-2 p-3 rounded-xl border bg-card hover:bg-muted/40 transition shadow-2xs group"
+                                className="flex flex-col gap-1 p-1.5 px-2 rounded-md border bg-card hover:bg-muted/40 transition shadow-2xs group"
                             >
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="font-semibold text-sm text-foreground leading-snug line-clamp-2">
+                                <div className="flex items-center justify-between gap-1.5">
+                                    <div className="font-medium text-xs text-foreground truncate flex-1" title={r.Nombre}>
                                         {r.Nombre}
                                     </div>
-                                    <span className="text-[11px] text-muted-foreground shrink-0">
+                                    <span className="text-[10px] text-muted-foreground shrink-0">
                                         {formatDate(r.FechaRegistro)}
                                     </span>
                                 </div>
 
-                                {r.modulo?.Modulo && (
-                                    <div className="text-xs text-muted-foreground truncate">
-                                        Módulo: <span className="font-medium text-foreground/80">{r.modulo.Modulo}</span>
-                                    </div>
-                                )}
-
-                                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/50 text-xs">
-                                    <div className="flex items-center gap-1.5">
-                                        <Badge variant="outline" className="text-[11px] font-normal gap-1 bg-background/50">
-                                            <Paperclip className="size-3 text-primary" />
-                                            {r.recursos_count ?? 0} recursos
+                                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/40 text-[10px]">
+                                    <div className="flex items-center gap-1 truncate flex-1">
+                                        {r.modulo?.Modulo && (
+                                            <span className="text-[10px] text-muted-foreground truncate max-w-[100px]" title={r.modulo.Modulo}>
+                                                {r.modulo.Modulo}
+                                            </span>
+                                        )}
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5 bg-background/50 shrink-0">
+                                            <Paperclip className="size-2 text-primary" />
+                                            {r.recursos_count ?? 0}
                                         </Badge>
-                                        <Badge variant="outline" className="text-[11px] font-normal gap-1 bg-background/50">
-                                            <Users className="size-3 text-blue-500" />
-                                            {r.actividades_alumnos_count ?? 0} alumnos
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5 bg-background/50 shrink-0">
+                                            <Users className="size-2 text-blue-500" />
+                                            {r.actividades_alumnos_count ?? 0}
                                         </Badge>
                                     </div>
 
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 shrink-0">
                                         <Button
                                             asChild
                                             variant="ghost"
                                             size="sm"
-                                            className="h-6 px-2 text-[11px] hover:bg-primary/10 hover:text-primary"
+                                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10 hover:text-primary"
                                         >
                                             <Link href={`/contabilidad/retos/${r.IdReto}/alumnos`}>
                                                 Entregas
@@ -81,7 +80,7 @@ export function UltimosRetos({ items = [] }: Props) {
                                             asChild
                                             variant="ghost"
                                             size="sm"
-                                            className="h-6 px-2 text-[11px] hover:bg-primary/10 hover:text-primary"
+                                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10 hover:text-primary"
                                         >
                                             <Link href={`/contabilidad/retos/${r.IdReto}/recursos`}>
                                                 Materiales

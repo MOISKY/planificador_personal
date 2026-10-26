@@ -12,51 +12,51 @@ interface Props {
 
 export function UltimosModulos({ items = [] }: Props) {
     return (
-        <Card className="flex flex-col h-[580px] shadow-xs">
-            <CardHeader className="pb-3 border-b flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <BookOpen className="size-4 text-primary" />
+        <Card className="flex flex-col h-[260px] shadow-xs">
+            <CardHeader className="py-2 px-3 border-b flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                    <BookOpen className="size-3.5 sm:size-4 text-primary shrink-0" />
                     <span>Últimos 6 Módulos</span>
                 </CardTitle>
-                <Button asChild variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground">
+                <Button asChild variant="ghost" size="sm" className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground">
                     <Link href="/contabilidad/modulos">
                         Ver todos
-                        <ChevronRight className="ml-1 size-3.5" />
+                        <ChevronRight className="ml-0.5 size-3" />
                     </Link>
                 </Button>
             </CardHeader>
 
             <CardContent className="p-0 flex-1 min-h-0">
                 {items.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full">
-                        <BookOpen className="size-8 text-muted-foreground/40 mb-2" />
-                        No hay módulos registrados en el sistema.
+                    <div className="p-4 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full">
+                        <BookOpen className="size-5 text-muted-foreground/40 mb-1" />
+                        No hay módulos registrados.
                     </div>
                 ) : (
-                    <div className="h-full overflow-y-auto p-3.5 pr-2 space-y-2.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)]">
+                    <div className="h-full overflow-y-auto p-2 pr-1.5 space-y-1.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary">
                         {items.map((m) => (
                             <div
                                 key={m.IdModulo}
-                                className="flex flex-col gap-2 p-3 rounded-xl border bg-card hover:bg-muted/40 transition shadow-2xs group"
+                                className="flex flex-col gap-1 p-1.5 px-2 rounded-md border bg-card hover:bg-muted/40 transition shadow-2xs group"
                             >
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="font-semibold text-sm text-foreground leading-snug line-clamp-2">
+                                <div className="flex items-center justify-between gap-1.5">
+                                    <div className="font-medium text-xs text-foreground truncate flex-1" title={m.Modulo}>
                                         {m.Modulo}
                                     </div>
-                                    <span className="text-[11px] text-muted-foreground shrink-0">
+                                    <span className="text-[10px] text-muted-foreground shrink-0">
                                         {formatDate(m.FechaRegistro)}
                                     </span>
                                 </div>
 
-                                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/50 text-xs">
-                                    <div className="flex items-center gap-1.5">
-                                        <Badge variant="outline" className="text-[11px] font-normal gap-1 bg-background/50">
-                                            <Target className="size-3 text-primary" />
+                                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/40 text-[10px]">
+                                    <div className="flex items-center gap-1">
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5 bg-background/50">
+                                            <Target className="size-2 text-primary" />
                                             {m.retos_count ?? 0} retos
                                         </Badge>
-                                        <Badge variant="outline" className="text-[11px] font-normal gap-1 bg-background/50">
-                                            <Layers className="size-3 text-blue-500" />
-                                            {m.lecciones_count ?? 0} lecciones
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5 bg-background/50">
+                                            <Layers className="size-2 text-blue-500" />
+                                            {m.lecciones_count ?? 0} lecc.
                                         </Badge>
                                     </div>
 
@@ -65,7 +65,7 @@ export function UltimosModulos({ items = [] }: Props) {
                                             asChild
                                             variant="ghost"
                                             size="sm"
-                                            className="h-6 px-2 text-[11px] hover:bg-primary/10 hover:text-primary"
+                                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10 hover:text-primary"
                                         >
                                             <Link href={`/contabilidad/retos?IdModulo=${m.IdModulo}`}>
                                                 Retos
@@ -75,7 +75,7 @@ export function UltimosModulos({ items = [] }: Props) {
                                             asChild
                                             variant="ghost"
                                             size="sm"
-                                            className="h-6 px-2 text-[11px] hover:bg-primary/10 hover:text-primary"
+                                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10 hover:text-primary"
                                         >
                                             <Link href={`/contabilidad/lecciones?IdModulo=${m.IdModulo}`}>
                                                 Lecciones
