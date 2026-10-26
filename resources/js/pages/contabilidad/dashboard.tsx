@@ -1,8 +1,10 @@
 import { KpisLecciones } from '@/components/contabilidad/dashboard/kpis-lecciones';
 import { KpisRetos } from '@/components/contabilidad/dashboard/kpis-retos';
+import { SeccionNoticias } from '@/components/contabilidad/dashboard/seccion-noticias';
 import { UltimasLecciones } from '@/components/contabilidad/dashboard/ultimas-lecciones';
 import { UltimosModulos } from '@/components/contabilidad/dashboard/ultimos-modulos';
 import { UltimosRetos } from '@/components/contabilidad/dashboard/ultimos-retos';
+import { type NoticiaItem } from '@/components/contabilidad/dashboard/columna-noticias';
 import IframeModal from '@/components/contabilidad/lecciones/iframe-modal';
 import { ContextPanel } from '@/components/context-panel';
 import { PageContent, PageShell } from '@/components/page-shell';
@@ -34,6 +36,11 @@ interface Props {
     ultimosModulos: ModuloItem[];
     ultimosRetos: ModuloRetoItem[];
     ultimasLecciones: ModuloLeccionItem[];
+    noticias: {
+        contabilidad: NoticiaItem[];
+        derecho: NoticiaItem[];
+        administracion: NoticiaItem[];
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -46,6 +53,7 @@ export default function ContabilidadDashboard({
     ultimosModulos = [],
     ultimosRetos = [],
     ultimasLecciones = [],
+    noticias = { contabilidad: [], derecho: [], administracion: [] },
 }: Props) {
     const [modalLeccion, setModalLeccion] = useState<{
         url: string | null;
@@ -115,6 +123,9 @@ export default function ContabilidadDashboard({
                             onVerLeccion={handleVerLeccion}
                         />
                     </div>
+
+                    {/* Fila 4: Tres Columnas Simultáneas de Noticias en Vivo */}
+                    <SeccionNoticias noticias={noticias} />
                 </PageContent>
 
                 {/* Modal Iframe de Lección */}

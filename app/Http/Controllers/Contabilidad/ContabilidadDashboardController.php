@@ -9,11 +9,16 @@ use App\Models\Contabilidad\ModuloLeccionEstatus;
 use App\Models\Contabilidad\ModuloReto;
 use App\Models\Contabilidad\ModuloRetoRecurso;
 use App\Models\Contabilidad\ModuloRetoRecursoEstatus;
+use App\Services\ContabilidadNoticiasService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ContabilidadDashboardController extends Controller
 {
+    public function __construct(
+        protected ContabilidadNoticiasService $noticiasService,
+    ) {}
+
     public function index(): Response
     {
         // 1. Métricas de Lecciones por Estatus
@@ -67,6 +72,9 @@ class ContabilidadDashboardController extends Controller
             ->take(12)
             ->get();
 
+        // 6. Noticias de Contabilidad, Derecho y Administración
+        $noticias = $this->noticiasService->obtenerTodasLasNoticias(9);
+
         return Inertia::render('contabilidad/dashboard', [
             'kpis' => [
                 'lecciones' => [
@@ -83,6 +91,7 @@ class ContabilidadDashboardController extends Controller
             'ultimosModulos' => $ultimosModulos,
             'ultimosRetos' => $ultimosRetos,
             'ultimasLecciones' => $ultimasLecciones,
+            'noticias' => $noticias,
         ]);
     }
 }
