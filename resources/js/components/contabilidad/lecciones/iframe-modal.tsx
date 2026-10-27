@@ -23,18 +23,80 @@ export default function IframeModal({
     onOpenChange,
 }: Props) {
     const [cargando, setCargando] = useState(true);
+    const [srcDoc, setSrcDoc] = useState<string | null>(null);
     const [key, setKey] = useState(0);
 
     useEffect(() => {
-        if (open) {
-            setCargando(true);
-            setKey((prev) => prev + 1);
+        if (!open || !url) {
+            setSrcDoc(null);
+            return;
+        }
+
+        setCargando(true);
+        setKey((prev) => prev + 1);
+
+        // Detectar si es un archivo HTML alojado en Supabase Storage
+        const esSupabaseHtml =
+            url.includes('supabase.co') &&
+            (url.toLowerCase().endsWith('.html') || url.toLowerCase().includes('.html?'));
+
+        if (esSupabaseHtml) {
+            let cancelado = false;
+
+            fetch(url)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status} al cargar lección`);
+                    }
+                    return res.text();
+                })
+                .then((rawHtml) => {
+                    if (cancelado) return;
+
+                    // Inyectar etiqueta <base href="..."> para que todos los JS, CSS, audios e imágenes relativos
+                    // (ej. html5/lib/scripts/bootstrapper.min.js) carguen directamente de Supabase Storage
+                    const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+                    let finalHtml = rawHtml;
+
+                    if (finalHtml.includes('<head>')) {
+                        finalHtml = finalHtml.replace('<head>', `<head>\n  <base href="${baseUrl}">`);
+                    } else if (/<head\b[^>]*>/i.test(finalHtml)) {
+                        finalHtml = finalHtml.replace(/(<head\b[^>]*>)/i, `$1\n  <base href="${baseUrl}">`);
+                    } else {
+                        finalHtml = `<base href="${baseUrl}">\n` + finalHtml;
+                    }
+
+                    setSrcDoc(finalHtml);
+                    setCargando(false);
+                })
+                .catch((err) => {
+                    console.error('[IframeModal] Error al obtener HTML de Supabase:', err);
+                    if (!cancelado) {
+                        setSrcDoc(null);
+                        setCargando(false);
+                    }
+                });
+
+            return () => {
+                cancelado = true;
+            };
+        } else {
+            setSrcDoc(null);
         }
     }, [open, url]);
 
     const recargar = () => {
         setCargando(true);
         setKey((prev) => prev + 1);
+    };
+
+    const abrirEnPestana = (e: React.MouseEvent) => {
+        if (srcDoc) {
+            e.preventDefault();
+            const blob = new Blob([srcDoc], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+        }
     };
 
     if (!url) return null;
@@ -76,6 +138,7 @@ export default function IframeModal({
                         >
                             <a
                                 href={url}
+                                onClick={srcDoc ? abrirEnPestana : undefined}
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 title="Abrir en pestaña nueva"
@@ -99,7 +162,8 @@ export default function IframeModal({
 
                     <iframe
                         key={key}
-                        src={url}
+                        srcDoc={srcDoc || undefined}
+                        src={srcDoc ? undefined : url}
                         title={titulo}
                         onLoad={() => setCargando(false)}
                         allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
