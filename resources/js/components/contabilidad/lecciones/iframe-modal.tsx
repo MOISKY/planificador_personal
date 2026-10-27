@@ -54,16 +54,24 @@ export default function IframeModal({
                     if (cancelado) return;
 
                     const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+                    const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
                     const bridgeScript = `
 <base href="${baseUrl}">
 <script>
 (function() {
   var BASE_URL = "${baseUrl}";
+  var CLEAN_BASE = "${cleanBaseUrl}";
+
+  window.globals = window.globals || {};
+  window.globals.DATA_PATH_BASE = CLEAN_BASE;
+
   function fixUrl(u) {
     if (!u || typeof u !== 'string') return u;
-    if (u.indexOf('about:') === 0) {
-      var m = u.match(/(html5\\/.*|story_content\\/.*|mobile\\/.*)/i);
-      if (m) return BASE_URL + m[1];
+    if (u.indexOf(BASE_URL) === 0) return u;
+
+    var m = u.match(/(html5\\/.*|story_content\\/.*|mobile\\/.*|lms\\/.*)/i);
+    if (m) {
+      return BASE_URL + m[1];
     }
     if (u.indexOf('http://') !== 0 && u.indexOf('https://') !== 0 && u.indexOf('data:') !== 0 && u.indexOf('blob:') !== 0) {
       return BASE_URL + u.replace(/^\\/+/, '');
@@ -71,34 +79,49 @@ export default function IframeModal({
     return u;
   }
 
-  var origCreate = document.createElement.bind(document);
-  document.createElement = function(tag, opts) {
-    var el = origCreate(tag, opts);
-    var t = (tag || '').toLowerCase();
-    if (t === 'script') {
-      var origSet = el.setAttribute.bind(el);
-      el.setAttribute = function(name, val) {
-        if (name && name.toLowerCase() === 'src') { val = fixUrl(val); }
-        return origSet(name, val);
-      };
-      Object.defineProperty(el, 'src', {
-        set: function(v) { el.setAttribute('src', fixUrl(v)); },
-        get: function() { return el.getAttribute('src'); },
-        configurable: true
-      });
-    } else if (t === 'link') {
-      var origSetLink = el.setAttribute.bind(el);
-      el.setAttribute = function(name, val) {
-        if (name && name.toLowerCase() === 'href') { val = fixUrl(val); }
-        return origSetLink(name, val);
-      };
-      Object.defineProperty(el, 'href', {
-        set: function(v) { el.setAttribute('href', fixUrl(v)); },
-        get: function() { return el.getAttribute('href'); },
-        configurable: true
-      });
+  // Interceptar a nivel de prototipo nativo para que Chrome ejecute los scripts con sus eventos originales
+  var scriptProto = HTMLScriptElement.prototype;
+  var scriptSrcDesc = Object.getOwnPropertyDescriptor(scriptProto, 'src');
+  if (scriptSrcDesc && scriptSrcDesc.set) {
+    Object.defineProperty(scriptProto, 'src', {
+      get: scriptSrcDesc.get,
+      set: function(val) {
+        scriptSrcDesc.set.call(this, fixUrl(val));
+      },
+      configurable: true
+    });
+  }
+
+  var linkProto = HTMLLinkElement.prototype;
+  var linkHrefDesc = Object.getOwnPropertyDescriptor(linkProto, 'href');
+  if (linkHrefDesc && linkHrefDesc.set) {
+    Object.defineProperty(linkProto, 'href', {
+      get: linkHrefDesc.get,
+      set: function(val) {
+        linkHrefDesc.set.call(this, fixUrl(val));
+      },
+      configurable: true
+    });
+  }
+
+  var imgProto = HTMLImageElement.prototype;
+  var imgSrcDesc = Object.getOwnPropertyDescriptor(imgProto, 'src');
+  if (imgSrcDesc && imgSrcDesc.set) {
+    Object.defineProperty(imgProto, 'src', {
+      get: imgSrcDesc.get,
+      set: function(val) {
+        imgSrcDesc.set.call(this, fixUrl(val));
+      },
+      configurable: true
+    });
+  }
+
+  var origSetAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function(name, val) {
+    if (name && (name.toLowerCase() === 'src' || name.toLowerCase() === 'href')) {
+      val = fixUrl(val);
     }
-    return el;
+    return origSetAttr.call(this, name, val);
   };
 
   if (window.XMLHttpRequest) {
@@ -113,7 +136,11 @@ export default function IframeModal({
   if (window.fetch) {
     var origFetch = window.fetch;
     window.fetch = function(input, init) {
-      if (typeof input === 'string') { input = fixUrl(input); }
+      if (typeof input === 'string') {
+        input = fixUrl(input);
+      } else if (input && input.url) {
+        input = new Request(fixUrl(input.url), input);
+      }
       return origFetch(input, init);
     };
   }
@@ -122,6 +149,13 @@ export default function IframeModal({
 `;
 
                     let finalHtml = rawHtml;
+
+                    // Configurar DATA_PATH_BASE dentro del HTML nativo de Storyline
+                    finalHtml = finalHtml.replace(
+                        /DATA_PATH_BASE:\s*['"][^'"]*['"]/i,
+                        `DATA_PATH_BASE: '${cleanBaseUrl}'`
+                    );
+
                     if (finalHtml.includes('<head>')) {
                         finalHtml = finalHtml.replace('<head>', `<head>\n${bridgeScript}`);
                     } else if (/<head\b[^>]*>/i.test(finalHtml)) {
