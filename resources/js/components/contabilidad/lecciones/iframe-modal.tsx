@@ -53,17 +53,81 @@ export default function IframeModal({
                 .then((rawHtml) => {
                     if (cancelado) return;
 
-                    // Inyectar etiqueta <base href="..."> para que todos los JS, CSS, audios e imágenes relativos
-                    // (ej. html5/lib/scripts/bootstrapper.min.js) carguen directamente de Supabase Storage
                     const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
-                    let finalHtml = rawHtml;
+                    const bridgeScript = `
+<base href="${baseUrl}">
+<script>
+(function() {
+  var BASE_URL = "${baseUrl}";
+  function fixUrl(u) {
+    if (!u || typeof u !== 'string') return u;
+    if (u.indexOf('about:') === 0) {
+      var m = u.match(/(html5\\/.*|story_content\\/.*|mobile\\/.*)/i);
+      if (m) return BASE_URL + m[1];
+    }
+    if (u.indexOf('http://') !== 0 && u.indexOf('https://') !== 0 && u.indexOf('data:') !== 0 && u.indexOf('blob:') !== 0) {
+      return BASE_URL + u.replace(/^\\/+/, '');
+    }
+    return u;
+  }
 
+  var origCreate = document.createElement.bind(document);
+  document.createElement = function(tag, opts) {
+    var el = origCreate(tag, opts);
+    var t = (tag || '').toLowerCase();
+    if (t === 'script') {
+      var origSet = el.setAttribute.bind(el);
+      el.setAttribute = function(name, val) {
+        if (name && name.toLowerCase() === 'src') { val = fixUrl(val); }
+        return origSet(name, val);
+      };
+      Object.defineProperty(el, 'src', {
+        set: function(v) { el.setAttribute('src', fixUrl(v)); },
+        get: function() { return el.getAttribute('src'); },
+        configurable: true
+      });
+    } else if (t === 'link') {
+      var origSetLink = el.setAttribute.bind(el);
+      el.setAttribute = function(name, val) {
+        if (name && name.toLowerCase() === 'href') { val = fixUrl(val); }
+        return origSetLink(name, val);
+      };
+      Object.defineProperty(el, 'href', {
+        set: function(v) { el.setAttribute('href', fixUrl(v)); },
+        get: function() { return el.getAttribute('href'); },
+        configurable: true
+      });
+    }
+    return el;
+  };
+
+  if (window.XMLHttpRequest) {
+    var origOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+      var args = Array.prototype.slice.call(arguments);
+      args[1] = fixUrl(url);
+      return origOpen.apply(this, args);
+    };
+  }
+
+  if (window.fetch) {
+    var origFetch = window.fetch;
+    window.fetch = function(input, init) {
+      if (typeof input === 'string') { input = fixUrl(input); }
+      return origFetch(input, init);
+    };
+  }
+})();
+</script>
+`;
+
+                    let finalHtml = rawHtml;
                     if (finalHtml.includes('<head>')) {
-                        finalHtml = finalHtml.replace('<head>', `<head>\n  <base href="${baseUrl}">`);
+                        finalHtml = finalHtml.replace('<head>', `<head>\n${bridgeScript}`);
                     } else if (/<head\b[^>]*>/i.test(finalHtml)) {
-                        finalHtml = finalHtml.replace(/(<head\b[^>]*>)/i, `$1\n  <base href="${baseUrl}">`);
+                        finalHtml = finalHtml.replace(/(<head\b[^>]*>)/i, `$1\n${bridgeScript}`);
                     } else {
-                        finalHtml = `<base href="${baseUrl}">\n` + finalHtml;
+                        finalHtml = bridgeScript + '\n' + finalHtml;
                     }
 
                     setSrcDoc(finalHtml);
