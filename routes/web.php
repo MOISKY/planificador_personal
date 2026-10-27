@@ -141,6 +141,7 @@ Route::prefix('api/contabilidad')->name('api.contabilidad.')->group(function () 
     // API Lecciones
     Route::get('lecciones', [ModuloLeccionController::class, 'apiIndex'])->name('lecciones.index');
     Route::post('lecciones', [ModuloLeccionController::class, 'apiStore'])->name('lecciones.store');
+    Route::post('lecciones/preservar', [ModuloLeccionController::class, 'apiPreservar'])->name('lecciones.preservar');
     Route::put('lecciones/{leccion}', [ModuloLeccionController::class, 'apiUpdate'])->name('lecciones.update');
     Route::delete('lecciones/{leccion}', [ModuloLeccionController::class, 'apiDestroy'])->name('lecciones.destroy');
 

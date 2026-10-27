@@ -77,3 +77,9 @@ resources/js/
 ## Fechas y formato
 
 Las fechas se capturan y muestran como `dd-mm-aaaa` (`DateInputPicker`, `formatDate`) y viajan al backend como `aaaa-mm-dd`. Montos con `Intl.NumberFormat('es-MX')`.
+
+## Documentación
+
+- [Arquitectura Visual y Patrones de Diseño](docs/arquitectura-visual-sspa.md)
+- [Preservación de Lecciones SCORM UVEG (Offline)](docs/preservacion-lecciones-scorm-uveg.md)
+- [Estrategia y Arquitectura de Extensiones UVEG](docs/arquitectura-extensiones-uveg-preservacion.md)

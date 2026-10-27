@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Contabilidad\Modulo;
 use App\Models\Contabilidad\ModuloLeccion;
 use App\Models\Contabilidad\ModuloLeccionRecurso;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -270,5 +273,75 @@ class ModuloLeccionController extends Controller
             'message' => 'Lección eliminada correctamente.',
             'id' => $id,
         ]);
+    }
+
+    /**
+     * Preserva una lección en Supabase Storage (recibe ZIP o URL) y registra en BD.
+     */
+    public function apiPreservar(Request $request, SupabaseStorageService $storageService): JsonResponse
+    {
+        $validated = $request->validate([
+            'IdModulo' => ['required', 'integer', 'exists:contabilidad_modulo,IdModulo'],
+            'Nombre' => ['required', 'string', 'max:200'],
+            'Codigo' => ['nullable', 'string', 'max:100'],
+            'UrlLeccion' => ['nullable', 'string', 'max:1000'],
+            'archivo_zip' => ['nullable', 'file', 'max:51200'], // hasta 50MB
+        ], [], [
+            'IdModulo' => 'módulo',
+            'Nombre' => 'nombre de la lección',
+            'Codigo' => 'código de la lección',
+            'UrlLeccion' => 'URL de la lección',
+            'archivo_zip' => 'archivo ZIP',
+        ]);
+
+        $urlFinal = $validated['UrlLeccion'] ?? null;
+        $filesCount = 0;
+
+        // Si se envió un archivo ZIP de lección
+        if ($request->hasFile('archivo_zip')) {
+            $zipFile = $request->file('archivo_zip');
+            $slug = ! empty($validated['Codigo'])
+                ? Str::slug($validated['Codigo'])
+                : Str::slug($validated['Nombre']);
+
+            // 1. Guardar copia de seguridad permanente del ZIP en storage local
+            $backupDir = storage_path('app/lecciones_zips');
+            if (! File::isDirectory($backupDir)) {
+                File::makeDirectory($backupDir, 0755, true);
+            }
+            $zipFile->move($backupDir, "{$slug}.zip");
+            $savedZipPath = "{$backupDir}/{$slug}.zip";
+
+            // 2. Descomprimir y subir a Supabase Storage en la nube
+            $uploadResult = $storageService->extractZipAndUpload($savedZipPath, $slug);
+            $urlFinal = $uploadResult['url'];
+            $filesCount = $uploadResult['files_count'];
+        }
+
+        // 3. Crear o actualizar la lección en la base de datos
+        $leccion = ModuloLeccion::updateOrCreate(
+            [
+                'IdModulo' => $validated['IdModulo'],
+                'Nombre' => $validated['Nombre'],
+            ],
+            [
+                'UrlLeccion' => $urlFinal,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lección preservada y sincronizada correctamente en Supabase.',
+            'id' => (int) $leccion->IdLeccion,
+            'data' => [
+                'id' => (int) $leccion->IdLeccion,
+                'IdLeccion' => (int) $leccion->IdLeccion,
+                'IdModulo' => (int) $leccion->IdModulo,
+                'Nombre' => $leccion->Nombre,
+                'UrlLeccion' => $leccion->UrlLeccion,
+                'ArchivosSubidos' => $filesCount,
+                'FechaRegistro' => $leccion->FechaRegistro,
+            ],
+        ], 201);
     }
 }

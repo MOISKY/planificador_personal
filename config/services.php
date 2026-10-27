@@ -43,4 +43,10 @@ return [
         'image_url' => env('TMDB_IMAGE_BASE_URL', 'https://image.tmdb.org/t/p'),
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL', 'https://yrdovjgddnjkgwommbqp.supabase.co'),
+        'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
+        'bucket' => env('SUPABASE_STORAGE_BUCKET', 'lecciones-scorm'),
+    ],
+
 ];
