@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Módulos o asignaturas. Eje de donde parten Retos y Lecciones.
  *
  * @property int $IdModulo
+ * @property string|null $IdModuloUveg
  * @property string $Modulo
  * @property CarbonInterface $FechaRegistro
  * @property-read Collection<int, ModuloReto> $retos
@@ -30,6 +31,7 @@ class Modulo extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'IdModuloUveg',
         'Modulo',
         'FechaRegistro',
     ];

@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/sheet';
 import { type ModuloItem, type ModuloLeccionItem } from '@/types/contabilidad';
 import { useForm } from '@inertiajs/react';
-import { BookOpen, Link as LinkIcon, Loader2, Save, X } from 'lucide-react';
+import { BookOpen, Hash, Link as LinkIcon, Loader2, Save, X } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 
 interface Props {
@@ -40,6 +40,7 @@ export default function LeccionFormDrawer({
 
     const form = useForm({
         IdModulo: String(defaultModuloId ?? ''),
+        Codigo: '',
         Nombre: '',
         UrlLeccion: '',
     });
@@ -48,12 +49,14 @@ export default function LeccionFormDrawer({
         if (registro) {
             form.setData({
                 IdModulo: String(registro.IdModulo ?? defaultModuloId ?? ''),
+                Codigo: registro.Codigo ?? '',
                 Nombre: registro.Nombre ?? '',
                 UrlLeccion: registro.UrlLeccion ?? '',
             });
         } else {
             form.setData({
                 IdModulo: String(defaultModuloId ?? ''),
+                Codigo: '',
                 Nombre: '',
                 UrlLeccion: '',
             });
@@ -116,10 +119,29 @@ export default function LeccionFormDrawer({
                 >
                     <FormErrorBanner
                         errors={form.errors}
-                        campos={['Nombre', 'UrlLeccion', 'IdModulo']}
+                        campos={['Codigo', 'Nombre', 'UrlLeccion', 'IdModulo']}
                     />
 
                     <FieldGroup>
+                        <Field>
+                            <FieldLabel htmlFor="Codigo">
+                                Código de la Lección (Búsqueda)
+                            </FieldLabel>
+                            <div className="relative">
+                                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                                <Input
+                                    id="Codigo"
+                                    type="text"
+                                    value={form.data.Codigo}
+                                    onChange={(e) => form.setData('Codigo', e.target.value)}
+                                    placeholder="Ej. LEC_L1, CPFI_L4, L3_Comic..."
+                                    className="pl-9 font-mono"
+                                />
+                            </div>
+                            {form.errors.Codigo && (
+                                <FieldError>{form.errors.Codigo}</FieldError>
+                            )}
+                        </Field>
 
                         <Field>
                             <FieldLabel htmlFor="Nombre" className="required">
@@ -132,7 +154,7 @@ export default function LeccionFormDrawer({
                                     type="text"
                                     value={form.data.Nombre}
                                     onChange={(e) => form.setData('Nombre', e.target.value)}
-                                    placeholder="Ej. Lección 1: Fundamentos del Balance General"
+                                    placeholder="Ej. Lección 1. Definición y disposiciones generales de las personas físicas"
                                     className="pl-9"
                                     required
                                 />

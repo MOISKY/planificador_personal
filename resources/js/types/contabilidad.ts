@@ -96,6 +96,7 @@ export interface ModuloLeccionRecursoItem {
 export interface ModuloLeccionItem {
     IdLeccion: number;
     IdModulo: number;
+    Codigo?: string | null;
     Nombre: string;
     UrlLeccion?: string | null;
     FechaRegistro?: string;
@@ -106,6 +107,7 @@ export interface ModuloLeccionItem {
 
 export interface ModuloItem {
     IdModulo: number;
+    IdModuloUveg?: string | null;
     Modulo: string;
     FechaRegistro?: string;
     retos_count?: number;

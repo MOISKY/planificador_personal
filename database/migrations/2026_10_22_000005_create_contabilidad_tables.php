@@ -52,6 +52,7 @@ return new class extends Migration
         if (! Schema::hasTable('contabilidad_modulo')) {
             Schema::create('contabilidad_modulo', function (Blueprint $table) {
                 $table->increments('IdModulo');
+                $table->string('IdModuloUveg', 50)->nullable()->index();
                 $table->string('Modulo', 150);
                 $table->dateTime('FechaRegistro')->useCurrent();
             });
@@ -135,6 +136,7 @@ return new class extends Migration
             Schema::create('contabilidad_modulo_leccion', function (Blueprint $table) {
                 $table->increments('IdLeccion');
                 $table->unsignedInteger('IdModulo');
+                $table->string('Codigo', 100)->nullable()->index();
                 $table->string('Nombre', 200);
                 $table->text('UrlLeccion')->nullable();
                 $table->dateTime('FechaRegistro')->useCurrent();

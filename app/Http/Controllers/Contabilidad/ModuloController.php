@@ -15,7 +15,7 @@ class ModuloController extends Controller
 {
     public function index(Request $request): Response
     {
-        $search = trim((string) $request->string('search'));
+        $search = trim((string) ($request->input('IdModuloUveg') ?? $request->input('search') ?? ''));
         $perPage = max(1, (int) $request->integer('per_page', 10));
 
         $items = Modulo::query()
@@ -26,7 +26,7 @@ class ModuloController extends Controller
                 'lecciones.recursos',
             ])
             ->when($search !== '', function ($query) use ($search): void {
-                $query->whereLike('Modulo', "%{$search}%");
+                $query->whereLike('IdModuloUveg', "%{$search}%");
             })
             ->orderBy('IdModulo', 'desc')
             ->paginate($perPage)
@@ -46,8 +46,10 @@ class ModuloController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'IdModuloUveg' => ['nullable', 'string', 'max:50'],
             'Modulo' => ['required', 'string', 'max:150'],
         ], [], [
+            'IdModuloUveg' => 'ID del módulo UVEG',
             'Modulo' => 'nombre del módulo',
         ]);
 
@@ -59,8 +61,10 @@ class ModuloController extends Controller
     public function update(Request $request, Modulo $modulo): RedirectResponse
     {
         $validated = $request->validate([
+            'IdModuloUveg' => ['nullable', 'string', 'max:50'],
             'Modulo' => ['required', 'string', 'max:150'],
         ], [], [
+            'IdModuloUveg' => 'ID del módulo UVEG',
             'Modulo' => 'nombre del módulo',
         ]);
 
@@ -80,12 +84,12 @@ class ModuloController extends Controller
 
     public function apiIndex(Request $request): JsonResponse
     {
-        $search = trim((string) ($request->input('Nombre') ?? $request->input('search') ?? ''));
+        $search = trim((string) ($request->input('IdModuloUveg') ?? $request->input('search') ?? $request->input('Nombre') ?? ''));
 
         $items = Modulo::query()
             ->withCount(['retos', 'lecciones'])
             ->when($search !== '', function ($query) use ($search): void {
-                $query->whereLike('Modulo', "%{$search}%");
+                $query->whereLike('IdModuloUveg', "%{$search}%");
             })
             ->orderBy('IdModulo', 'desc')
             ->get()
@@ -93,6 +97,7 @@ class ModuloController extends Controller
                 return [
                     'id' => (int) $item->IdModulo,
                     'IdModulo' => (int) $item->IdModulo,
+                    'IdModuloUveg' => $item->IdModuloUveg,
                     'Modulo' => $item->Modulo,
                     'FechaRegistro' => $item->FechaRegistro,
                     'lecciones_count' => (int) ($item->lecciones_count ?? 0),
@@ -105,9 +110,15 @@ class ModuloController extends Controller
 
     public function apiStore(Request $request): JsonResponse
     {
+        if ($request->filled('Nombre') && ! $request->filled('Modulo')) {
+            $request->merge(['Modulo' => $request->input('Nombre')]);
+        }
+
         $validated = $request->validate([
+            'IdModuloUveg' => ['nullable', 'string', 'max:50'],
             'Modulo' => ['required', 'string', 'max:150'],
         ], [], [
+            'IdModuloUveg' => 'ID del módulo UVEG',
             'Modulo' => 'nombre del módulo',
         ]);
 
@@ -120,6 +131,7 @@ class ModuloController extends Controller
             'data' => [
                 'id' => (int) $modulo->IdModulo,
                 'IdModulo' => (int) $modulo->IdModulo,
+                'IdModuloUveg' => $modulo->IdModuloUveg,
                 'Modulo' => $modulo->Modulo,
                 'FechaRegistro' => $modulo->FechaRegistro,
             ],
@@ -128,9 +140,15 @@ class ModuloController extends Controller
 
     public function apiUpdate(Request $request, Modulo $modulo): JsonResponse
     {
+        if ($request->filled('Nombre') && ! $request->filled('Modulo')) {
+            $request->merge(['Modulo' => $request->input('Nombre')]);
+        }
+
         $validated = $request->validate([
+            'IdModuloUveg' => ['nullable', 'string', 'max:50'],
             'Modulo' => ['required', 'string', 'max:150'],
         ], [], [
+            'IdModuloUveg' => 'ID del módulo UVEG',
             'Modulo' => 'nombre del módulo',
         ]);
 
@@ -143,6 +161,7 @@ class ModuloController extends Controller
             'data' => [
                 'id' => (int) $modulo->IdModulo,
                 'IdModulo' => (int) $modulo->IdModulo,
+                'IdModuloUveg' => $modulo->IdModuloUveg,
                 'Modulo' => $modulo->Modulo,
                 'FechaRegistro' => $modulo->FechaRegistro,
             ],

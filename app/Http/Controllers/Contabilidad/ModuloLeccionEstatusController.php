@@ -21,9 +21,11 @@ class ModuloLeccionEstatusController extends Controller
             ->with(['leccion.modulo'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->whereHas('leccion', function ($q) use ($search): void {
-                    $q->whereLike('Nombre', "%{$search}%")
+                    $q->whereLike('Codigo', "%{$search}%")
+                        ->orWhereLike('Nombre', "%{$search}%")
                         ->orWhereHas('modulo', function ($m) use ($search): void {
-                            $m->whereLike('Modulo', "%{$search}%");
+                            $m->whereLike('IdModuloUveg', "%{$search}%")
+                                ->orWhereLike('Modulo', "%{$search}%");
                         });
                 });
             })

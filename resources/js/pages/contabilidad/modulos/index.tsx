@@ -74,7 +74,7 @@ export default function ModulosIndex({ items, searchValue }: Props) {
                         pagination={items}
                         baseUrl="/contabilidad/modulos"
                         searchValue={searchValue}
-                        searchPlaceholder="Buscar módulo..."
+                        searchPlaceholder="Buscar por ID Módulo UVEG..."
                         idKey="IdModulo"
                         onEdit={abrirEditar}
                         onDelete={eliminar}

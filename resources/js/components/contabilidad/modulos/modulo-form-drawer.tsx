@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sheet';
 import { type ModuloItem } from '@/types/contabilidad';
 import { useForm } from '@inertiajs/react';
-import { BookMarked, Loader2, Save, X } from 'lucide-react';
+import { BookMarked, Hash, Loader2, Save, X } from 'lucide-react';
 import React, { useEffect } from 'react';
 
 interface Props {
@@ -34,6 +34,7 @@ export default function ModuloFormDrawer({
     onOpenChange,
 }: Props) {
     const form = useForm({
+        IdModuloUveg: '',
         Modulo: '',
     });
 
@@ -42,6 +43,7 @@ export default function ModuloFormDrawer({
     useEffect(() => {
         if (registro) {
             form.setData({
+                IdModuloUveg: registro.IdModuloUveg ?? '',
                 Modulo: registro.Modulo ?? '',
             });
         } else {
@@ -98,7 +100,7 @@ export default function ModuloFormDrawer({
                     onSubmit={submit}
                     className="flex flex-col gap-5 px-6 py-4"
                 >
-                    <FormErrorBanner errors={form.errors} campos={['Modulo']} />
+                    <FormErrorBanner errors={form.errors} campos={['IdModuloUveg', 'Modulo']} />
 
                     <div className="space-y-1">
                         <h4 className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -112,6 +114,28 @@ export default function ModuloFormDrawer({
 
                     <FieldGroup>
                         <Field>
+                            <FieldLabel htmlFor="IdModuloUveg">
+                                ID Módulo UVEG (Código de búsqueda)
+                            </FieldLabel>
+                            <div className="relative">
+                                <Hash className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    id="IdModuloUveg"
+                                    placeholder="Ej. 324"
+                                    className="pl-10"
+                                    value={form.data.IdModuloUveg}
+                                    onChange={(e) =>
+                                        form.setData('IdModuloUveg', e.target.value)
+                                    }
+                                    autoFocus
+                                    disabled={form.processing}
+                                    aria-invalid={!!form.errors.IdModuloUveg}
+                                />
+                            </div>
+                            <FieldError>{form.errors.IdModuloUveg}</FieldError>
+                        </Field>
+
+                        <Field>
                             <FieldLabel htmlFor="Modulo" required>
                                 Nombre del Módulo
                             </FieldLabel>
@@ -119,13 +143,12 @@ export default function ModuloFormDrawer({
                                 <BookMarked className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     id="Modulo"
-                                    placeholder="Ej. Contabilidad Financiera I, Auditoría Fiscal..."
+                                    placeholder="Ej. Contabilidad Financiera I, Impuestos de las Personas Físicas..."
                                     className="pl-10"
                                     value={form.data.Modulo}
                                     onChange={(e) =>
                                         form.setData('Modulo', e.target.value)
                                     }
-                                    autoFocus
                                     required
                                     disabled={form.processing}
                                     aria-invalid={!!form.errors.Modulo}

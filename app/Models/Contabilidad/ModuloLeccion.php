@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  *
  * @property int $IdLeccion
  * @property int $IdModulo
+ * @property string|null $Codigo
  * @property string $Nombre
  * @property string|null $UrlLeccion
  * @property CarbonInterface $FechaRegistro
@@ -37,6 +38,7 @@ class ModuloLeccion extends Model
      */
     protected $fillable = [
         'IdModulo',
+        'Codigo',
         'Nombre',
         'UrlLeccion',
         'FechaRegistro',

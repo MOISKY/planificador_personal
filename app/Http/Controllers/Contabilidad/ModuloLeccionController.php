@@ -23,7 +23,7 @@ class ModuloLeccionController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $idModulo = $request->integer('IdModulo');
-        $search = trim((string) ($request->input('search') ?? $request->input('Nombre') ?? ''));
+        $search = trim((string) ($request->input('Codigo') ?? $request->input('search') ?? $request->input('Nombre') ?? ''));
         $perPage = max(1, (int) $request->integer('per_page', 10));
 
         if ($request->wantsJson() && ! $request->header('X-Inertia')) {
@@ -32,7 +32,7 @@ class ModuloLeccionController extends Controller
                     $query->where('IdModulo', $idModulo);
                 })
                 ->when($search !== '', function ($query) use ($search): void {
-                    $query->whereLike('Nombre', "%{$search}%");
+                    $query->whereLike('Codigo', "%{$search}%");
                 })
                 ->orderBy('IdLeccion', 'asc')
                 ->get()
@@ -40,6 +40,7 @@ class ModuloLeccionController extends Controller
                     'id' => (int) $item->IdLeccion,
                     'IdLeccion' => (int) $item->IdLeccion,
                     'IdModulo' => (int) $item->IdModulo,
+                    'Codigo' => $item->Codigo,
                     'Nombre' => $item->Nombre,
                     'UrlLeccion' => $item->UrlLeccion,
                     'FechaRegistro' => $item->FechaRegistro,
@@ -49,13 +50,13 @@ class ModuloLeccionController extends Controller
         }
 
         $items = ModuloLeccion::query()
-            ->with(['modulo:IdModulo,Modulo'])
+            ->with(['modulo:IdModulo,IdModuloUveg,Modulo'])
             ->withCount(['recursos'])
             ->when($idModulo > 0, function ($query) use ($idModulo): void {
                 $query->where('IdModulo', $idModulo);
             })
             ->when($search !== '', function ($query) use ($search): void {
-                $query->whereLike('Nombre', "%{$search}%");
+                $query->whereLike('Codigo', "%{$search}%");
             })
             ->orderBy('IdLeccion', 'desc')
             ->paginate($perPage)
@@ -63,7 +64,7 @@ class ModuloLeccionController extends Controller
 
         $modulos = Modulo::query()
             ->orderBy('Modulo')
-            ->get(['IdModulo', 'Modulo']);
+            ->get(['IdModulo', 'IdModuloUveg', 'Modulo']);
 
         $moduloSeleccionado = $idModulo > 0 ? Modulo::find($idModulo) : null;
 
@@ -80,10 +81,12 @@ class ModuloLeccionController extends Controller
     {
         $validated = $request->validate([
             'IdModulo' => ['required', 'integer', 'exists:contabilidad_modulo,IdModulo'],
+            'Codigo' => ['nullable', 'string', 'max:100'],
             'Nombre' => ['required', 'string', 'max:200'],
             'UrlLeccion' => ['nullable', 'string', 'max:1000'],
         ], [], [
             'IdModulo' => 'módulo',
+            'Codigo' => 'código de la lección',
             'Nombre' => 'nombre de la lección',
             'UrlLeccion' => 'URL de la lección',
         ]);
@@ -96,9 +99,11 @@ class ModuloLeccionController extends Controller
     public function update(Request $request, ModuloLeccion $leccion): RedirectResponse
     {
         $validated = $request->validate([
+            'Codigo' => ['nullable', 'string', 'max:100'],
             'Nombre' => ['required', 'string', 'max:200'],
             'UrlLeccion' => ['nullable', 'string', 'max:1000'],
         ], [], [
+            'Codigo' => 'código de la lección',
             'Nombre' => 'nombre de la lección',
             'UrlLeccion' => 'URL de la lección',
         ]);
@@ -211,10 +216,12 @@ class ModuloLeccionController extends Controller
     {
         $validated = $request->validate([
             'IdModulo' => ['required', 'integer', 'exists:contabilidad_modulo,IdModulo'],
+            'Codigo' => ['nullable', 'string', 'max:100'],
             'Nombre' => ['required', 'string', 'max:200'],
             'UrlLeccion' => ['nullable', 'string', 'max:1000'],
         ], [], [
             'IdModulo' => 'módulo',
+            'Codigo' => 'código de la lección',
             'Nombre' => 'nombre de la lección',
             'UrlLeccion' => 'URL de la lección',
         ]);
@@ -229,6 +236,7 @@ class ModuloLeccionController extends Controller
                 'id' => (int) $leccion->IdLeccion,
                 'IdLeccion' => (int) $leccion->IdLeccion,
                 'IdModulo' => (int) $leccion->IdModulo,
+                'Codigo' => $leccion->Codigo,
                 'Nombre' => $leccion->Nombre,
                 'UrlLeccion' => $leccion->UrlLeccion,
                 'FechaRegistro' => $leccion->FechaRegistro,
@@ -239,9 +247,11 @@ class ModuloLeccionController extends Controller
     public function apiUpdate(Request $request, ModuloLeccion $leccion): JsonResponse
     {
         $validated = $request->validate([
+            'Codigo' => ['nullable', 'string', 'max:100'],
             'Nombre' => ['required', 'string', 'max:200'],
             'UrlLeccion' => ['nullable', 'string', 'max:1000'],
         ], [], [
+            'Codigo' => 'código de la lección',
             'Nombre' => 'nombre de la lección',
             'UrlLeccion' => 'URL de la lección',
         ]);
@@ -256,6 +266,7 @@ class ModuloLeccionController extends Controller
                 'id' => (int) $leccion->IdLeccion,
                 'IdLeccion' => (int) $leccion->IdLeccion,
                 'IdModulo' => (int) $leccion->IdModulo,
+                'Codigo' => $leccion->Codigo,
                 'Nombre' => $leccion->Nombre,
                 'UrlLeccion' => $leccion->UrlLeccion,
                 'FechaRegistro' => $leccion->FechaRegistro,
@@ -318,13 +329,18 @@ class ModuloLeccionController extends Controller
             $filesCount = $uploadResult['files_count'];
         }
 
-        // 3. Crear o actualizar la lección en la base de datos
+        $codigoClave = ! empty($validated['Codigo'])
+            ? $validated['Codigo']
+            : $validated['Nombre'];
+
+        // 3. Crear o actualizar la lección en la base de datos por Codigo
         $leccion = ModuloLeccion::updateOrCreate(
             [
                 'IdModulo' => $validated['IdModulo'],
-                'Nombre' => $validated['Nombre'],
+                'Codigo' => $codigoClave,
             ],
             [
+                'Nombre' => $validated['Nombre'],
                 'UrlLeccion' => $urlFinal,
             ]
         );
@@ -337,6 +353,7 @@ class ModuloLeccionController extends Controller
                 'id' => (int) $leccion->IdLeccion,
                 'IdLeccion' => (int) $leccion->IdLeccion,
                 'IdModulo' => (int) $leccion->IdModulo,
+                'Codigo' => $leccion->Codigo,
                 'Nombre' => $leccion->Nombre,
                 'UrlLeccion' => $leccion->UrlLeccion,
                 'ArchivosSubidos' => $filesCount,

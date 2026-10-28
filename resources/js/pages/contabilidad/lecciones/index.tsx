@@ -114,7 +114,7 @@ export default function LeccionesIndex({
                         pagination={items}
                         baseUrl="/contabilidad/lecciones"
                         searchValue={searchValue}
-                        searchPlaceholder="Buscar lección por nombre..."
+                        searchPlaceholder="Buscar lección por código..."
                         idKey="IdLeccion"
                         onEdit={abrirEditar}
                         onDelete={eliminar}

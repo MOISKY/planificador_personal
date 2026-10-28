@@ -1,4 +1,5 @@
 import { type Column } from '@/components/data-table';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type ModuloLeccionItem } from '@/types/contabilidad';
 import { BookOpen, Eye } from 'lucide-react';
@@ -6,6 +7,17 @@ import { BookOpen, Eye } from 'lucide-react';
 export const getLeccionColumnas = (
     onVerLeccion: (leccion: ModuloLeccionItem) => void,
 ): Column<ModuloLeccionItem>[] => [
+    {
+        key: 'Codigo',
+        label: 'Código',
+        sortable: true,
+        className: 'w-36',
+        render: (r) => (
+            <Badge variant="outline" className="font-mono text-xs">
+                {r.Codigo || '—'}
+            </Badge>
+        ),
+    },
     {
         key: 'Nombre',
         label: 'Lección',
