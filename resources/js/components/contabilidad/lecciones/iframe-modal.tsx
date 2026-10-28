@@ -24,24 +24,34 @@ export default function IframeModal({
 }: Props) {
     const [cargando, setCargando] = useState(true);
     const [srcDoc, setSrcDoc] = useState<string | null>(null);
+    const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
     const [key, setKey] = useState(0);
 
     useEffect(() => {
         if (!open || !url) {
             setSrcDoc(null);
+            setPdfBlobUrl(null);
             return;
         }
 
         setCargando(true);
         setKey((prev) => prev + 1);
 
+        const urlLower = url.toLowerCase();
+
         // Detectar si es un archivo HTML alojado en Supabase Storage
         const esSupabaseHtml =
             url.includes('supabase.co') &&
-            (url.toLowerCase().endsWith('.html') || url.toLowerCase().includes('.html?'));
+            (urlLower.endsWith('.html') || urlLower.includes('.html?'));
+
+        // Detectar si es un archivo PDF alojado en Supabase Storage
+        const esSupabasePdf =
+            url.includes('supabase.co') &&
+            (urlLower.endsWith('.pdf') || urlLower.includes('.pdf?'));
 
         if (esSupabaseHtml) {
             let cancelado = false;
+            setPdfBlobUrl(null);
 
             fetch(url)
                 .then((res) => {
@@ -178,8 +188,42 @@ export default function IframeModal({
             return () => {
                 cancelado = true;
             };
+        } else if (esSupabasePdf) {
+            let cancelado = false;
+            let objectUrlActivo: string | null = null;
+            setSrcDoc(null);
+
+            fetch(url)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status} al cargar PDF`);
+                    }
+                    return res.arrayBuffer();
+                })
+                .then((buffer) => {
+                    if (cancelado) return;
+                    const blob = new Blob([buffer], { type: 'application/pdf' });
+                    objectUrlActivo = URL.createObjectURL(blob);
+                    setPdfBlobUrl(objectUrlActivo);
+                    setCargando(false);
+                })
+                .catch((err) => {
+                    console.error('[IframeModal] Error al obtener PDF de Supabase:', err);
+                    if (!cancelado) {
+                        setPdfBlobUrl(null);
+                        setCargando(false);
+                    }
+                });
+
+            return () => {
+                cancelado = true;
+                if (objectUrlActivo) {
+                    URL.revokeObjectURL(objectUrlActivo);
+                }
+            };
         } else {
             setSrcDoc(null);
+            setPdfBlobUrl(null);
         }
     }, [open, url]);
 
@@ -194,6 +238,9 @@ export default function IframeModal({
             const blob = new Blob([srcDoc], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
             window.open(blobUrl, '_blank');
+        } else if (pdfBlobUrl) {
+            e.preventDefault();
+            window.open(pdfBlobUrl, '_blank');
         }
     };
 
@@ -236,7 +283,11 @@ export default function IframeModal({
                         >
                             <a
                                 href={url}
-                                onClick={srcDoc ? abrirEnPestana : undefined}
+                                onClick={
+                                    srcDoc || pdfBlobUrl
+                                        ? abrirEnPestana
+                                        : undefined
+                                }
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 title="Abrir en pestaña nueva"
@@ -261,7 +312,7 @@ export default function IframeModal({
                     <iframe
                         key={key}
                         srcDoc={srcDoc || undefined}
-                        src={srcDoc ? undefined : url}
+                        src={srcDoc ? undefined : pdfBlobUrl || url}
                         title={titulo}
                         onLoad={() => setCargando(false)}
                         allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
