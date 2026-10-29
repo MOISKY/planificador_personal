@@ -1,6 +1,6 @@
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
-import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
 import {
     Field,
     FieldError,
@@ -18,10 +18,10 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { type ModuloItem, type ModuloRetoItem } from '@/types/contabilidad';
+import { type ModuloRetoItem } from '@/types/contabilidad';
 import { useForm } from '@inertiajs/react';
-import { BookOpen, Link as LinkIcon, Loader2, Save, Target, X } from 'lucide-react';
-import React, { useEffect, useMemo } from 'react';
+import { Loader2, Save, Target, X } from 'lucide-react';
+import React, { useEffect } from 'react';
 
 interface Props {
     registro: ModuloRetoItem | null;
@@ -141,25 +141,22 @@ export default function RetoFormDrawer({
                             )}
                         </Field>
 
-                        <Field>
-                            <FieldLabel htmlFor="UrlReto">
-                                URL del Reto / Consigna (Opcional)
-                            </FieldLabel>
-                            <div className="relative">
-                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                                <Input
-                                    id="UrlReto"
-                                    type="url"
-                                    value={form.data.UrlReto}
-                                    onChange={(e) => form.setData('UrlReto', e.target.value)}
-                                    placeholder="https://..."
-                                    className="pl-9"
-                                />
-                            </div>
-                            {form.errors.UrlReto && (
-                                <FieldError>{form.errors.UrlReto}</FieldError>
-                            )}
-                        </Field>
+                        <FileOrLinkField
+                            id="UrlReto"
+                            label="URL del Reto / Consigna o Archivo"
+                            value={form.data.UrlReto}
+                            onChange={(val) => form.setData('UrlReto', val)}
+                            onFileNameChange={(name) => {
+                                if (!form.data.Nombre) {
+                                    form.setData('Nombre', name.replace(/\.[^/.]+$/, ''));
+                                }
+                            }}
+                            folder="Contabilidad / Retos"
+                            placeholder="https://... o enlace web"
+                            disabled={form.processing}
+                            error={form.errors.UrlReto}
+                            helpText="Sube el archivo de la consigna o pega un enlace externo."
+                        />
                     </FieldGroup>
                 </form>
 

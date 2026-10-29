@@ -52,4 +52,3 @@ return new class extends Migration
         // El orden físico de las columnas no requiere reversión destructiva.
     }
 };
-

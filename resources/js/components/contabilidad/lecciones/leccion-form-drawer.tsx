@@ -1,3 +1,4 @@
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/sheet';
 import { type ModuloItem, type ModuloLeccionItem } from '@/types/contabilidad';
 import { useForm } from '@inertiajs/react';
-import { BookOpen, Hash, Link as LinkIcon, Loader2, Save, X } from 'lucide-react';
+import { BookOpen, Hash, Loader2, Save, X } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 
 interface Props {
@@ -37,25 +38,43 @@ export default function LeccionFormDrawer({
     defaultModuloId,
 }: Props) {
     const esEdicion = Boolean(registro?.IdLeccion);
+    const [modulos, setModulos] = React.useState<ModuloItem[]>([]);
+    const [cargandoModulos, setCargandoModulos] = React.useState(false);
 
     const form = useForm({
-        IdModulo: String(defaultModuloId ?? ''),
-        Codigo: '',
-        Nombre: '',
-        UrlLeccion: '',
+        IdModulo: registro?.IdModulo ? String(registro.IdModulo) : (defaultModuloId ? String(defaultModuloId) : ''),
+        Codigo: registro?.Codigo ?? '',
+        Nombre: registro?.Nombre ?? '',
+        UrlLeccion: registro?.UrlLeccion ?? '',
     });
+
+    useEffect(() => {
+        if (open) {
+            setCargandoModulos(true);
+            fetch('/api/contabilidad/modulos', {
+                headers: { credentials: 'omit' },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    const lista = Array.isArray(data) ? data : data?.data ?? [];
+                    setModulos(lista);
+                })
+                .catch(() => setModulos([]))
+                .finally(() => setCargandoModulos(false));
+        }
+    }, [open]);
 
     useEffect(() => {
         if (registro) {
             form.setData({
-                IdModulo: String(registro.IdModulo ?? defaultModuloId ?? ''),
+                IdModulo: String(registro.IdModulo),
                 Codigo: registro.Codigo ?? '',
-                Nombre: registro.Nombre ?? '',
+                Nombre: registro.Nombre,
                 UrlLeccion: registro.UrlLeccion ?? '',
             });
         } else {
             form.setData({
-                IdModulo: String(defaultModuloId ?? ''),
+                IdModulo: defaultModuloId ? String(defaultModuloId) : '',
                 Codigo: '',
                 Nombre: '',
                 UrlLeccion: '',
@@ -64,22 +83,27 @@ export default function LeccionFormDrawer({
         form.clearErrors();
     }, [registro, defaultModuloId, open]);
 
-    const handleOpenChange = (isOpen: boolean) => {
-        onOpenChange(isOpen);
-        if (!isOpen) {
+    const moduloOptions: ComboboxOption[] = useMemo(
+        () =>
+            modulos.map((m) => ({
+                value: String(m.IdModulo),
+                label: `${m.Modulo} - ${m.Nombre}`,
+            })),
+        [modulos],
+    );
+
+    const handleOpenChange = (nuevoOpen: boolean) => {
+        if (!nuevoOpen) {
+            form.reset();
             form.clearErrors();
         }
+        onOpenChange(nuevoOpen);
     };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        form.transform((data) => ({
-            ...data,
-            IdModulo: Number(data.IdModulo),
-        }));
-
-        if (esEdicion && registro?.IdLeccion) {
+        if (esEdicion && registro) {
             form.put(`/contabilidad/lecciones/${registro.IdLeccion}`, {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -164,28 +188,22 @@ export default function LeccionFormDrawer({
                             )}
                         </Field>
 
-                        <Field>
-                            <FieldLabel htmlFor="UrlLeccion">
-                                URL de la Lección / Genially (Opcional)
-                            </FieldLabel>
-                            <div className="relative">
-                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                                <Input
-                                    id="UrlLeccion"
-                                    type="url"
-                                    value={form.data.UrlLeccion}
-                                    onChange={(e) => form.setData('UrlLeccion', e.target.value)}
-                                    placeholder="https://view.genial.ly/... o enlace web"
-                                    className="pl-9"
-                                />
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                                Este enlace se abrirá directamente en un modal con iframe dentro del sistema.
-                            </span>
-                            {form.errors.UrlLeccion && (
-                                <FieldError>{form.errors.UrlLeccion}</FieldError>
-                            )}
-                        </Field>
+                        <FileOrLinkField
+                            id="UrlLeccion"
+                            label="URL de la Lección / Genially o Archivo"
+                            value={form.data.UrlLeccion}
+                            onChange={(val) => form.setData('UrlLeccion', val)}
+                            onFileNameChange={(name) => {
+                                if (!form.data.Nombre) {
+                                    form.setData('Nombre', name.replace(/\.[^/.]+$/, ''));
+                                }
+                            }}
+                            folder="Contabilidad / Lecciones"
+                            placeholder="https://view.genial.ly/... o enlace web"
+                            disabled={form.processing}
+                            error={form.errors.UrlLeccion}
+                            helpText="Puedes subir un archivo (PDF, diapositivas) o pegar un enlace web interactivo."
+                        />
                     </FieldGroup>
                 </form>
 

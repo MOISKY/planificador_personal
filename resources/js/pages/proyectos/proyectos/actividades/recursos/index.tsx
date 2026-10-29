@@ -1,6 +1,7 @@
 import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { PageContent, PageShell } from '@/components/page-shell';
 import { EstatusBadge } from '@/components/proyectos/estatus-badge';
 import { Badge } from '@/components/ui/badge';
@@ -293,18 +294,20 @@ export default function ProyectoActividadRecursosIndex({
                                 </Field>
                             )}
 
-                            <Field>
-                                <FieldLabel htmlFor="URLRecurso" required>URL del Recurso</FieldLabel>
-                                <Input
-                                    id="URLRecurso"
-                                    type="url"
-                                    value={form.data.URLRecurso}
-                                    onChange={(e) => form.setData('URLRecurso', e.target.value)}
-                                    placeholder="https://ejemplo.com/recurso"
-                                    required
-                                />
-                                <FieldError>{form.errors.URLRecurso}</FieldError>
-                            </Field>
+                            <FileOrLinkField
+                                label="Enlace / Archivo del Recurso"
+                                value={form.data.URLRecurso}
+                                onChange={(val) => form.setData('URLRecurso', val)}
+                                onFileNameChange={(name) => {
+                                    if (!form.data.Nombre) {
+                                        form.setData('Nombre', name);
+                                    }
+                                }}
+                                folder="Proyectos / Actividades / Recursos"
+                                placeholder="https://ejemplo.com/recurso"
+                                error={form.errors.URLRecurso}
+                                required
+                            />
                         </FieldGroup>
                     </form>
 

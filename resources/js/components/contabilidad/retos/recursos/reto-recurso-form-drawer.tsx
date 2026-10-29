@@ -1,3 +1,4 @@
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import {
@@ -133,26 +134,20 @@ export default function RetoRecursoFormDrawer({
                             )}
                         </Field>
 
-                        <Field>
-                            <FieldLabel htmlFor="URLRecurso" className="required">
-                                Enlace / URL del Recurso
-                            </FieldLabel>
-                            <div className="relative">
-                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                                <Input
-                                    id="URLRecurso"
-                                    type="url"
-                                    value={form.data.URLRecurso}
-                                    onChange={(e) => form.setData('URLRecurso', e.target.value)}
-                                    placeholder="https://..."
-                                    className="pl-9"
-                                    required
-                                />
-                            </div>
-                            {form.errors.URLRecurso && (
-                                <FieldError>{form.errors.URLRecurso}</FieldError>
-                            )}
-                        </Field>
+                        <FileOrLinkField
+                            label="Enlace / Archivo del Recurso"
+                            value={form.data.URLRecurso}
+                            onChange={(val) => form.setData('URLRecurso', val)}
+                            onFileNameChange={(name) => {
+                                if (!form.data.Nombre) {
+                                    form.setData('Nombre', name);
+                                }
+                            }}
+                            folder="Contabilidad / Retos / Recursos"
+                            placeholder="https://..."
+                            error={form.errors.URLRecurso}
+                            required
+                        />
                     </FieldGroup>
                 </form>
 

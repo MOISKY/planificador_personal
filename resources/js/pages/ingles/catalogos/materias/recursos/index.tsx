@@ -1,6 +1,7 @@
 import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { PageContent, PageShell } from '@/components/page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -356,20 +357,20 @@ export default function MateriaRecursosIndex({ materia, items, searchValue }: Pr
                                         <FieldError>{adicionalForm.errors.Descripcion}</FieldError>
                                     </Field>
 
-                                    <Field>
-                                        <FieldLabel htmlFor="adicional-url" required>
-                                            URL del Recurso
-                                        </FieldLabel>
-                                        <Input
-                                            id="adicional-url"
-                                            type="url"
-                                            value={adicionalForm.data.UrlRecurso}
-                                            onChange={(e) => adicionalForm.setData('UrlRecurso', e.target.value)}
-                                            placeholder="https://drive.google.com/..."
-                                            required
-                                        />
-                                        <FieldError>{adicionalForm.errors.UrlRecurso}</FieldError>
-                                    </Field>
+                                    <FileOrLinkField
+                                        label="Enlace / Archivo del Recurso"
+                                        value={adicionalForm.data.UrlRecurso}
+                                        onChange={(val) => adicionalForm.setData('UrlRecurso', val)}
+                                        onFileNameChange={(name) => {
+                                            if (!adicionalForm.data.Descripcion) {
+                                                adicionalForm.setData('Descripcion', name);
+                                            }
+                                        }}
+                                        folder="Inglés / Materias / Recursos"
+                                        placeholder="https://drive.google.com/..."
+                                        error={adicionalForm.errors.UrlRecurso}
+                                        required
+                                    />
                                 </FieldGroup>
 
                                 <div className="flex justify-end pt-1">

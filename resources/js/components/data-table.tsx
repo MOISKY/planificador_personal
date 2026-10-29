@@ -293,6 +293,93 @@ function extractTextContent(node: unknown): string {
     return '';
 }
 
+function extractHref(node: unknown): string | null {
+    if (!node || typeof node !== 'object') return null;
+    if ('props' in node && node.props && typeof node.props === 'object') {
+        const props = node.props as Record<string, unknown>;
+        if (typeof props.href === 'string' && props.href.trim()) {
+            return props.href.trim();
+        }
+        if (props.children) {
+            const childHref = extractHref(props.children);
+            if (childHref) return childHref;
+        }
+    }
+    if (Array.isArray(node)) {
+        for (const item of node) {
+            const h = extractHref(item);
+            if (h) return h;
+        }
+    }
+    return null;
+}
+
+function extractExportValue<T>(
+    item: T,
+    key: string,
+    colDef?: Column<T>,
+): unknown {
+    const raw = getValue(item, key);
+
+    // 1. Si el valor del campo en el objeto ya es una URL (ej. UrlLeccion, URLRecurso), exportar la URL
+    if (typeof raw === 'string' && /^(https?:\/\/|\/|mailto:|tel:)/i.test(raw.trim())) {
+        return raw.trim();
+    }
+
+    if (colDef?.render && item && typeof item === 'object') {
+        try {
+            const rendered = colDef.render(item);
+
+            // 2. Si el elemento renderizado contiene un <a> o link con href, exportar ese enlace
+            const href = extractHref(rendered);
+            if (href && /^(https?:\/\/|\/|mailto:|tel:)/i.test(href.trim())) {
+                return href.trim();
+            }
+
+            // 3. Si el texto renderizado es un botón o acción (ej. "Ver Lección", "Ver Entrega", "Ver recurso")
+            const text = extractTextContent(rendered);
+            const esTextoBoton = /^(ver|abrir|descargar|ir|consultar|detalle|enlace|link)/i.test(text.trim());
+            if (esTextoBoton) {
+                if (typeof raw === 'string' && /^(https?:\/\/)/i.test(raw.trim())) {
+                    return raw.trim();
+                }
+                const itemObj = item as Record<string, unknown>;
+                const urlKeys = ['UrlLeccion', 'URLRecurso', 'UrlRecurso', 'UrlReto', 'URL_produccion_recurso', 'Url', 'url', 'URL', 'Enlace', 'enlace', 'link', 'Link'];
+                for (const uk of urlKeys) {
+                    if (typeof itemObj[uk] === 'string' && /^(https?:\/\/)/i.test(String(itemObj[uk]).trim())) {
+                        return String(itemObj[uk]).trim();
+                    }
+                }
+            }
+
+            if (text !== '') {
+                return text;
+            }
+            if (typeof rendered === 'number') {
+                return rendered;
+            }
+            if (
+                rendered !== null &&
+                rendered !== undefined &&
+                typeof rendered !== 'object'
+            ) {
+                return rendered;
+            }
+        } catch {
+            // Ignorar errores durante evaluación
+        }
+    }
+
+    if (raw !== null && raw !== undefined && raw !== '') {
+        const text = extractTextContent(raw);
+        if (text !== '') {
+            return text;
+        }
+        return raw;
+    }
+    return raw ?? '';
+}
+
 function extractItemValue<T>(
     item: T,
     key: string,
@@ -818,7 +905,7 @@ export function DataTable<T extends object>({
             Object.fromEntries(
                 safeColumns.map((col) => [
                     String(col.key),
-                    extractItemValue(item, String(col.key), col),
+                    extractExportValue(item, String(col.key), col),
                 ]),
             ),
         );

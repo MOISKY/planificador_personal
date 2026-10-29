@@ -2,6 +2,7 @@ import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { EstatusBadge } from '@/components/ingles/estatus-badge';
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { PageContent, PageShell } from '@/components/page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -304,24 +305,20 @@ export default function ActividadRecursosIndex({
                                 </Field>
                             )}
 
-                            <Field>
-                                <FieldLabel htmlFor="URLRecurso" required>
-                                    URL del Recurso
-                                </FieldLabel>
-                                <div className="relative">
-                                    <Link2 className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                                    <Input
-                                        id="URLRecurso"
-                                        type="url"
-                                        value={form.data.URLRecurso}
-                                        onChange={(e) => form.setData('URLRecurso', e.target.value)}
-                                        placeholder="https://drive.google.com/... o https://youtube.com/..."
-                                        className="pl-8"
-                                        required
-                                    />
-                                </div>
-                                <FieldError>{form.errors.URLRecurso}</FieldError>
-                            </Field>
+                            <FileOrLinkField
+                                label="Enlace / Archivo del Recurso"
+                                value={form.data.URLRecurso}
+                                onChange={(val) => form.setData('URLRecurso', val)}
+                                onFileNameChange={(name) => {
+                                    if (!form.data.Nombre) {
+                                        form.setData('Nombre', name);
+                                    }
+                                }}
+                                folder="Inglés / Actividades / Recursos"
+                                placeholder="https://..."
+                                error={form.errors.URLRecurso}
+                                required
+                            />
                         </FieldGroup>
                     </form>
 

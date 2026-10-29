@@ -254,4 +254,3 @@ return new class extends Migration
         Schema::dropIfExists('ingles_alumno');
     }
 };
-

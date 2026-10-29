@@ -49,4 +49,10 @@ return [
         'bucket' => env('SUPABASE_STORAGE_BUCKET', 'lecciones-scorm'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
 ];

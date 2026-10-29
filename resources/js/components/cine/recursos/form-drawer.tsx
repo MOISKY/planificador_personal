@@ -1,3 +1,4 @@
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import {
@@ -6,7 +7,6 @@ import {
     FieldGroup,
     FieldLabel,
 } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -132,28 +132,16 @@ export default function RecursoFormDrawer({
                             <FieldError>{errors.Tipo}</FieldError>
                         </Field>
 
-                        <Field>
-                            <FieldLabel htmlFor="URL_produccion_recurso" required>
-                                URL / Enlace Web
-                            </FieldLabel>
-                            <div className="relative">
-                                <Link2 className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    id="URL_produccion_recurso"
-                                    type="url"
-                                    placeholder="https://..."
-                                    className="pl-10"
-                                    value={data.URL_produccion_recurso}
-                                    onChange={(e) =>
-                                        setData('URL_produccion_recurso', e.target.value)
-                                    }
-                                    required
-                                    disabled={processing}
-                                    aria-invalid={!!errors.URL_produccion_recurso}
-                                />
-                            </div>
-                            <FieldError>{errors.URL_produccion_recurso}</FieldError>
-                        </Field>
+                        <FileOrLinkField
+                            id="URL_produccion_recurso"
+                            label="URL / Enlace o Archivo"
+                            value={data.URL_produccion_recurso}
+                            onChange={(val) => setData('URL_produccion_recurso', val)}
+                            folder="Cine / Recursos"
+                            required
+                            disabled={processing}
+                            error={errors.URL_produccion_recurso}
+                        />
                     </FieldGroup>
                 </form>
 

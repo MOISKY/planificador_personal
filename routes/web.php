@@ -23,6 +23,7 @@ use App\Http\Controllers\Contabilidad\OportunidadController;
 use App\Http\Controllers\Contabilidad\PeriodoController;
 use App\Http\Controllers\EjemploController;
 use App\Http\Controllers\GitHubConsultorController;
+use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\Ingles\AlumnoController as InglesAlumnoController;
 use App\Http\Controllers\Ingles\AsesorController as InglesAsesorController;
 use App\Http\Controllers\Ingles\GrupoActividadAdicionalController as InglesGrupoActividadAdicionalController;
@@ -290,3 +291,11 @@ Route::prefix('api/contabilidad')->name('api.contabilidad.')->group(function () 
     // API Recursos de Lección (Solo lectura)
     Route::get('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'indexRecurso'])->name('lecciones.recursos.index');
 });
+
+// ==========================================================
+// Integración: Google Drive OAuth & Subida de Archivos
+// ==========================================================
+Route::get('google/connect', [GoogleDriveController::class, 'connect'])->name('google.connect');
+Route::get('google/callback', [GoogleDriveController::class, 'callback'])->name('google.callback');
+Route::get('api/google/status', [GoogleDriveController::class, 'status'])->name('api.google.status');
+Route::post('api/google/upload', [GoogleDriveController::class, 'upload'])->name('api.google.upload');

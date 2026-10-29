@@ -65,7 +65,11 @@ export function generarXls(columns: ColumnaExport[], rows: Fila[]): string {
                         typeof v === 'string' && /^0\d/.test(v)
                             ? ` style="mso-number-format:'\\@'"`
                             : '';
-                    return `<td${texto}>${escaparHtml(v)}</td>`;
+                    const strVal = v == null ? '' : String(v);
+                    const contenido = /^(https?:\/\/)/i.test(strVal)
+                        ? `<a href="${escaparHtml(strVal)}">${escaparHtml(strVal)}</a>`
+                        : escaparHtml(strVal);
+                    return `<td${texto}>${contenido}</td>`;
                 })
                 .join('');
             return `<tr>${tds}</tr>`;

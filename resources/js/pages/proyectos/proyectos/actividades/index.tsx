@@ -1,6 +1,7 @@
 import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { PageContent, PageShell } from '@/components/page-shell';
 import { EstatusBadge } from '@/components/proyectos/estatus-badge';
 import { Badge } from '@/components/ui/badge';
@@ -507,18 +508,20 @@ export default function ProyectoActividadesIndex({
                                         <FieldError>{formAdicional.errors.Descripcion}</FieldError>
                                     </Field>
 
-                                    <Field>
-                                        <FieldLabel htmlFor="ActividadAdicionalUrl" required>URL del Recurso</FieldLabel>
-                                        <Input
-                                            id="ActividadAdicionalUrl"
-                                            type="url"
-                                            value={formAdicional.data.UrlRecurso}
-                                            onChange={(e) => formAdicional.setData('UrlRecurso', e.target.value)}
-                                            placeholder="https://ejemplo.com/recurso..."
-                                            required
-                                        />
-                                        <FieldError>{formAdicional.errors.UrlRecurso}</FieldError>
-                                    </Field>
+                                    <FileOrLinkField
+                                        label="Enlace / Archivo del Recurso"
+                                        value={formAdicional.data.UrlRecurso}
+                                        onChange={(val) => formAdicional.setData('UrlRecurso', val)}
+                                        onFileNameChange={(name) => {
+                                            if (!formAdicional.data.Descripcion) {
+                                                formAdicional.setData('Descripcion', name);
+                                            }
+                                        }}
+                                        folder="Proyectos / Actividades"
+                                        placeholder="https://ejemplo.com/recurso..."
+                                        error={formAdicional.errors.UrlRecurso}
+                                        required
+                                    />
                                 </FieldGroup>
 
                                 <div className="flex justify-end pt-1">

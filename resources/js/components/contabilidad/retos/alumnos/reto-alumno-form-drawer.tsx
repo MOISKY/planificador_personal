@@ -1,3 +1,4 @@
+import { FileOrLinkField } from '@/components/file-or-link-field';
 import { FormErrorBanner } from '@/components/form-error-banner';
 import { Button } from '@/components/ui/button';
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
@@ -32,7 +33,7 @@ import {
     type ModuloRetoRecursoItem,
 } from '@/types/contabilidad';
 import { useForm } from '@inertiajs/react';
-import { FileText, Link as LinkIcon, Loader2, Save, User, Users, X } from 'lucide-react';
+import { FileText, Loader2, Save, Users, X } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';
 
 interface Props {
@@ -55,32 +56,23 @@ export default function RetoAlumnoFormDrawer({
     const esEdicion = Boolean(registro?.IdRetoAlumno);
 
     const form = useForm({
-        IdAlumno: '',
-        Nombre: '',
-        URLRecurso: '',
-        IdRetoRecurso: '',
+        IdAlumno: registro?.IdAlumno ? String(registro.IdAlumno) : '',
+        Nombre: registro?.Nombre ?? '',
+        URLRecurso: registro?.URLRecurso ?? '',
+        IdRetoRecurso: registro?.IdRetoRecurso ? String(registro.IdRetoRecurso) : '',
     });
-
-    const alumnoOptions = useMemo<ComboboxOption[]>(
-        () =>
-            alumnos.map((a) => ({
-                value: String(a.IdAlumno),
-                label: `${a.Nombre} ${a.ApellidoPaterno} ${a.ApellidoMaterno ?? ''}`.trim(),
-            })),
-        [alumnos],
-    );
 
     useEffect(() => {
         if (registro) {
             form.setData({
-                IdAlumno: String(registro.IdAlumno ?? ''),
-                Nombre: registro.Nombre ?? '',
-                URLRecurso: registro.URLRecurso ?? '',
+                IdAlumno: String(registro.IdAlumno),
+                Nombre: registro.Nombre,
+                URLRecurso: registro.URLRecurso,
                 IdRetoRecurso: registro.IdRetoRecurso ? String(registro.IdRetoRecurso) : '',
             });
         } else {
             form.setData({
-                IdAlumno: alumnos[0] ? String(alumnos[0].IdAlumno) : '',
+                IdAlumno: '',
                 Nombre: '',
                 URLRecurso: '',
                 IdRetoRecurso: '',
@@ -89,11 +81,24 @@ export default function RetoAlumnoFormDrawer({
         form.clearErrors();
     }, [registro, open]);
 
-    const handleOpenChange = (isOpen: boolean) => {
-        onOpenChange(isOpen);
-        if (!isOpen) {
+    const alumnoOptions: ComboboxOption[] = useMemo(
+        () =>
+            alumnos.map((a) => {
+                const nombreCompleto = `${a.Nombre} ${a.ApellidoPaterno} ${a.ApellidoMaterno ?? ''}`.trim();
+                return {
+                    value: String(a.IdAlumno),
+                    label: `${nombreCompleto} (${a.Matricula ?? `#${a.IdAlumno}`})`,
+                };
+            }),
+        [alumnos],
+    );
+
+    const handleOpenChange = (nuevoOpen: boolean) => {
+        if (!nuevoOpen) {
+            form.reset();
             form.clearErrors();
         }
+        onOpenChange(nuevoOpen);
     };
 
     const submit = (e: React.FormEvent) => {
@@ -105,7 +110,7 @@ export default function RetoAlumnoFormDrawer({
             IdRetoRecurso: data.IdRetoRecurso ? Number(data.IdRetoRecurso) : null,
         }));
 
-        if (esEdicion && registro?.IdRetoAlumno) {
+        if (esEdicion && registro) {
             form.put(`/contabilidad/retos-alumnos/${registro.IdRetoAlumno}`, {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -185,26 +190,23 @@ export default function RetoAlumnoFormDrawer({
                             )}
                         </Field>
 
-                        <Field>
-                            <FieldLabel htmlFor="URLRecurso" className="required">
-                                URL del Archivo / Documento Entregado
-                            </FieldLabel>
-                            <div className="relative">
-                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                                <Input
-                                    id="URLRecurso"
-                                    type="url"
-                                    value={form.data.URLRecurso}
-                                    onChange={(e) => form.setData('URLRecurso', e.target.value)}
-                                    placeholder="https://drive.google.com/... o enlace de entrega"
-                                    className="pl-9"
-                                    required
-                                />
-                            </div>
-                            {form.errors.URLRecurso && (
-                                <FieldError>{form.errors.URLRecurso}</FieldError>
-                            )}
-                        </Field>
+                        <FileOrLinkField
+                            id="URLRecurso"
+                            label="Archivo Entregado o Enlace"
+                            value={form.data.URLRecurso}
+                            onChange={(val) => form.setData('URLRecurso', val)}
+                            onFileNameChange={(name) => {
+                                if (!form.data.Nombre) {
+                                    form.setData('Nombre', name.replace(/\.[^/.]+$/, ''));
+                                }
+                            }}
+                            folder={`Contabilidad / Retos / ${reto.Nombre} / Entregas`}
+                            placeholder="https://drive.google.com/... o enlace de entrega"
+                            required
+                            disabled={form.processing}
+                            error={form.errors.URLRecurso}
+                            helpText="Sube el archivo de entrega a Google Drive o pega el enlace."
+                        />
 
                         {recursos.length > 0 && (
                             <Field>
