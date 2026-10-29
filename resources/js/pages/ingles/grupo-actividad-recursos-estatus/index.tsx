@@ -114,7 +114,7 @@ export default function GrupoActividadRecursoEstatusIndex({
     const columns: Column<KardexActividadRecursoEstatusItem>[] = [
         {
             key: 'recurso',
-            label: 'Entrega / Recurso',
+            label: 'Recurso',
             render: (item) => (
                 <div className="flex items-center gap-2">
                     <FileCheck className="size-4 text-primary shrink-0" />
@@ -126,7 +126,7 @@ export default function GrupoActividadRecursoEstatusIndex({
         },
         {
             key: 'actividad',
-            label: 'Reto / Actividad',
+            label: 'Actividad',
             render: (item) => (
                 <div className="flex items-center gap-1.5 text-foreground">
                     <Target className="size-3.5 text-muted-foreground shrink-0" />

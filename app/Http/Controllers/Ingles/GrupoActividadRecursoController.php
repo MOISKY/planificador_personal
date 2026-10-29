@@ -113,7 +113,7 @@ class GrupoActividadRecursoController extends Controller
 
         GrupoActividadRecurso::create($validated);
 
-        return back()->with('success', 'Recurso o entrega registrado correctamente.');
+        return back()->with('success', 'Recurso registrado correctamente.');
     }
 
     public function update(Request $request, GrupoActividadRecurso $recurso): RedirectResponse
@@ -130,7 +130,7 @@ class GrupoActividadRecursoController extends Controller
 
         $recurso->update($validated);
 
-        return back()->with('success', 'Recurso o entrega actualizado correctamente.');
+        return back()->with('success', 'Recurso actualizado correctamente.');
     }
 
     public function destroy(GrupoActividadRecurso $recurso): RedirectResponse

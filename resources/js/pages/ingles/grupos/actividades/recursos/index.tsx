@@ -85,7 +85,7 @@ export default function ActividadRecursosIndex({
             ? [{ title: grupo.Grupo, href: `/ingles/grupos/${grupo.IdGrupo}/actividades` }]
             : []),
         { title: actividad.Nombre, href: `/ingles/actividades/${actividad.IdActividad}/recursos` },
-        { title: 'Recursos y Entregas', href: `/ingles/actividades/${actividad.IdActividad}/recursos` },
+        { title: 'Recursos', href: `/ingles/actividades/${actividad.IdActividad}/recursos` },
     ];
 
     useEffect(() => {
@@ -150,7 +150,7 @@ export default function ActividadRecursosIndex({
     const columns: Column<GrupoActividadRecursoItem>[] = [
         {
             key: 'Nombre',
-            label: 'Entrega / Recurso',
+            label: 'Recurso',
             render: (item) => (
                 <div className="flex items-center gap-2">
                     <FileCheck className="size-4 text-primary shrink-0" />
@@ -160,14 +160,10 @@ export default function ActividadRecursosIndex({
         },
         {
             key: 'alumno',
-            label: 'Alumno / Modalidad',
+            label: 'Alumno',
             render: (item) => {
-                if (esIndividual || !item.alumno) {
-                    return (
-                        <Badge variant="outline" className="text-muted-foreground font-normal">
-                            Individual (Sin Alumno)
-                        </Badge>
-                    );
+                if (!item.alumno) {
+                    return <span className="text-muted-foreground text-sm">—</span>;
                 }
                 return (
                     <div className="flex items-center gap-1.5 text-foreground">
@@ -181,7 +177,7 @@ export default function ActividadRecursosIndex({
         },
         {
             key: 'URLRecurso',
-            label: 'Enlace de la Entrega',
+            label: 'Enlace del Recurso',
             render: (item) => (
                 <a
                     href={item.URLRecurso}
@@ -205,30 +201,26 @@ export default function ActividadRecursosIndex({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Entregas - ${actividad.Nombre} - Inglés`} />
+            <Head title={`Recursos - ${actividad.Nombre} - Inglés`} />
             <PageShell>
                 <ContextPanel
                     icon={<FileCheck />}
-                    title={`Recursos y Entregas: ${actividad.Nombre}`}
-                    description={`Entregas asociadas al reto. Modalidad: ${actividad.Tipo}. ${
-                        esIndividual
-                            ? 'Por regla de entidad débil (Individual), el alumno es nulo.'
-                            : 'Alumnos filtrados según la modalidad asignada.'
-                    }`}
+                    title={`Recursos: ${actividad.Nombre}`}
+                    description={`Recursos asociados a la actividad (${actividad.Nombre}).`}
                     actions={
                         <div className="flex items-center gap-2">
                             {grupo && (
                                 <Button asChild size="sm" variant="outline">
                                     <Link href={`/ingles/grupos/${grupo.IdGrupo}/actividades`}>
                                         <ArrowLeft className="mr-1.5 size-4" />
-                                        Volver a Retos
+                                        Volver a Actividades
                                     </Link>
                                 </Button>
                             )}
 
                             <Button size="sm" onClick={abrirNuevo}>
                                 <Plus className="mr-1.5 size-4" />
-                                Nueva Entrega / Recurso
+                                Nuevo Recurso
                             </Button>
                         </div>
                     }
@@ -245,8 +237,8 @@ export default function ActividadRecursosIndex({
                         idKey="IdActividadRecurso"
                         onEdit={abrirEditar}
                         onDelete={eliminar}
-                        emptyTitle="No hay entregas registradas"
-                        emptyDescription="Registra la primera entrega o recurso para esta actividad."
+                        emptyTitle="No hay recursos registrados"
+                        emptyDescription="Registra el primer recurso para esta actividad."
                     />
                 </PageContent>
             </PageShell>
@@ -256,12 +248,12 @@ export default function ActividadRecursosIndex({
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <FileCheck className="size-5 text-primary" />
-                            {recursoSeleccionado ? 'Editar Entrega' : 'Nueva Entrega / Recurso'}
+                            {recursoSeleccionado ? 'Editar Recurso' : 'Nuevo Recurso'}
                         </SheetTitle>
                         <SheetDescription>
                             {recursoSeleccionado
-                                ? `Modifica la entrega para "${actividad.Nombre}".`
-                                : `Registra una nueva entrega o enlace para "${actividad.Nombre}".`}
+                                ? `Modifica los datos del recurso en "${actividad.Nombre}".`
+                                : `Registra un nuevo recurso para "${actividad.Nombre}".`}
                         </SheetDescription>
                     </SheetHeader>
 
@@ -269,7 +261,7 @@ export default function ActividadRecursosIndex({
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="Nombre" required>
-                                    Título de la Entrega / Recurso
+                                    Nombre del Recurso
                                 </FieldLabel>
                                 <Input
                                     id="Nombre"
@@ -281,23 +273,12 @@ export default function ActividadRecursosIndex({
                                 <FieldError>{form.errors.Nombre}</FieldError>
                             </Field>
 
-                            {/* REGLA DE ENTIDAD DÉBIL: Si Tipo === 'Individual', IdAlumno es NULL y combo BLOQUEADO */}
-                            <Field>
-                                <FieldLabel htmlFor="IdAlumno">
-                                    Alumno {esIndividual ? '(Entidad Débil - Deshabilitado)' : 'Asignado'}
-                                </FieldLabel>
-
-                                {esIndividual ? (
-                                    <div className="flex flex-col gap-1.5">
-                                        <div className="flex h-9 w-full items-center rounded-md border border-input bg-muted px-3 py-1 text-sm text-muted-foreground opacity-70">
-                                            <span>NULL (No aplicable para actividad Individual)</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-                                            <Info className="size-3.5 shrink-0" />
-                                            <span>En modalidad Individual el alumno es NULL por regla de entidad débil.</span>
-                                        </div>
-                                    </div>
-                                ) : (
+                            {/* En modalidad Individual no sale el combo por ser entidad débil */}
+                            {!esIndividual && (
+                                <Field>
+                                    <FieldLabel htmlFor="IdAlumno">
+                                        Alumno Asignado
+                                    </FieldLabel>
                                     <Select
                                         value={String(form.data.IdAlumno)}
                                         onValueChange={(val) => form.setData('IdAlumno', Number(val))}
@@ -319,13 +300,13 @@ export default function ActividadRecursosIndex({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                )}
-                                <FieldError>{form.errors.IdAlumno}</FieldError>
-                            </Field>
+                                    <FieldError>{form.errors.IdAlumno}</FieldError>
+                                </Field>
+                            )}
 
                             <Field>
                                 <FieldLabel htmlFor="URLRecurso" required>
-                                    URL del Recurso / Entrega
+                                    URL del Recurso
                                 </FieldLabel>
                                 <div className="relative">
                                     <Link2 className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />

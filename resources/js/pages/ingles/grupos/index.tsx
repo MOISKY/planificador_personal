@@ -186,32 +186,6 @@ export default function GruposIndex({
                 </div>
             ),
         },
-        {
-            key: 'alumnos_count',
-            label: 'Alumnos',
-            render: (item) => {
-                const count = item.alumnos_count ?? 0;
-                return (
-                    <Badge variant={count > 0 ? 'secondary' : 'outline'} className="gap-1 font-normal">
-                        <GraduationCap className="size-3" />
-                        {count} {count === 1 ? 'alumno' : 'alumnos'}
-                    </Badge>
-                );
-            },
-        },
-        {
-            key: 'actividades_count',
-            label: 'Retos / Actividades',
-            render: (item) => {
-                const count = item.actividades_count ?? 0;
-                return (
-                    <Badge variant={count > 0 ? 'secondary' : 'outline'} className="gap-1 font-normal">
-                        <Target className="size-3" />
-                        {count} {count === 1 ? 'actividad' : 'actividades'}
-                    </Badge>
-                );
-            },
-        },
     ];
 
     return (
@@ -246,26 +220,26 @@ export default function GruposIndex({
                                 <Button
                                     asChild
                                     variant="ghost"
-                                    size="sm"
-                                    className="h-8 gap-1 px-2 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                                    title="Ver alumnos inscritos en este grupo"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400"
+                                    title="Alumnos inscritos en este grupo"
+                                    aria-label="Alumnos inscritos en este grupo"
                                 >
                                     <Link href={`/ingles/grupos/${item.IdGrupo}/alumnos`}>
-                                        <GraduationCap className="size-3.5" />
-                                        <span>Alumnos</span>
+                                        <GraduationCap className="h-4 w-4" />
                                     </Link>
                                 </Button>
 
                                 <Button
                                     asChild
                                     variant="ghost"
-                                    size="sm"
-                                    className="h-8 gap-1 px-2 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                                    title="Ver retos y actividades del grupo"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
+                                    title="Actividades del grupo"
+                                    aria-label="Actividades del grupo"
                                 >
                                     <Link href={`/ingles/grupos/${item.IdGrupo}/actividades`}>
-                                        <Target className="size-3.5" />
-                                        <span>Retos / Actividades</span>
+                                        <Target className="h-4 w-4" />
                                     </Link>
                                 </Button>
                             </div>

@@ -11,6 +11,7 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
@@ -182,25 +183,6 @@ export default function MateriaRecursosIndex({ materia, items, searchValue }: Pr
                 <span className="text-muted-foreground line-clamp-1">{item.Descripcion || '—'}</span>
             ),
         },
-        {
-            key: 'recursos_adicionales_count',
-            label: 'Adicionales',
-            render: (item) => {
-                const count = item.recursos_adicionales_count ?? item.recursos_adicionales?.length ?? 0;
-                return (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => abrirDrawerAdicionales(item)}
-                        className="h-7 gap-1.5 px-2 text-xs font-medium"
-                    >
-                        <Paperclip className="size-3.5 text-primary" />
-                        <span>{count} {count === 1 ? 'enlace' : 'enlaces'}</span>
-                    </Button>
-                );
-            },
-        },
     ];
 
     return (
@@ -242,13 +224,13 @@ export default function MateriaRecursosIndex({ materia, items, searchValue }: Pr
                             <Button
                                 type="button"
                                 variant="ghost"
-                                size="sm"
+                                size="icon-sm"
                                 onClick={() => abrirDrawerAdicionales(item)}
-                                className="h-8 gap-1.5 px-2.5 text-xs font-medium text-primary hover:bg-primary/10"
-                                title="Gestionar recursos adicionales"
+                                className="rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                title="Recursos adicionales"
+                                aria-label="Recursos adicionales"
                             >
-                                <Paperclip className="size-3.5" />
-                                <span>Adicionales</span>
+                                <Paperclip className="h-4 w-4" />
                             </Button>
                         )}
                         emptyTitle="No hay recursos registrados"
@@ -292,11 +274,13 @@ export default function MateriaRecursosIndex({ materia, items, searchValue }: Pr
                                 <FieldLabel htmlFor="Descripcion">
                                     Descripción
                                 </FieldLabel>
-                                <Input
+                                <Textarea
                                     id="Descripcion"
                                     value={recursoForm.data.Descripcion}
                                     onChange={(e) => recursoForm.setData('Descripcion', e.target.value)}
-                                    placeholder="Ej. Resumen de reglas, ejercicios y enlaces de apoyo"
+                                    placeholder="Ej. Resumen de reglas, ejercicios y enlaces de apoyo..."
+                                    rows={4}
+                                    className="min-h-24 resize-y"
                                 />
                                 <FieldError>{recursoForm.errors.Descripcion}</FieldError>
                             </Field>
@@ -360,11 +344,13 @@ export default function MateriaRecursosIndex({ materia, items, searchValue }: Pr
                                         <FieldLabel htmlFor="adicional-desc" required>
                                             Descripción del Recurso
                                         </FieldLabel>
-                                        <Input
+                                        <Textarea
                                             id="adicional-desc"
                                             value={adicionalForm.data.Descripcion}
                                             onChange={(e) => adicionalForm.setData('Descripcion', e.target.value)}
-                                            placeholder="Ej. Ejercicios en PDF o Video explicativo"
+                                            placeholder="Ej. Ejercicios en PDF o Video explicativo..."
+                                            rows={3}
+                                            className="min-h-20 resize-y"
                                             required
                                         />
                                         <FieldError>{adicionalForm.errors.Descripcion}</FieldError>

@@ -140,14 +140,14 @@ export default function ActividadEquiposIndex({
                 <ContextPanel
                     icon={<Users2 />}
                     title={`Equipo de Alumnos: ${actividad.Nombre}`}
-                    description={`Alumnos asignados al equipo de este reto. La selección está filtrada exclusivamente para alumnos pertenecientes al grupo actual (${grupo?.Grupo ?? ''}).`}
+                    description={`Alumnos asignados al equipo de esta actividad. La selección está filtrada exclusivamente para alumnos pertenecientes al grupo actual (${grupo?.Grupo ?? ''}).`}
                     actions={
                         <div className="flex items-center gap-2">
                             {grupo && (
                                 <Button asChild size="sm" variant="outline">
                                     <Link href={`/ingles/grupos/${grupo.IdGrupo}/actividades`}>
                                         <ArrowLeft className="mr-1.5 size-4" />
-                                        Volver a Retos
+                                        Volver a Actividades
                                     </Link>
                                 </Button>
                             )}

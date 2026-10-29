@@ -115,7 +115,7 @@ export default function GrupoActividadesEstatusIndex({
     const columns: Column<KardexActividadEstatusItem>[] = [
         {
             key: 'actividad',
-            label: 'Reto / Actividad',
+            label: 'Actividad',
             render: (item) => (
                 <div className="flex items-center gap-2">
                     <Target className="size-4 text-primary shrink-0" />

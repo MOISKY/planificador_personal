@@ -107,19 +107,6 @@ export default function MateriasIndex({ items, searchValue }: Props) {
                 </div>
             ),
         },
-        {
-            key: 'recursos_count',
-            label: 'Recursos Disponibles',
-            render: (item) => {
-                const count = item.recursos_count ?? 0;
-                return (
-                    <Badge variant={count > 0 ? 'secondary' : 'outline'} className="gap-1 font-normal">
-                        <FolderOpen className="size-3" />
-                        {count} {count === 1 ? 'recurso' : 'recursos'}
-                    </Badge>
-                );
-            },
-        },
     ];
 
     return (
@@ -153,13 +140,13 @@ export default function MateriasIndex({ items, searchValue }: Props) {
                             <Button
                                 asChild
                                 variant="ghost"
-                                size="sm"
-                                className="h-8 gap-1.5 px-2.5 text-xs font-medium text-primary hover:bg-primary/10"
-                                title="Ver recursos de la materia"
+                                size="icon-sm"
+                                className="rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400"
+                                title="Recursos de la materia"
+                                aria-label="Recursos de la materia"
                             >
                                 <Link href={`/ingles/materias/${item.IdMateria}/recursos`}>
-                                    <FolderOpen className="size-3.5" />
-                                    <span>Recursos</span>
+                                    <FolderOpen className="h-4 w-4" />
                                 </Link>
                             </Button>
                         )}

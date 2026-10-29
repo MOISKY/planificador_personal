@@ -12,6 +12,7 @@ import {
     FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -75,7 +76,7 @@ export default function GrupoActividadesIndex({
         { title: 'Inglés', href: '/ingles/grupos' },
         { title: 'Grupos', href: '/ingles/grupos' },
         { title: grupo.Grupo, href: `/ingles/grupos/${grupo.IdGrupo}/actividades` },
-        { title: 'Retos y Actividades', href: `/ingles/grupos/${grupo.IdGrupo}/actividades` },
+        { title: 'Actividades', href: `/ingles/grupos/${grupo.IdGrupo}/actividades` },
     ];
 
     // Drawer de Actividad (CRUD)
@@ -218,7 +219,7 @@ export default function GrupoActividadesIndex({
     const columns: Column<GrupoActividadItem>[] = [
         {
             key: 'Nombre',
-            label: 'Reto / Actividad',
+            label: 'Actividad',
             render: (item) => (
                 <div className="flex items-center gap-2">
                     <Target className="size-4 text-primary shrink-0" />
@@ -253,35 +254,16 @@ export default function GrupoActividadesIndex({
                 <EstatusBadge estatus={item.estatus_actual?.Estatus ?? 'No Realizado'} />
             ),
         },
-        {
-            key: 'actividades_adicionales_count',
-            label: 'Adicionales',
-            render: (item) => {
-                const count = item.actividades_adicionales_count ?? item.actividades_adicionales?.length ?? 0;
-                return (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => abrirDrawerAdicionales(item)}
-                        className="h-7 gap-1 px-2 text-xs font-medium"
-                    >
-                        <Paperclip className="size-3.5 text-primary" />
-                        <span>{count}</span>
-                    </Button>
-                );
-            },
-        },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Retos - ${grupo.Grupo} - Inglés`} />
+            <Head title={`Actividades - ${grupo.Grupo} - Inglés`} />
             <PageShell>
                 <ContextPanel
                     icon={<Target />}
-                    title={`Retos y Actividades: ${grupo.Grupo}`}
-                    description={`Actividades asignadas al grupo (${grupo.materia?.Nombre ?? ''}). Administra sus adicionales en drawer, equipos y recursos/entregas.`}
+                    title={`Actividades: ${grupo.Grupo}`}
+                    description={`Actividades asignadas al grupo (${grupo.materia?.Nombre ?? ''}). Administra sus adicionales en drawer, equipos y recursos.`}
                     actions={
                         <div className="flex items-center gap-2">
                             <Button asChild size="sm" variant="outline">
@@ -314,44 +296,44 @@ export default function GrupoActividadesIndex({
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    size="sm"
+                                    size="icon-sm"
                                     onClick={() => abrirDrawerAdicionales(item)}
-                                    className="h-8 gap-1 px-2 text-xs font-medium text-primary hover:bg-primary/10"
-                                    title="Gestionar recursos adicionales"
+                                    className="rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                    title="Recursos adicionales"
+                                    aria-label="Recursos adicionales"
                                 >
-                                    <Paperclip className="size-3.5" />
-                                    <span>Adicionales</span>
+                                    <Paperclip className="h-4 w-4" />
                                 </Button>
 
                                 <Button
                                     asChild
                                     variant="ghost"
-                                    size="sm"
-                                    className="h-8 gap-1 px-2 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                                    title="Ver equipos de la actividad"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
+                                    title="Equipos de la actividad"
+                                    aria-label="Equipos de la actividad"
                                 >
                                     <Link href={`/ingles/actividades/${item.IdActividad}/equipos`}>
-                                        <Users2 className="size-3.5" />
-                                        <span>Equipos ({item.equipos_count ?? 0})</span>
+                                        <Users2 className="h-4 w-4" />
                                     </Link>
                                 </Button>
 
                                 <Button
                                     asChild
                                     variant="ghost"
-                                    size="sm"
-                                    className="h-8 gap-1 px-2 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                                    title="Ver entregas y recursos de alumnos"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                    title="Recursos de la actividad"
+                                    aria-label="Recursos de la actividad"
                                 >
                                     <Link href={`/ingles/actividades/${item.IdActividad}/recursos`}>
-                                        <FileCheck className="size-3.5" />
-                                        <span>Recursos ({item.recursos_count ?? 0})</span>
+                                        <FileCheck className="h-4 w-4" />
                                     </Link>
                                 </Button>
                             </div>
                         )}
                         emptyTitle="No hay actividades registradas"
-                        emptyDescription="Registra el primer reto o actividad para este grupo académico."
+                        emptyDescription="Registra la primera actividad para este grupo académico."
                     />
                 </PageContent>
             </PageShell>
@@ -424,11 +406,13 @@ export default function GrupoActividadesIndex({
                                 <FieldLabel htmlFor="Descripcion">
                                     Instrucciones / Descripción
                                 </FieldLabel>
-                                <Input
+                                <Textarea
                                     id="Descripcion"
                                     value={form.data.Descripcion}
                                     onChange={(e) => form.setData('Descripcion', e.target.value)}
-                                    placeholder="Detalles de la entrega, rúbrica o criterios..."
+                                    placeholder="Detalles e instrucciones de la actividad, rúbrica o criterios..."
+                                    rows={4}
+                                    className="min-h-24 resize-y"
                                 />
                                 <FieldError>{form.errors.Descripcion}</FieldError>
                             </Field>
@@ -491,11 +475,13 @@ export default function GrupoActividadesIndex({
                                         <FieldLabel htmlFor="act-adicional-desc" required>
                                             Descripción del Recurso
                                         </FieldLabel>
-                                        <Input
+                                        <Textarea
                                             id="act-adicional-desc"
                                             value={adicionalForm.data.Descripcion}
                                             onChange={(e) => adicionalForm.setData('Descripcion', e.target.value)}
-                                            placeholder="Ej. Rúbrica de evaluación o Formato PDF"
+                                            placeholder="Ej. Rúbrica de evaluación, guía detallada o formato de entrega..."
+                                            rows={3}
+                                            className="min-h-20 resize-y"
                                             required
                                         />
                                         <FieldError>{adicionalForm.errors.Descripcion}</FieldError>
