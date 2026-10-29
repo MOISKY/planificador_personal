@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/fechas';
 import { type BreadcrumbItem } from '@/types';
 import { type PaginatedData } from '@/types/pagination';
 import {
@@ -44,6 +45,7 @@ import {
     Calendar,
     ExternalLink,
     FolderOpen,
+    Link2,
     Loader2,
     Paperclip,
     Plus,
@@ -262,7 +264,7 @@ export default function ProyectoActividadesIndex({
                 item.FechaEntrega ? (
                     <div className="flex items-center gap-1.5 text-xs text-foreground">
                         <Calendar className="size-3.5 text-muted-foreground shrink-0" />
-                        <span>{item.FechaEntrega.substring(0, 10)}</span>
+                        <span>{formatDate(item.FechaEntrega)}</span>
                     </div>
                 ) : (
                     <span className="text-muted-foreground">—</span>

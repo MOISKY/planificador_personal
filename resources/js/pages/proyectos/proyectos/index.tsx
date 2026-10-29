@@ -22,6 +22,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
+import { formatDate } from '@/lib/fechas';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type PaginatedData } from '@/types/pagination';
@@ -140,7 +141,7 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
                 item.FechaInicio ? (
                     <div className="flex items-center gap-1.5 text-xs text-foreground">
                         <Calendar className="size-3.5 text-muted-foreground shrink-0" />
-                        <span>{item.FechaInicio.substring(0, 10)}</span>
+                        <span>{formatDate(item.FechaInicio)}</span>
                     </div>
                 ) : (
                     <span className="text-muted-foreground">—</span>
@@ -155,7 +156,7 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
                     return (
                         <div className="flex items-center gap-1.5 text-xs text-foreground">
                             <Calendar className="size-3.5 text-muted-foreground shrink-0" />
-                            <span>{item.FechaFinal.substring(0, 10)}</span>
+                            <span>{formatDate(item.FechaFinal)}</span>
                         </div>
                     );
                 }
