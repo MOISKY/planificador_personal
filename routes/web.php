@@ -212,9 +212,9 @@ Route::prefix('ingles')->name('ingles.')->group(function () {
 });
 
 // ==========================================================
-// Módulo Proyectos
+// Módulo: Proyectos (Planificación Personal)
 // ==========================================================
-Route::middleware(['auth'])->prefix('proyectos')->name('proyectos.')->group(function () {
+Route::prefix('proyectos')->name('proyectos.')->group(function () {
     // Catálogos
     Route::resource('personas', ProyectosPersonaController::class)->names('personas');
     Route::resource('roles', ProyectosRolController::class)->names('roles');
