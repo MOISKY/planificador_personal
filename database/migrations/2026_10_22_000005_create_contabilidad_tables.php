@@ -136,8 +136,8 @@ return new class extends Migration
             Schema::create('contabilidad_modulo_leccion', function (Blueprint $table) {
                 $table->increments('IdLeccion');
                 $table->unsignedInteger('IdModulo');
-                $table->string('Codigo', 100)->nullable()->index();
                 $table->string('Nombre', 200);
+                $table->string('Codigo', 100)->nullable()->index();
                 $table->text('UrlLeccion')->nullable();
                 $table->dateTime('FechaRegistro')->useCurrent();
 

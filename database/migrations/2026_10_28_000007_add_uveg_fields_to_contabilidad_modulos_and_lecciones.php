@@ -16,7 +16,7 @@ return new class extends Migration
 
         if (Schema::hasTable('contabilidad_modulo_leccion') && ! Schema::hasColumn('contabilidad_modulo_leccion', 'Codigo')) {
             Schema::table('contabilidad_modulo_leccion', function (Blueprint $table): void {
-                $table->string('Codigo', 100)->nullable()->after('IdModulo')->index();
+                $table->string('Codigo', 100)->nullable()->after('Nombre')->index();
             });
         }
     }
@@ -36,4 +36,3 @@ return new class extends Migration
         }
     }
 };
-
