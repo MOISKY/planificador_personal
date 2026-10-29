@@ -178,8 +178,6 @@ export function AppSidebar() {
                     title: 'Proyectos',
                     href: toUrl(github.proyectos()),
                     icon: FolderGit2,
-    FolderKanban,
-    ShieldCheck,
                     badge:
                         newProjectsCount > 0 ? (
                             <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
@@ -371,6 +369,43 @@ export function AppSidebar() {
                 {
                     title: 'Grupo Actividad Recurso Estatus',
                     href: '/ingles/grupo-actividad-recursos-estatus',
+                    icon: CheckSquare,
+                },
+            ],
+        },
+        {
+            title: 'Proyectos',
+            icon: FolderKanban,
+            items: [
+                {
+                    title: 'Catálogos',
+                    icon: Boxes,
+                    children: [
+                        {
+                            title: 'Catálogo de Personas',
+                            href: '/proyectos/personas',
+                            icon: Users,
+                        },
+                        {
+                            title: 'Roles',
+                            href: '/proyectos/roles',
+                            icon: ShieldCheck,
+                        },
+                    ],
+                },
+                {
+                    title: 'Proyectos',
+                    href: '/proyectos/proyectos',
+                    icon: FolderGit2,
+                },
+                {
+                    title: 'Proyecto Actividades Estatus',
+                    href: '/proyectos/proyecto-actividades-estatus',
+                    icon: BookmarkCheck,
+                },
+                {
+                    title: 'Proyecto Actividad Recursos Estatus',
+                    href: '/proyectos/proyecto-actividad-recursos-estatus',
                     icon: CheckSquare,
                 },
             ],
