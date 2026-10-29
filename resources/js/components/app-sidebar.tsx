@@ -40,6 +40,7 @@ import {
     FolderGit2,
     GraduationCap,
     History,
+    Languages,
     Layers,
     LayoutGrid,
     Link2,
@@ -269,7 +270,54 @@ export function AppSidebar() {
                     title: 'Dashboard',
                     href: '/contabilidad/dashboard',
                     icon: LayoutGrid,
+                },        {
+            title: 'Inglés',
+            icon: Languages,
+            items: [
+                {
+                    title: 'Catálogos',
+                    icon: Boxes,
+                    children: [
+                        {
+                            title: 'Alumnos',
+                            href: '/ingles/alumnos',
+                            icon: GraduationCap,
+                        },
+                        {
+                            title: 'Asesores',
+                            href: '/ingles/asesores',
+                            icon: UserCheck,
+                        },
+                        {
+                            title: 'Periodos',
+                            href: '/ingles/periodos',
+                            icon: CalendarRange,
+                        },
+                        {
+                            title: 'Materias',
+                            href: '/ingles/materias',
+                            icon: BookOpen,
+                        },
+                    ],
                 },
+                {
+                    title: 'Grupos',
+                    href: '/ingles/grupos',
+                    icon: Users,
+                },
+                {
+                    title: 'Grupo Actividades Estatus',
+                    href: '/ingles/grupo-actividades-estatus',
+                    icon: BookmarkCheck,
+                },
+                {
+                    title: 'Grupo Actividad Recurso Estatus',
+                    href: '/ingles/grupo-actividad-recursos-estatus',
+                    icon: CheckSquare,
+                },
+            ],
+        },
+
                 {
                     title: 'CatÃ¡logos',
                     icon: Boxes,

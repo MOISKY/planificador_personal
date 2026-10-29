@@ -23,6 +23,19 @@ use App\Http\Controllers\Contabilidad\OportunidadController;
 use App\Http\Controllers\Contabilidad\PeriodoController;
 use App\Http\Controllers\EjemploController;
 use App\Http\Controllers\GitHubConsultorController;
+use App\Http\Controllers\Ingles\AlumnoController as InglesAlumnoController;
+use App\Http\Controllers\Ingles\AsesorController as InglesAsesorController;
+use App\Http\Controllers\Ingles\GrupoActividadAdicionalController as InglesGrupoActividadAdicionalController;
+use App\Http\Controllers\Ingles\GrupoActividadController as InglesGrupoActividadController;
+use App\Http\Controllers\Ingles\GrupoActividadEquipoController as InglesGrupoActividadEquipoController;
+use App\Http\Controllers\Ingles\GrupoActividadEstatusController as InglesGrupoActividadEstatusController;
+use App\Http\Controllers\Ingles\GrupoActividadRecursoController as InglesGrupoActividadRecursoController;
+use App\Http\Controllers\Ingles\GrupoActividadRecursoEstatusController as InglesGrupoActividadRecursoEstatusController;
+use App\Http\Controllers\Ingles\GrupoAlumnoController as InglesGrupoAlumnoController;
+use App\Http\Controllers\Ingles\GrupoController as InglesGrupoController;
+use App\Http\Controllers\Ingles\MateriaController as InglesMateriaController;
+use App\Http\Controllers\Ingles\MateriaRecursoController as InglesMateriaRecursoController;
+use App\Http\Controllers\Ingles\PeriodoController as InglesPeriodoController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
@@ -126,6 +139,66 @@ Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
     Route::get('modulo-reto-recurso-estatus', [ModuloRetoRecursoEstatusController::class, 'index'])->name('modulo-reto-recurso-estatus.index');
     Route::put('modulo-reto-recurso-estatus/{estatus}', [ModuloRetoRecursoEstatusController::class, 'update'])->name('modulo-reto-recurso-estatus.update');
     Route::delete('modulo-reto-recurso-estatus/{estatus}', [ModuloRetoRecursoEstatusController::class, 'destroy'])->name('modulo-reto-recurso-estatus.destroy');
+});
+
+// ==========================================================
+// Módulo: Inglés
+// ==========================================================
+Route::prefix('ingles')->name('ingles.')->group(function () {
+    // Catálogos Base
+    Route::resource('alumnos', InglesAlumnoController::class)->names('alumnos');
+    Route::resource('asesores', InglesAsesorController::class)->names('asesores');
+    Route::resource('periodos', InglesPeriodoController::class)->names('periodos');
+    Route::resource('materias', InglesMateriaController::class)->names('materias');
+
+    // Materias -> Recursos (Opción Hija como en Contabilidad)
+    Route::get('materias/{materia}/recursos', [InglesMateriaRecursoController::class, 'index'])->name('materias.recursos.index');
+    Route::post('materias/{materia}/recursos', [InglesMateriaRecursoController::class, 'store'])->name('materias.recursos.store');
+    Route::put('materias-recursos/{recurso}', [InglesMateriaRecursoController::class, 'update'])->name('materias.recursos.update');
+    Route::delete('materias-recursos/{recurso}', [InglesMateriaRecursoController::class, 'destroy'])->name('materias.recursos.destroy');
+
+    // Materias -> Recursos -> Adicionales (Drawer Mostrar, Agregar, Eliminar)
+    Route::post('materias-recursos/{recurso}/adicionales', [InglesMateriaRecursoController::class, 'storeAdicional'])->name('materias.recursos.adicionales.store');
+    Route::delete('materias-recursos/adicionales/{adicional}', [InglesMateriaRecursoController::class, 'destroyAdicional'])->name('materias.recursos.adicionales.destroy');
+
+    // Opción Independiente: Grupos
+    Route::resource('grupos', InglesGrupoController::class)->names('grupos');
+
+    // Grupos -> Hijo 1: Alumnos inscritos en el grupo
+    Route::get('grupos/{grupo}/alumnos', [InglesGrupoAlumnoController::class, 'index'])->name('grupos.alumnos.index');
+    Route::post('grupos/{grupo}/alumnos', [InglesGrupoAlumnoController::class, 'store'])->name('grupos.alumnos.store');
+    Route::delete('grupos-alumnos/{grupoAlumno}', [InglesGrupoAlumnoController::class, 'destroy'])->name('grupos.alumnos.destroy');
+
+    // Grupos -> Hijo 2: Retos / Actividades
+    Route::get('grupos/{grupo}/actividades', [InglesGrupoActividadController::class, 'index'])->name('grupos.actividades.index');
+    Route::post('grupos/{grupo}/actividades', [InglesGrupoActividadController::class, 'store'])->name('grupos.actividades.store');
+    Route::put('grupos-actividades/{actividad}', [InglesGrupoActividadController::class, 'update'])->name('grupos.actividades.update');
+    Route::delete('grupos-actividades/{actividad}', [InglesGrupoActividadController::class, 'destroy'])->name('grupos.actividades.destroy');
+
+    // Grupos -> Actividades -> Drawer Adicionales (Mostrar, Agregar, Eliminar)
+    Route::post('grupos-actividades/{actividad}/adicionales', [InglesGrupoActividadAdicionalController::class, 'store'])->name('grupos.actividades.adicionales.store');
+    Route::delete('grupos-actividades/adicionales/{adicional}', [InglesGrupoActividadAdicionalController::class, 'destroy'])->name('grupos.actividades.adicionales.destroy');
+
+    // Retos -> Equipos de Alumnos (filtrado por alumnos del grupo actual)
+    Route::get('actividades/{actividad}/equipos', [InglesGrupoActividadEquipoController::class, 'index'])->name('actividades.equipos.index');
+    Route::post('actividades/{actividad}/equipos', [InglesGrupoActividadEquipoController::class, 'store'])->name('actividades.equipos.store');
+    Route::delete('actividades-equipos/{equipo}', [InglesGrupoActividadEquipoController::class, 'destroy'])->name('actividades.equipos.destroy');
+
+    // Retos -> Recursos / Entregas de Alumnos (condicionado por Tipo: Individual NULL / bloqueado, Equipo, Grupo)
+    Route::get('actividades/{actividad}/recursos', [InglesGrupoActividadRecursoController::class, 'index'])->name('actividades.recursos.index');
+    Route::post('actividades/{actividad}/recursos', [InglesGrupoActividadRecursoController::class, 'store'])->name('actividades.recursos.store');
+    Route::put('actividades-recursos/{recurso}', [InglesGrupoActividadRecursoController::class, 'update'])->name('actividades.recursos.update');
+    Route::delete('actividades-recursos/{recurso}', [InglesGrupoActividadRecursoController::class, 'destroy'])->name('actividades.recursos.destroy');
+
+    // Opción Independiente: Grupo Actividades Estatus (Kardex)
+    Route::get('grupo-actividades-estatus', [InglesGrupoActividadEstatusController::class, 'index'])->name('grupo-actividades-estatus.index');
+    Route::put('grupo-actividades-estatus/{estatus}', [InglesGrupoActividadEstatusController::class, 'update'])->name('grupo-actividades-estatus.update');
+    Route::delete('grupo-actividades-estatus/{estatus}', [InglesGrupoActividadEstatusController::class, 'destroy'])->name('grupo-actividades-estatus.destroy');
+
+    // Opción Independiente: Grupo Actividad Recurso Estatus (Kardex)
+    Route::get('grupo-actividad-recursos-estatus', [InglesGrupoActividadRecursoEstatusController::class, 'index'])->name('grupo-actividad-recursos-estatus.index');
+    Route::put('grupo-actividad-recursos-estatus/{estatus}', [InglesGrupoActividadRecursoEstatusController::class, 'update'])->name('grupo-actividad-recursos-estatus.update');
+    Route::delete('grupo-actividad-recursos-estatus/{estatus}', [InglesGrupoActividadRecursoEstatusController::class, 'destroy'])->name('grupo-actividad-recursos-estatus.destroy');
 });
 
 // ==========================================================
