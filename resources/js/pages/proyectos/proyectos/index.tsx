@@ -269,22 +269,21 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
             <Sheet open={drawerAbierto} onOpenChange={setDrawerAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <FolderGit2 className="size-5 text-primary" />
                             {seleccionado ? 'Editar Proyecto' : 'Nuevo Proyecto'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
-                                ? 'Actualiza los datos del proyecto.'
-                                : 'Completa los campos para crear un nuevo proyecto.'}
+                                ? 'Modifica los datos y fechas del proyecto seleccionado.'
+                                : 'Ingresa la información requerida para registrar un nuevo proyecto.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form id="proyecto-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre">Nombre del Proyecto *</FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>Nombre del Proyecto</FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
@@ -293,9 +292,7 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
                                     required
                                     autoFocus
                                 />
-                                {form.errors.Nombre && (
-                                    <FieldError>{form.errors.Nombre}</FieldError>
-                                )}
+                                <FieldError>{form.errors.Nombre}</FieldError>
                             </Field>
 
                             <Field>
@@ -308,9 +305,7 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
                                     onChange={(e) => form.setData('Descripcion', e.target.value)}
                                     placeholder="Objetivos, alcance o especificaciones del proyecto..."
                                 />
-                                {form.errors.Descripcion && (
-                                    <FieldError>{form.errors.Descripcion}</FieldError>
-                                )}
+                                <FieldError>{form.errors.Descripcion}</FieldError>
                             </Field>
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -322,9 +317,7 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
                                         value={form.data.FechaInicio}
                                         onChange={(e) => form.setData('FechaInicio', e.target.value)}
                                     />
-                                    {form.errors.FechaInicio && (
-                                        <FieldError>{form.errors.FechaInicio}</FieldError>
-                                    )}
+                                    <FieldError>{form.errors.FechaInicio}</FieldError>
                                 </Field>
 
                                 <Field>
@@ -338,30 +331,39 @@ export default function ProyectosIndex({ items, searchValue }: Props) {
                                     <p className="text-[11px] text-muted-foreground mt-1">
                                         Si se deja vacía, el reloj continuará corriendo ("En curso").
                                     </p>
-                                    {form.errors.FechaFinal && (
-                                        <FieldError>{form.errors.FechaFinal}</FieldError>
-                                    )}
+                                    <FieldError>{form.errors.FechaFinal}</FieldError>
                                 </Field>
                             </div>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                {seleccionado ? 'Guardar Cambios' : 'Crear Proyecto'}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="proyecto-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

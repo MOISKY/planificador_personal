@@ -236,7 +236,8 @@ export default function ProyectoPersonasIndex({
             <Sheet open={drawerAbierto} onOpenChange={setDrawerAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <Users className="size-5 text-primary" />
                             {asignacionSeleccionada ? 'Modificar Rol' : 'Asignar Persona al Proyecto'}
                         </SheetTitle>
                         <SheetDescription>
@@ -246,13 +247,11 @@ export default function ProyectoPersonasIndex({
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form id="persona-proyecto-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             {!asignacionSeleccionada && (
                                 <Field>
-                                    <FieldLabel htmlFor="IdPersona">Persona *</FieldLabel>
+                                    <FieldLabel htmlFor="IdPersona" required>Persona</FieldLabel>
                                     <Select
                                         value={form.data.IdPersona}
                                         onValueChange={(val) => form.setData('IdPersona', val)}
@@ -271,14 +270,12 @@ export default function ProyectoPersonasIndex({
                                             })}
                                         </SelectContent>
                                     </Select>
-                                    {form.errors.IdPersona && (
-                                        <FieldError>{form.errors.IdPersona}</FieldError>
-                                    )}
+                                    <FieldError>{form.errors.IdPersona}</FieldError>
                                 </Field>
                             )}
 
                             <Field>
-                                <FieldLabel htmlFor="IdRol">Rol *</FieldLabel>
+                                <FieldLabel htmlFor="IdRol" required>Rol</FieldLabel>
                                 <Select
                                     value={form.data.IdRol}
                                     onValueChange={(val) => form.setData('IdRol', val)}
@@ -294,29 +291,38 @@ export default function ProyectoPersonasIndex({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {form.errors.IdRol && (
-                                    <FieldError>{form.errors.IdRol}</FieldError>
-                                )}
+                                <FieldError>{form.errors.IdRol}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                {asignacionSeleccionada ? 'Guardar Cambios' : 'Asignar al Proyecto'}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="persona-proyecto-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {asignacionSeleccionada ? 'Guardar Cambios' : 'Asignar al Proyecto'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

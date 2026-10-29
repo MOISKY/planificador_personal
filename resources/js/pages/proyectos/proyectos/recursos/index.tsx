@@ -269,22 +269,21 @@ export default function ProyectoRecursosIndex({
             <Sheet open={drawerRecursoAbierto} onOpenChange={setDrawerRecursoAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <FolderOpen className="size-5 text-primary" />
                             {recursoSeleccionado ? 'Editar Recurso' : 'Nuevo Recurso'}
                         </SheetTitle>
                         <SheetDescription>
                             {recursoSeleccionado
-                                ? 'Actualiza los datos del recurso.'
+                                ? 'Modifica los datos del recurso seleccionado.'
                                 : `Agrega un nuevo recurso al proyecto "${proyecto.Nombre}".`}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmitRecurso} className="space-y-4">
+                    <form id="recurso-form" onSubmit={handleSubmitRecurso} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre">Nombre del Recurso *</FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>Nombre del Recurso</FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={formRecurso.data.Nombre}
@@ -293,9 +292,7 @@ export default function ProyectoRecursosIndex({
                                     required
                                     autoFocus
                                 />
-                                {formRecurso.errors.Nombre && (
-                                    <FieldError>{formRecurso.errors.Nombre}</FieldError>
-                                )}
+                                <FieldError>{formRecurso.errors.Nombre}</FieldError>
                             </Field>
 
                             <Field>
@@ -308,29 +305,38 @@ export default function ProyectoRecursosIndex({
                                     onChange={(e) => formRecurso.setData('Descripcion', e.target.value)}
                                     placeholder="Detalles sobre el uso, acceso o especificaciones del recurso..."
                                 />
-                                {formRecurso.errors.Descripcion && (
-                                    <FieldError>{formRecurso.errors.Descripcion}</FieldError>
-                                )}
+                                <FieldError>{formRecurso.errors.Descripcion}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={formRecurso.processing}>
-                                {formRecurso.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                {recursoSeleccionado ? 'Guardar Cambios' : 'Registrar Recurso'}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerRecursoAbierto(false)}
+                                disabled={formRecurso.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="recurso-form"
+                            disabled={formRecurso.processing}
+                        >
+                            {formRecurso.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {recursoSeleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
 
@@ -343,116 +349,115 @@ export default function ProyectoRecursosIndex({
                             Recursos Adicionales
                         </SheetTitle>
                         <SheetDescription>
-                            Recurso: <span className="font-semibold text-foreground">{recursoParaAdicionales?.Nombre}</span>
+                            {recursoParaAdicionales
+                                ? `Enlaces de apoyo o documentación para "${recursoParaAdicionales.Nombre}".`
+                                : 'Gestión de recursos adicionales del proyecto.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    {/* Formulario de Agregar Adicional */}
-                    <div className="rounded-lg border bg-muted/40 p-4">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">
-                            Agregar Enlace Adicional
-                        </h4>
-                        <form onSubmit={handleAgregarAdicional} className="space-y-3">
-                            <FieldGroup>
-                                <Field>
-                                    <FieldLabel htmlFor="AdicionalDescripcion">Descripción *</FieldLabel>
-                                    <Textarea
-                                        id="AdicionalDescripcion"
-                                        rows={3}
-                                        className="min-h-20 resize-y"
-                                        value={formAdicional.data.Descripcion}
-                                        onChange={(e) => formAdicional.setData('Descripcion', e.target.value)}
-                                        placeholder="Ej. Documentación Swagger, Guía de instalación..."
-                                        required
-                                    />
-                                    {formAdicional.errors.Descripcion && (
+                    <div className="flex flex-col gap-6 px-6 py-4">
+                        <div className="rounded-lg border bg-muted/40 p-4">
+                            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-foreground">
+                                Agregar Enlace Adicional
+                            </h4>
+                            <form onSubmit={handleAgregarAdicional} className="flex flex-col gap-3">
+                                <FieldGroup>
+                                    <Field>
+                                        <FieldLabel htmlFor="AdicionalDescripcion" required>Descripción del Recurso</FieldLabel>
+                                        <Textarea
+                                            id="AdicionalDescripcion"
+                                            rows={3}
+                                            className="min-h-20 resize-y"
+                                            value={formAdicional.data.Descripcion}
+                                            onChange={(e) => formAdicional.setData('Descripcion', e.target.value)}
+                                            placeholder="Ej. Documentación Swagger, Guía de instalación..."
+                                            required
+                                        />
                                         <FieldError>{formAdicional.errors.Descripcion}</FieldError>
-                                    )}
-                                </Field>
+                                    </Field>
 
-                                <Field>
-                                    <FieldLabel htmlFor="AdicionalUrl">URL / Enlace *</FieldLabel>
-                                    <Input
-                                        id="AdicionalUrl"
-                                        type="url"
-                                        value={formAdicional.data.UrlRecurso}
-                                        onChange={(e) => formAdicional.setData('UrlRecurso', e.target.value)}
-                                        placeholder="https://ejemplo.com/recurso"
-                                        required
-                                    />
-                                    {formAdicional.errors.UrlRecurso && (
+                                    <Field>
+                                        <FieldLabel htmlFor="AdicionalUrl" required>URL del Recurso</FieldLabel>
+                                        <Input
+                                            id="AdicionalUrl"
+                                            type="url"
+                                            value={formAdicional.data.UrlRecurso}
+                                            onChange={(e) => formAdicional.setData('UrlRecurso', e.target.value)}
+                                            placeholder="https://ejemplo.com/recurso"
+                                            required
+                                        />
                                         <FieldError>{formAdicional.errors.UrlRecurso}</FieldError>
-                                    )}
-                                </Field>
-                            </FieldGroup>
+                                    </Field>
+                                </FieldGroup>
 
-                            <div className="flex justify-end pt-2">
-                                <Button size="sm" type="submit" disabled={formAdicional.processing}>
-                                    {formAdicional.processing ? (
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                    ) : (
-                                        <Plus className="mr-1.5 size-4" />
-                                    )}
-                                    Agregar Enlace
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
+                                <div className="flex justify-end pt-1">
+                                    <Button size="sm" type="submit" disabled={formAdicional.processing}>
+                                        {formAdicional.processing ? (
+                                            <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        ) : (
+                                            <Plus className="mr-1.5 size-4" />
+                                        )}
+                                        Agregar Adicional
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
 
-                    <Separator className="my-5" />
+                        <div className="flex flex-col gap-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Enlaces Registrados ({recursoParaAdicionales?.recursos_adicionales?.length ?? 0})
+                            </h4>
 
-                    {/* Lista de Recursos Adicionales */}
-                    <div>
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">
-                            Enlaces Registrados ({recursoParaAdicionales?.recursos_adicionales?.length ?? 0})
-                        </h4>
-
-                        {(!recursoParaAdicionales?.recursos_adicionales ||
-                            recursoParaAdicionales.recursos_adicionales.length === 0) ? (
-                            <p className="text-xs text-muted-foreground text-center py-6">
-                                No se han registrado enlaces adicionales para este recurso.
-                            </p>
-                        ) : (
-                            <div className="space-y-2">
-                                {recursoParaAdicionales.recursos_adicionales.map((adicional) => (
-                                    <div
-                                        key={adicional.IdRecursoAdicional}
-                                        className="flex items-center justify-between gap-3 p-3 rounded-md border bg-card hover:bg-accent/50 transition-colors"
-                                    >
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-foreground truncate">
-                                                {adicional.Descripcion}
-                                            </p>
-                                            <a
-                                                href={adicional.UrlRecurso}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5 truncate"
-                                            >
-                                                <ExternalLink className="size-3 shrink-0" />
-                                                <span className="truncate">{adicional.UrlRecurso}</span>
-                                            </a>
-                                        </div>
-
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-sm"
-                                            className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive shrink-0"
-                                            onClick={() => handleEliminarAdicional(adicional)}
-                                            title="Eliminar enlace adicional"
-                                            aria-label="Eliminar enlace adicional"
+                            {(!recursoParaAdicionales?.recursos_adicionales ||
+                                recursoParaAdicionales.recursos_adicionales.length === 0) ? (
+                                <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                                    No hay recursos adicionales registrados en este recurso.
+                                </div>
+                            ) : (
+                                <div className="flex flex-col divide-y rounded-lg border">
+                                    {recursoParaAdicionales.recursos_adicionales.map((adicional) => (
+                                        <div
+                                            key={adicional.IdRecursoAdicional}
+                                            className="flex items-center justify-between gap-3 p-3 text-sm hover:bg-muted/50"
                                         >
-                                            <Trash2 className="size-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                            <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                                                <Link2 className="size-4 shrink-0 text-primary mt-0.5" />
+                                                <div className="flex min-w-0 flex-col">
+                                                    <span className="font-medium text-foreground truncate">
+                                                        {adicional.Descripcion}
+                                                    </span>
+                                                    <a
+                                                        href={adicional.UrlRecurso}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-1 text-xs text-primary hover:underline truncate"
+                                                    >
+                                                        <span className="truncate">{adicional.UrlRecurso}</span>
+                                                        <ExternalLink className="size-3 shrink-0" />
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleEliminarAdicional(adicional)}
+                                                className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive shrink-0"
+                                                title="Eliminar recurso adicional"
+                                            >
+                                                <Trash2 className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <SheetFooter className="mt-6 pt-4">
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
                         <SheetClose asChild>
                             <Button type="button" variant="outline" className="w-full">
                                 Cerrar

@@ -239,22 +239,21 @@ export default function ProyectoActividadRecursosIndex({
             <Sheet open={drawerAbierto} onOpenChange={setDrawerAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <FolderOpen className="size-5 text-primary" />
                             {seleccionado ? 'Editar Recurso' : 'Nuevo Recurso'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
-                                ? 'Actualiza los datos del recurso.'
+                                ? 'Modifica los datos del recurso seleccionado.'
                                 : `Registra un nuevo recurso para la actividad "${actividad.Nombre}".`}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form id="actividad-recurso-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre">Nombre del Recurso *</FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>Nombre del Recurso</FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
@@ -263,9 +262,7 @@ export default function ProyectoActividadRecursosIndex({
                                     required
                                     autoFocus
                                 />
-                                {form.errors.Nombre && (
-                                    <FieldError>{form.errors.Nombre}</FieldError>
-                                )}
+                                <FieldError>{form.errors.Nombre}</FieldError>
                             </Field>
 
                             {/* REGLA DE ENTIDAD DÉBIL: En Individual NO se muestra el combo de persona */}
@@ -292,14 +289,12 @@ export default function ProyectoActividadRecursosIndex({
                                             })}
                                         </SelectContent>
                                     </Select>
-                                    {form.errors.IdPersona && (
-                                        <FieldError>{form.errors.IdPersona}</FieldError>
-                                    )}
+                                    <FieldError>{form.errors.IdPersona}</FieldError>
                                 </Field>
                             )}
 
                             <Field>
-                                <FieldLabel htmlFor="URLRecurso">URL / Enlace del Recurso *</FieldLabel>
+                                <FieldLabel htmlFor="URLRecurso" required>URL del Recurso</FieldLabel>
                                 <Input
                                     id="URLRecurso"
                                     type="url"
@@ -308,29 +303,38 @@ export default function ProyectoActividadRecursosIndex({
                                     placeholder="https://ejemplo.com/recurso"
                                     required
                                 />
-                                {form.errors.URLRecurso && (
-                                    <FieldError>{form.errors.URLRecurso}</FieldError>
-                                )}
+                                <FieldError>{form.errors.URLRecurso}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                {seleccionado ? 'Guardar Cambios' : 'Registrar Recurso'}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="actividad-recurso-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

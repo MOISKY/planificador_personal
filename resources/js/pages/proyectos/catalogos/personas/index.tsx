@@ -191,22 +191,21 @@ export default function PersonasIndex({ items, searchValue }: Props) {
             <Sheet open={drawerAbierto} onOpenChange={setDrawerAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <User className="size-5 text-primary" />
                             {seleccionado ? 'Editar Persona' : 'Nueva Persona'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
-                                ? 'Actualiza los datos personales y de contacto.'
-                                : 'Ingresa los datos para registrar a una nueva persona.'}
+                                ? 'Modifica los datos personales y de contacto.'
+                                : 'Ingresa la información requerida para dar de alta a una persona.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form id="persona-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre">Nombre(s) *</FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>Nombre(s)</FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
@@ -215,13 +214,11 @@ export default function PersonasIndex({ items, searchValue }: Props) {
                                     required
                                     autoFocus
                                 />
-                                {form.errors.Nombre && (
-                                    <FieldError>{form.errors.Nombre}</FieldError>
-                                )}
+                                <FieldError>{form.errors.Nombre}</FieldError>
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="ApellidoPaterno">Apellido Paterno *</FieldLabel>
+                                <FieldLabel htmlFor="ApellidoPaterno" required>Apellido Paterno</FieldLabel>
                                 <Input
                                     id="ApellidoPaterno"
                                     value={form.data.ApellidoPaterno}
@@ -229,9 +226,7 @@ export default function PersonasIndex({ items, searchValue }: Props) {
                                     placeholder="Ej. Pérez"
                                     required
                                 />
-                                {form.errors.ApellidoPaterno && (
-                                    <FieldError>{form.errors.ApellidoPaterno}</FieldError>
-                                )}
+                                <FieldError>{form.errors.ApellidoPaterno}</FieldError>
                             </Field>
 
                             <Field>
@@ -240,11 +235,9 @@ export default function PersonasIndex({ items, searchValue }: Props) {
                                     id="ApellidoMaterno"
                                     value={form.data.ApellidoMaterno}
                                     onChange={(e) => form.setData('ApellidoMaterno', e.target.value)}
-                                    placeholder="Ej. Gómez"
+                                    placeholder="Ej. Gómez (Opcional)"
                                 />
-                                {form.errors.ApellidoMaterno && (
-                                    <FieldError>{form.errors.ApellidoMaterno}</FieldError>
-                                )}
+                                <FieldError>{form.errors.ApellidoMaterno}</FieldError>
                             </Field>
 
                             <Field>
@@ -256,9 +249,7 @@ export default function PersonasIndex({ items, searchValue }: Props) {
                                     onChange={(e) => form.setData('correoElectronico', e.target.value)}
                                     placeholder="ejemplo@correo.com"
                                 />
-                                {form.errors.correoElectronico && (
-                                    <FieldError>{form.errors.correoElectronico}</FieldError>
-                                )}
+                                <FieldError>{form.errors.correoElectronico}</FieldError>
                             </Field>
 
                             <Field>
@@ -269,29 +260,38 @@ export default function PersonasIndex({ items, searchValue }: Props) {
                                     onChange={(e) => form.setData('telefono', e.target.value)}
                                     placeholder="Ej. 555-1234567"
                                 />
-                                {form.errors.telefono && (
-                                    <FieldError>{form.errors.telefono}</FieldError>
-                                )}
+                                <FieldError>{form.errors.telefono}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                {seleccionado ? 'Guardar Cambios' : 'Registrar Persona'}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="persona-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

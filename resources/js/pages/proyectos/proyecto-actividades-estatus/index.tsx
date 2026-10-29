@@ -168,18 +168,19 @@ export default function ProyectoActividadesEstatusIndex({
             <Sheet open={drawerAbierto} onOpenChange={setDrawerAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>Actualizar Estatus de Actividad</SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <BookmarkCheck className="size-5 text-primary" />
+                            Actualizar Estatus de Actividad
+                        </SheetTitle>
                         <SheetDescription>
                             Actividad: <span className="font-semibold text-foreground">{seleccionado?.actividad?.Nombre}</span>
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form id="actividad-estatus-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Estatus">Estatus *</FieldLabel>
+                                <FieldLabel htmlFor="Estatus" required>Estatus de la Actividad</FieldLabel>
                                 <Select
                                     value={form.data.Estatus}
                                     onValueChange={(val) => form.setData('Estatus', val)}
@@ -195,29 +196,38 @@ export default function ProyectoActividadesEstatusIndex({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {form.errors.Estatus && (
-                                    <FieldError>{form.errors.Estatus}</FieldError>
-                                )}
+                                <FieldError>{form.errors.Estatus}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                Guardar Cambios
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="actividad-estatus-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            Guardar Cambios
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

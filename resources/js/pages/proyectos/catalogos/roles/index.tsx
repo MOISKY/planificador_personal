@@ -144,22 +144,21 @@ export default function RolesIndex({ items, searchValue }: Props) {
             <Sheet open={drawerAbierto} onOpenChange={setDrawerAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
-                        <SheetTitle>
+                        <SheetTitle className="flex items-center gap-2">
+                            <ShieldCheck className="size-5 text-primary" />
                             {seleccionado ? 'Editar Rol' : 'Nuevo Rol'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
-                                ? 'Actualiza el nombre del rol.'
-                                : 'Ingresa el nombre del nuevo rol.'}
+                                ? 'Modifica los datos del rol seleccionado.'
+                                : 'Ingresa la información requerida para registrar un nuevo rol.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <Separator className="my-4" />
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form id="rol-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Rol">Nombre del Rol *</FieldLabel>
+                                <FieldLabel htmlFor="Rol" required>Nombre del Rol</FieldLabel>
                                 <Input
                                     id="Rol"
                                     value={form.data.Rol}
@@ -168,29 +167,38 @@ export default function RolesIndex({ items, searchValue }: Props) {
                                     required
                                     autoFocus
                                 />
-                                {form.errors.Rol && (
-                                    <FieldError>{form.errors.Rol}</FieldError>
-                                )}
+                                <FieldError>{form.errors.Rol}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <SheetFooter className="mt-6 flex-row justify-end gap-2 pt-4">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                ) : (
-                                    <Save className="mr-1.5 size-4" />
-                                )}
-                                {seleccionado ? 'Guardar Cambios' : 'Registrar Rol'}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="rol-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>
