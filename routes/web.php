@@ -36,6 +36,16 @@ use App\Http\Controllers\Ingles\GrupoController as InglesGrupoController;
 use App\Http\Controllers\Ingles\MateriaController as InglesMateriaController;
 use App\Http\Controllers\Ingles\MateriaRecursoController as InglesMateriaRecursoController;
 use App\Http\Controllers\Ingles\PeriodoController as InglesPeriodoController;
+use App\Http\Controllers\Proyectos\GrupoActividadEquipoController as ProyectosGrupoActividadEquipoController;
+use App\Http\Controllers\Proyectos\GrupoActividadRecursoController as ProyectosGrupoActividadRecursoController;
+use App\Http\Controllers\Proyectos\GrupoPersonaController as ProyectosGrupoPersonaController;
+use App\Http\Controllers\Proyectos\PersonaController as ProyectosPersonaController;
+use App\Http\Controllers\Proyectos\ProyectoActividadController as ProyectosActividadController;
+use App\Http\Controllers\Proyectos\ProyectoActividadEstatusController as ProyectosActividadEstatusController;
+use App\Http\Controllers\Proyectos\ProyectoActividadRecursoEstatusController as ProyectosActividadRecursoEstatusController;
+use App\Http\Controllers\Proyectos\ProyectoController as ProyectosProyectoController;
+use App\Http\Controllers\Proyectos\ProyectoRecursoController as ProyectosRecursoController;
+use App\Http\Controllers\Proyectos\RolController as ProyectosRolController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
@@ -199,6 +209,65 @@ Route::prefix('ingles')->name('ingles.')->group(function () {
     Route::get('grupo-actividad-recursos-estatus', [InglesGrupoActividadRecursoEstatusController::class, 'index'])->name('grupo-actividad-recursos-estatus.index');
     Route::put('grupo-actividad-recursos-estatus/{estatus}', [InglesGrupoActividadRecursoEstatusController::class, 'update'])->name('grupo-actividad-recursos-estatus.update');
     Route::delete('grupo-actividad-recursos-estatus/{estatus}', [InglesGrupoActividadRecursoEstatusController::class, 'destroy'])->name('grupo-actividad-recursos-estatus.destroy');
+});
+
+// ==========================================================
+// Módulo Proyectos
+// ==========================================================
+Route::middleware(['auth'])->prefix('proyectos')->name('proyectos.')->group(function () {
+    // Catálogos
+    Route::resource('personas', ProyectosPersonaController::class)->names('personas');
+    Route::resource('roles', ProyectosRolController::class)->names('roles');
+
+    // Opción Independiente: Proyectos
+    Route::resource('proyectos', ProyectosProyectoController::class)->names('proyectos');
+
+    // Proyectos -> Recursos (Opción Hija)
+    Route::get('proyectos/{proyecto}/recursos', [ProyectosRecursoController::class, 'index'])->name('proyectos.recursos.index');
+    Route::post('proyectos/{proyecto}/recursos', [ProyectosRecursoController::class, 'store'])->name('proyectos.recursos.store');
+    Route::put('proyectos-recursos/{recurso}', [ProyectosRecursoController::class, 'update'])->name('proyectos.recursos.update');
+    Route::delete('proyectos-recursos/{recurso}', [ProyectosRecursoController::class, 'destroy'])->name('proyectos.recursos.destroy');
+
+    // Proyectos -> Recursos -> Adicionales (Drawer Mostrar, Agregar, Eliminar)
+    Route::post('proyectos-recursos/{recurso}/adicionales', [ProyectosRecursoController::class, 'storeAdicional'])->name('proyectos.recursos.adicionales.store');
+    Route::delete('proyectos-recursos/adicionales/{adicional}', [ProyectosRecursoController::class, 'destroyAdicional'])->name('proyectos.recursos.adicionales.destroy');
+
+    // Proyectos -> Hijo 1: Personas asignadas con su rol
+    Route::get('proyectos/{proyecto}/personas', [ProyectosGrupoPersonaController::class, 'index'])->name('proyectos.personas.index');
+    Route::post('proyectos/{proyecto}/personas', [ProyectosGrupoPersonaController::class, 'store'])->name('proyectos.personas.store');
+    Route::put('proyectos-personas/{grupoPersona}', [ProyectosGrupoPersonaController::class, 'update'])->name('proyectos.personas.update');
+    Route::delete('proyectos-personas/{grupoPersona}', [ProyectosGrupoPersonaController::class, 'destroy'])->name('proyectos.personas.destroy');
+
+    // Proyectos -> Hijo 2: Actividades
+    Route::get('proyectos/{proyecto}/actividades', [ProyectosActividadController::class, 'index'])->name('proyectos.actividades.index');
+    Route::post('proyectos/{proyecto}/actividades', [ProyectosActividadController::class, 'store'])->name('proyectos.actividades.store');
+    Route::put('proyectos-actividades/{actividad}', [ProyectosActividadController::class, 'update'])->name('proyectos.actividades.update');
+    Route::delete('proyectos-actividades/{actividad}', [ProyectosActividadController::class, 'destroy'])->name('proyectos.actividades.destroy');
+
+    // Proyectos -> Actividades -> Drawer Adicionales (Mostrar, Agregar, Eliminar)
+    Route::post('proyectos-actividades/{actividad}/adicionales', [ProyectosActividadController::class, 'storeAdicional'])->name('proyectos.actividades.adicionales.store');
+    Route::delete('proyectos-actividades/adicionales/{adicional}', [ProyectosActividadController::class, 'destroyAdicional'])->name('proyectos.actividades.adicionales.destroy');
+
+    // Actividades -> Equipos (filtrado por personas asignadas al proyecto actual)
+    Route::get('actividades/{actividad}/equipos', [ProyectosGrupoActividadEquipoController::class, 'index'])->name('actividades.equipos.index');
+    Route::post('actividades/{actividad}/equipos', [ProyectosGrupoActividadEquipoController::class, 'store'])->name('actividades.equipos.store');
+    Route::delete('actividades-equipos/{equipo}', [ProyectosGrupoActividadEquipoController::class, 'destroy'])->name('actividades.equipos.destroy');
+
+    // Actividades -> Recursos (condicionado por Tipo: Individual NULL / bloqueado, Equipo, Grupo)
+    Route::get('actividades/{actividad}/recursos', [ProyectosGrupoActividadRecursoController::class, 'index'])->name('actividades.recursos.index');
+    Route::post('actividades/{actividad}/recursos', [ProyectosGrupoActividadRecursoController::class, 'store'])->name('actividades.recursos.store');
+    Route::put('actividades-recursos/{recurso}', [ProyectosGrupoActividadRecursoController::class, 'update'])->name('actividades.recursos.update');
+    Route::delete('actividades-recursos/{recurso}', [ProyectosGrupoActividadRecursoController::class, 'destroy'])->name('actividades.recursos.destroy');
+
+    // Opción Independiente: Kardex de Actividades Estatus
+    Route::get('proyecto-actividades-estatus', [ProyectosActividadEstatusController::class, 'index'])->name('proyecto-actividades-estatus.index');
+    Route::put('proyecto-actividades-estatus/{estatus}', [ProyectosActividadEstatusController::class, 'update'])->name('proyecto-actividades-estatus.update');
+    Route::delete('proyecto-actividades-estatus/{estatus}', [ProyectosActividadEstatusController::class, 'destroy'])->name('proyecto-actividades-estatus.destroy');
+
+    // Opción Independiente: Kardex de Recurso Estatus
+    Route::get('proyecto-actividad-recursos-estatus', [ProyectosActividadRecursoEstatusController::class, 'index'])->name('proyecto-actividad-recursos-estatus.index');
+    Route::put('proyecto-actividad-recursos-estatus/{estatus}', [ProyectosActividadRecursoEstatusController::class, 'update'])->name('proyecto-actividad-recursos-estatus.update');
+    Route::delete('proyecto-actividad-recursos-estatus/{estatus}', [ProyectosActividadRecursoEstatusController::class, 'destroy'])->name('proyecto-actividad-recursos-estatus.destroy');
 });
 
 // ==========================================================

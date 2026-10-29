@@ -38,6 +38,8 @@ import {
     Film,
     Boxes,
     FolderGit2,
+    FolderKanban,
+    ShieldCheck,
     GraduationCap,
     History,
     Languages,
@@ -176,6 +178,8 @@ export function AppSidebar() {
                     title: 'Proyectos',
                     href: toUrl(github.proyectos()),
                     icon: FolderGit2,
+    FolderKanban,
+    ShieldCheck,
                     badge:
                         newProjectsCount > 0 ? (
                             <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
