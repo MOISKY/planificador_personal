@@ -258,36 +258,87 @@ function extractTextContent(node: unknown): string {
         return node
             .map((item) => extractTextContent(item))
             .filter((s) => s.length > 0)
-            .join(' ')
+            .join(', ')
             .trim();
     }
     if (typeof node === 'object') {
         if (node instanceof Date) {
             return isNaN(node.getTime()) ? '' : node.toISOString();
         }
-        if ('props' in node && node.props && typeof node.props === 'object') {
-            const props = node.props as Record<string, unknown>;
-            if ('children' in props && props.children !== undefined) {
-                const childText = extractTextContent(props.children);
-                if (childText) return childText;
+
+        // Si es un elemento de React (JSX / Componente)
+        if ('$$typeof' in node || ('type' in node && 'props' in node)) {
+            const el = node as { type?: unknown; props?: Record<string, unknown> };
+
+            // 1. Si es un componente funcional (ej. EstatusBadge, Badge), ejecutarlo para obtener sus hijos
+            if (typeof el.type === 'function') {
+                try {
+                    const evaluated = (el.type as (props: unknown) => unknown)(el.props ?? {});
+                    const childText = extractTextContent(evaluated);
+                    if (childText) return childText;
+                } catch {
+                    // Ignorar si el componente requiere contexto o hooks no disponibles
+                }
             }
-            if ('activeLabel' in props && 'active' in props) {
-                return String(
-                    props.active ? props.activeLabel : props.inactiveLabel,
-                );
+
+            if (el.props && typeof el.props === 'object') {
+                const props = el.props;
+                if ('children' in props && props.children !== undefined) {
+                    const childText = extractTextContent(props.children);
+                    if (childText) return childText;
+                }
+                if ('activeLabel' in props && 'active' in props) {
+                    return String(
+                        props.active ? props.activeLabel : props.inactiveLabel,
+                    );
+                }
+                const propKeys = [
+                    'estatus', 'status', 'label', 'title', 'nombre',
+                    'name', 'value', 'text', 'descripcion',
+                ];
+                for (const pk of propKeys) {
+                    if (typeof props[pk] === 'string' && (props[pk] as string).trim()) {
+                        return (props[pk] as string).trim();
+                    }
+                }
             }
-            if (typeof props.title === 'string' && props.title.trim()) {
-                return props.title.trim();
+        }
+
+        // Si es un objeto de datos (ej. subconsulta, relación Eloquent tipo { IdEstatus: 1, Estatus: 'No Realizado' })
+        const obj = node as Record<string, unknown>;
+        const textKeys = [
+            'Estatus', 'estatus', 'Status', 'status',
+            'Nombre', 'nombre', 'Name', 'name',
+            'NombreCompleto', 'nombre_completo',
+            'Descripcion', 'descripcion', 'Description', 'description',
+            'Titulo', 'titulo', 'Title', 'title',
+            'Etiqueta', 'etiqueta', 'Label', 'label',
+            'Valor', 'valor', 'Value', 'value',
+            'Texto', 'texto', 'Text', 'text',
+            'Codigo', 'codigo', 'Code', 'code',
+            'Correo', 'correo', 'Email', 'email',
+        ];
+        for (const k of textKeys) {
+            if (obj[k] !== undefined && obj[k] !== null && typeof obj[k] !== 'object') {
+                const val = String(obj[k]).trim();
+                if (val && !/^(id|_)/i.test(k)) {
+                    return val;
+                }
             }
-            if (typeof props.label === 'string' && props.label.trim()) {
-                return props.label.trim();
-            }
-            if (
-                typeof props.value === 'string' ||
-                typeof props.value === 'number'
-            ) {
-                return String(props.value).trim();
-            }
+        }
+
+        const stringValues = Object.entries(obj)
+            .filter(
+                ([k, v]) =>
+                    !k.toLowerCase().startsWith('id') &&
+                    !k.startsWith('_') &&
+                    typeof v === 'string' &&
+                    v.trim() &&
+                    !/^(https?:\/\/)/i.test(v),
+            )
+            .map(([, v]) => String(v).trim());
+        if (stringValues.length > 0) {
+            return stringValues.join(' - ');
         }
     }
     return '';
@@ -375,9 +426,12 @@ function extractExportValue<T>(
         if (text !== '') {
             return text;
         }
+        if (typeof raw === 'object') {
+            return '';
+        }
         return raw;
     }
-    return raw ?? '';
+    return '';
 }
 
 function extractItemValue<T>(
