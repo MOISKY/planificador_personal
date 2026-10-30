@@ -34,6 +34,7 @@ use App\Http\Controllers\Ingles\GrupoActividadRecursoController as InglesGrupoAc
 use App\Http\Controllers\Ingles\GrupoActividadRecursoEstatusController as InglesGrupoActividadRecursoEstatusController;
 use App\Http\Controllers\Ingles\GrupoAlumnoController as InglesGrupoAlumnoController;
 use App\Http\Controllers\Ingles\GrupoController as InglesGrupoController;
+use App\Http\Controllers\Ingles\InglesDashboardController;
 use App\Http\Controllers\Ingles\MateriaController as InglesMateriaController;
 use App\Http\Controllers\Ingles\MateriaRecursoController as InglesMateriaRecursoController;
 use App\Http\Controllers\Ingles\PeriodoController as InglesPeriodoController;
@@ -157,6 +158,8 @@ Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
 // Módulo: Inglés
 // ==========================================================
 Route::prefix('ingles')->name('ingles.')->group(function () {
+    Route::get('dashboard', [InglesDashboardController::class, 'index'])->name('dashboard');
+
     // Catálogos Base
     Route::resource('alumnos', InglesAlumnoController::class)->names('alumnos');
     Route::resource('asesores', InglesAsesorController::class)->names('asesores');

@@ -332,6 +332,11 @@ export function AppSidebar() {
             icon: Languages,
             items: [
                 {
+                    title: 'Dashboard',
+                    href: '/ingles/dashboard',
+                    icon: LayoutGrid,
+                },
+                {
                     title: 'Catálogos',
                     icon: Boxes,
                     children: [
