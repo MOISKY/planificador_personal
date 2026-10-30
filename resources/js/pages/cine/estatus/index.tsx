@@ -89,7 +89,6 @@ export default function EstatusIndex({
                         extraParams={{ estatus: estatusSeleccionado }}
                         idKey="IdProduccionEstatus"
                         onEdit={listado.abrirEditar}
-                        onDelete={listado.eliminar}
                         emptyTitle="No hay registros en el kardex de estatus"
                         emptyDescription="Al registrar una nueva producción se creará automáticamente en estado 'por ver'."
                     />

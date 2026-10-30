@@ -1,4 +1,3 @@
-import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { PageContent, PageShell } from '@/components/page-shell';
@@ -32,7 +31,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type PaginatedData } from '@/types/pagination';
 import { type KardexProyectoActividadEstatusItem } from '@/types/proyectos';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { BookmarkCheck, FolderGit2, Loader2, Save, Target, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -73,18 +72,6 @@ export default function ProyectoActividadesEstatusIndex({
     const abrirEditar = (item: KardexProyectoActividadEstatusItem) => {
         setSeleccionado(item);
         setDrawerAbierto(true);
-    };
-
-    const eliminar = async (item: KardexProyectoActividadEstatusItem) => {
-        if (
-            await confirmDialog(
-                `¿Estás seguro que deseas eliminar este registro de estatus del Kardex?`,
-            )
-        ) {
-            router.delete(`/proyectos/proyecto-actividades-estatus/${item.IdActividadEstatus}`, {
-                preserveScroll: true,
-            });
-        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -158,7 +145,6 @@ export default function ProyectoActividadesEstatusIndex({
                         searchPlaceholder="Buscar por actividad o proyecto..."
                         idKey="IdActividadEstatus"
                         onEdit={abrirEditar}
-                        onDelete={eliminar}
                         emptyTitle="No hay estatus de actividades registrados"
                         emptyDescription="Los estatus se generan automáticamente al crear actividades en los proyectos."
                     />
@@ -233,4 +219,3 @@ export default function ProyectoActividadesEstatusIndex({
         </AppLayout>
     );
 }
-

@@ -1,9 +1,7 @@
-import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { PageContent, PageShell } from '@/components/page-shell';
 import { EstatusBadge } from '@/components/proyectos/estatus-badge';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -32,17 +30,8 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type PaginatedData } from '@/types/pagination';
 import { type KardexProyectoActividadRecursoEstatusItem } from '@/types/proyectos';
-import { Head, router, useForm } from '@inertiajs/react';
-import {
-    CheckSquare,
-    FolderGit2,
-    FolderOpen,
-    Loader2,
-    Save,
-    Target,
-    User,
-    X,
-} from 'lucide-react';
+import { Head, useForm } from '@inertiajs/react';
+import { CheckSquare, FileCheck, FolderGit2, Loader2, Save, Target, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Props {
@@ -57,7 +46,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Proyecto Actividad Recursos Estatus', href: '/proyectos/proyecto-actividad-recursos-estatus' },
 ];
 
-export default function ProyectoActividadRecursosEstatusIndex({
+export default function ProyectoActividadRecursoEstatusIndex({
     items,
     searchValue,
     estatusSeleccionado,
@@ -82,18 +71,6 @@ export default function ProyectoActividadRecursosEstatusIndex({
     const abrirEditar = (item: KardexProyectoActividadRecursoEstatusItem) => {
         setSeleccionado(item);
         setDrawerAbierto(true);
-    };
-
-    const eliminar = async (item: KardexProyectoActividadRecursoEstatusItem) => {
-        if (
-            await confirmDialog(
-                `¿Estás seguro que deseas eliminar este registro de estatus de recurso del Kardex?`,
-            )
-        ) {
-            router.delete(`/proyectos/proyecto-actividad-recursos-estatus/${item.IdActividadRecursoEstatus}`, {
-                preserveScroll: true,
-            });
-        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -123,7 +100,7 @@ export default function ProyectoActividadRecursosEstatusIndex({
             render: (item) => (
                 <div className="flex items-center gap-1.5 text-foreground text-xs">
                     <Target className="size-3.5 text-muted-foreground shrink-0" />
-                    <span>{item.recurso?.actividad?.Nombre ?? '—'}</span>
+                    <span className="font-semibold">{item.recurso?.actividad?.Nombre ?? '—'}</span>
                 </div>
             ),
         },
@@ -132,32 +109,21 @@ export default function ProyectoActividadRecursosEstatusIndex({
             label: 'Recurso',
             render: (item) => (
                 <div className="flex items-center gap-1.5 text-foreground text-xs">
-                    <FolderOpen className="size-3.5 text-primary shrink-0" />
-                    <span className="font-semibold">{item.recurso?.Nombre ?? '—'}</span>
+                    <FileCheck className="size-3.5 text-primary shrink-0" />
+                    <span>{item.recurso?.Nombre ?? '—'}</span>
                 </div>
             ),
         },
         {
             key: 'persona',
-            label: 'Persona',
+            label: 'Asignado a',
             render: (item) => {
-                if (item.recurso?.actividad?.Tipo === 'Individual') {
-                    return (
-                        <Badge variant="outline" className="border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px]">
-                            Individual
-                        </Badge>
-                    );
-                }
-
-                if (!item.recurso?.persona) {
-                    return <span className="text-muted-foreground text-xs">—</span>;
-                }
-
-                const nom = `${item.recurso.persona.Nombre} ${item.recurso.persona.ApellidoPaterno}`;
+                const persona = item.recurso?.persona;
+                if (!persona) return <span className="text-muted-foreground text-xs">— (Individual)</span>;
                 return (
-                    <div className="flex items-center gap-1 text-xs text-foreground">
+                    <div className="flex items-center gap-1 text-foreground text-xs">
                         <User className="size-3 text-muted-foreground shrink-0" />
-                        <span>{nom}</span>
+                        <span>{persona.Nombre} {persona.ApellidoPaterno}</span>
                     </div>
                 );
             },
@@ -189,7 +155,6 @@ export default function ProyectoActividadRecursosEstatusIndex({
                         searchPlaceholder="Buscar por recurso, actividad o proyecto..."
                         idKey="IdActividadRecursoEstatus"
                         onEdit={abrirEditar}
-                        onDelete={eliminar}
                         emptyTitle="No hay estatus de recursos registrados"
                         emptyDescription="Los estatus se generan automáticamente al registrar recursos en las actividades."
                     />
@@ -264,4 +229,3 @@ export default function ProyectoActividadRecursosEstatusIndex({
         </AppLayout>
     );
 }
-

@@ -60,6 +60,14 @@ export interface GrupoActividadEquipoItem {
     FechaRegistro?: string;
 }
 
+export interface KardexProyectoEstatusItem {
+    IdProyectoEstatus: number;
+    IdProyecto: number;
+    Estatus: 'Pendiente' | 'En Emision' | 'Finalizado' | 'Cancelado' | 'Pausado';
+    proyecto?: ProyectoItem;
+    FechaRegistro?: string;
+}
+
 export interface KardexProyectoActividadEstatusItem {
     IdActividadEstatus: number;
     IdActividad: number;
@@ -115,6 +123,7 @@ export interface ProyectoItem {
     recursos_count?: number;
     personas_asignadas_count?: number;
     actividades_count?: number;
+    estatus_actual?: KardexProyectoEstatusItem;
     FechaRegistro?: string;
 }
 

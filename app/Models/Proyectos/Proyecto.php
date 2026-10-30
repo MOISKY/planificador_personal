@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Proyecto (Entidad Principal Independiente).
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, ProyectoRecurso> $recursos
  * @property-read Collection<int, GrupoPersona> $personasAsignadas
  * @property-read Collection<int, ProyectoActividad> $actividades
+ * @property-read Collection<int, KardexProyectoEstatus> $estatusKardex
+ * @property-read KardexProyectoEstatus|null $estatusActual
  */
 class Proyecto extends Model
 {
@@ -141,6 +144,20 @@ class Proyecto extends Model
     }
 
     /**
+     * Al crear el proyecto se genera automáticamente su estatus inicial en el Kardex.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Proyecto $proyecto): void {
+            if (! $proyecto->estatusKardex()->exists()) {
+                $proyecto->estatusKardex()->create([
+                    'Estatus' => KardexProyectoEstatus::ESTATUS_PENDIENTE,
+                ]);
+            }
+        });
+    }
+
+    /**
      * Personas asignadas con su rol.
      *
      * @return HasMany<GrupoPersona, $this>
@@ -159,5 +176,25 @@ class Proyecto extends Model
     {
         return $this->hasMany(ProyectoActividad::class, 'IdProyecto', 'IdProyecto');
     }
-}
 
+    /**
+     * Historial de estatus en Kardex.
+     *
+     * @return HasMany<KardexProyectoEstatus, $this>
+     */
+    public function estatusKardex(): HasMany
+    {
+        return $this->hasMany(KardexProyectoEstatus::class, 'IdProyecto', 'IdProyecto');
+    }
+
+    /**
+     * Último estatus registrado en el Kardex.
+     *
+     * @return HasOne<KardexProyectoEstatus, $this>
+     */
+    public function estatusActual(): HasOne
+    {
+        return $this->hasOne(KardexProyectoEstatus::class, 'IdProyecto', 'IdProyecto')
+            ->latestOfMany('IdProyectoEstatus');
+    }
+}

@@ -1,4 +1,3 @@
-import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { EstatusBadge } from '@/components/ingles/estatus-badge';
@@ -87,18 +86,6 @@ export default function GrupoActividadRecursoEstatusIndex({
     const abrirEditar = (item: KardexActividadRecursoEstatusItem) => {
         setSeleccionado(item);
         setDrawerAbierto(true);
-    };
-
-    const eliminar = async (item: KardexActividadRecursoEstatusItem) => {
-        if (
-            await confirmDialog(
-                `¿Deseas eliminar este registro de estatus para el recurso "${item.recurso?.Nombre}"?`,
-            )
-        ) {
-            router.delete(`/ingles/grupo-actividad-recursos-estatus/${item.IdActividadRecursoEstatus}`, {
-                preserveScroll: true,
-            });
-        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -208,7 +195,6 @@ export default function GrupoActividadRecursoEstatusIndex({
                         extraParams={{ estatus: estatusSeleccionado }}
                         idKey="IdActividadRecursoEstatus"
                         onEdit={abrirEditar}
-                        onDelete={eliminar}
                         emptyTitle="No hay registros en el kardex de recursos"
                         emptyDescription="Al registrar un nuevo recurso en cualquier actividad se creará automáticamente en estado 'No Realizado'."
                     />
@@ -220,20 +206,25 @@ export default function GrupoActividadRecursoEstatusIndex({
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <CheckSquare className="size-5 text-primary" />
-                            Actualizar Estatus de Entrega
+                            Actualizar Estatus de Recurso
                         </SheetTitle>
                         <SheetDescription>
-                            {seleccionado
-                                ? `Modifica el estatus para la entrega "${seleccionado.recurso?.Nombre}".`
-                                : 'Actualización de estatus.'}
+                            Modifica el estado de avance para:{' '}
+                            <span className="font-semibold text-foreground">
+                                {seleccionado?.recurso?.Nombre}
+                            </span>
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="kardex-recurso-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form
+                        id="estatus-recurso-form"
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-4 px-6 py-4"
+                    >
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="Estatus" required>
-                                    Estatus
+                                    Estatus Actual
                                 </FieldLabel>
                                 <Select
                                     value={form.data.Estatus}
@@ -271,7 +262,7 @@ export default function GrupoActividadRecursoEstatusIndex({
                         </SheetClose>
                         <Button
                             type="submit"
-                            form="kardex-recurso-form"
+                            form="estatus-recurso-form"
                             disabled={form.processing}
                         >
                             {form.processing ? (
@@ -279,7 +270,7 @@ export default function GrupoActividadRecursoEstatusIndex({
                             ) : (
                                 <Save className="mr-1.5 size-4" />
                             )}
-                            Actualizar Estatus
+                            Guardar Cambios
                         </Button>
                     </SheetFooter>
                 </SheetContent>
@@ -287,4 +278,3 @@ export default function GrupoActividadRecursoEstatusIndex({
         </AppLayout>
     );
 }
-

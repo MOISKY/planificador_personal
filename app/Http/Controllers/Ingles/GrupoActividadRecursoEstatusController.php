@@ -66,10 +66,6 @@ class GrupoActividadRecursoEstatusController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $registro = KardexGrupoActividadRecursoEstatus::findOrFail($id);
-        $registro->delete();
-
-        return back()->with('success', 'Registro de estatus eliminado.');
+        return back()->with('error', 'Los registros del Kardex no pueden eliminarse, únicamente editarse.');
     }
 }
-

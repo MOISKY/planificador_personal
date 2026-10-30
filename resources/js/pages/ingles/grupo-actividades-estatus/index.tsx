@@ -1,4 +1,3 @@
-import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { EstatusBadge } from '@/components/ingles/estatus-badge';
@@ -88,18 +87,6 @@ export default function GrupoActividadesEstatusIndex({
     const abrirEditar = (item: KardexActividadEstatusItem) => {
         setSeleccionado(item);
         setDrawerAbierto(true);
-    };
-
-    const eliminar = async (item: KardexActividadEstatusItem) => {
-        if (
-            await confirmDialog(
-                `¿Deseas eliminar este registro de estatus para la actividad "${item.actividad?.Nombre}"?`,
-            )
-        ) {
-            router.delete(`/ingles/grupo-actividades-estatus/${item.IdActividadEstatus}`, {
-                preserveScroll: true,
-            });
-        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -194,7 +181,6 @@ export default function GrupoActividadesEstatusIndex({
                         extraParams={{ estatus: estatusSeleccionado }}
                         idKey="IdActividadEstatus"
                         onEdit={abrirEditar}
-                        onDelete={eliminar}
                         emptyTitle="No hay registros en el kardex de actividades"
                         emptyDescription="Al registrar una nueva actividad en cualquier grupo se creará automáticamente en estado 'No Realizado'."
                     />
@@ -209,17 +195,23 @@ export default function GrupoActividadesEstatusIndex({
                             Actualizar Estatus de Actividad
                         </SheetTitle>
                         <SheetDescription>
-                            {seleccionado
-                                ? `Modifica el estatus para la actividad "${seleccionado.actividad?.Nombre}".`
-                                : 'Actualización de estatus.'}
+                            Modifica el estado de avance para:{' '}
+                            <span className="font-semibold text-foreground">
+                                {seleccionado?.actividad?.Nombre}
+                            </span>{' '}
+                            (Grupo: {seleccionado?.actividad?.grupo?.Grupo ?? '—'})
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="kardex-actividad-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form
+                        id="estatus-actividad-form"
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-4 px-6 py-4"
+                    >
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="Estatus" required>
-                                    Estatus
+                                    Estatus Actual
                                 </FieldLabel>
                                 <Select
                                     value={form.data.Estatus}
@@ -257,7 +249,7 @@ export default function GrupoActividadesEstatusIndex({
                         </SheetClose>
                         <Button
                             type="submit"
-                            form="kardex-actividad-form"
+                            form="estatus-actividad-form"
                             disabled={form.processing}
                         >
                             {form.processing ? (
@@ -265,7 +257,7 @@ export default function GrupoActividadesEstatusIndex({
                             ) : (
                                 <Save className="mr-1.5 size-4" />
                             )}
-                            Actualizar Estatus
+                            Guardar Cambios
                         </Button>
                     </SheetFooter>
                 </SheetContent>
@@ -273,4 +265,3 @@ export default function GrupoActividadesEstatusIndex({
         </AppLayout>
     );
 }
-

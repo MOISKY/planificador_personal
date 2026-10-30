@@ -46,6 +46,7 @@ import {
     Layers,
     LayoutGrid,
     Link2,
+    ListChecks,
     MessageSquare,
     MessageSquareText,
     Palette,
@@ -397,6 +398,11 @@ export function AppSidebar() {
                     title: 'Proyectos',
                     href: '/proyectos/proyectos',
                     icon: FolderGit2,
+                },
+                {
+                    title: 'Proyecto Estatus',
+                    href: '/proyectos/proyecto-estatus',
+                    icon: ListChecks,
                 },
                 {
                     title: 'Proyecto Actividades Estatus',

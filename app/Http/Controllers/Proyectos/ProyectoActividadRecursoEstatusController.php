@@ -23,10 +23,14 @@ class ProyectoActividadRecursoEstatusController extends Controller
             ->when($search !== '', function ($query) use ($search): void {
                 $query->whereHas('recurso', function ($q) use ($search): void {
                     $q->where('Nombre', 'ilike', "%{$search}%")
-                        ->orWhereHas('actividad', fn ($a) => $a->where('Nombre', 'ilike', "%{$search}%"))
-                        ->orWhereHas('persona', function ($p) use ($search): void {
-                            $p->where('Nombre', 'ilike', "%{$search}%")
-                                ->orWhere('ApellidoPaterno', 'ilike', "%{$search}%");
+                        ->orWhereHas('actividad', function ($act) use ($search): void {
+                            $act->where('Nombre', 'ilike', "%{$search}%")
+                                ->orWhereHas('proyecto', fn ($p) => $p->where('Nombre', 'ilike', "%{$search}%"));
+                        })
+                        ->orWhereHas('persona', function ($per) use ($search): void {
+                            $per->where('Nombre', 'ilike', "%{$search}%")
+                                ->orWhere('ApellidoPaterno', 'ilike', "%{$search}%")
+                                ->orWhere('ApellidoMaterno', 'ilike', "%{$search}%");
                         });
                 });
             })
@@ -47,7 +51,7 @@ class ProyectoActividadRecursoEstatusController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        return back()->with('error', 'El estatus se genera automáticamente al registrar el recurso.');
+        return back()->with('error', 'El estatus se genera automáticamente al registrar el recurso de la actividad.');
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -65,10 +69,6 @@ class ProyectoActividadRecursoEstatusController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $registro = KardexProyectoActividadRecursoEstatus::findOrFail($id);
-        $registro->delete();
-
-        return back()->with('success', 'Registro de estatus eliminado.');
+        return back()->with('error', 'Los registros del Kardex no pueden eliminarse, únicamente editarse.');
     }
 }
-

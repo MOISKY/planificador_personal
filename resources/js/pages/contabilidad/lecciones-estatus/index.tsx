@@ -2,7 +2,6 @@ import { leccionEstatusColumnas } from '@/components/contabilidad/lecciones-esta
 import LeccionEstatusFormDrawer from '@/components/contabilidad/lecciones-estatus/form-drawer';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable } from '@/components/data-table';
-import { confirmDialog } from '@/components/confirm-dialog';
 import { PageContent, PageShell } from '@/components/page-shell';
 import {
     Select,
@@ -60,20 +59,6 @@ export default function LeccionEstatusIndex({
         setDrawerAbierto(true);
     };
 
-    const eliminar = async (item: ModuloLeccionEstatusItem) => {
-        const confirmed = await confirmDialog({
-            title: '¿Eliminar registro de estatus?',
-            description: `¿Estás seguro de que deseas eliminar este registro de estatus para la lección "${item.leccion?.Nombre ?? item.IdLeccion}"? Esta acción no se puede deshacer.`,
-            confirmLabel: 'Sí, eliminar',
-            cancelLabel: 'Cancelar',
-        });
-        if (confirmed) {
-            router.delete(`/contabilidad/modulo-leccion-estatus/${item.IdLeccionEstatus}`, {
-                preserveScroll: true,
-            });
-        }
-    };
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Módulo Lección Estatus - Contabilidad" />
@@ -113,7 +98,6 @@ export default function LeccionEstatusIndex({
                         extraParams={{ estatus: estatusSeleccionado }}
                         idKey="IdLeccionEstatus"
                         onEdit={abrirEditar}
-                        onDelete={eliminar}
                         emptyTitle="No hay registros en el kardex de estatus"
                         emptyDescription="Al registrar una nueva lección se creará automáticamente en estado 'No leído'."
                     />

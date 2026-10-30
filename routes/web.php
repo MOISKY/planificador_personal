@@ -45,6 +45,7 @@ use App\Http\Controllers\Proyectos\ProyectoActividadController as ProyectosActiv
 use App\Http\Controllers\Proyectos\ProyectoActividadEstatusController as ProyectosActividadEstatusController;
 use App\Http\Controllers\Proyectos\ProyectoActividadRecursoEstatusController as ProyectosActividadRecursoEstatusController;
 use App\Http\Controllers\Proyectos\ProyectoController as ProyectosProyectoController;
+use App\Http\Controllers\Proyectos\ProyectoEstatusController as ProyectosProyectoEstatusController;
 use App\Http\Controllers\Proyectos\ProyectoRecursoController as ProyectosRecursoController;
 use App\Http\Controllers\Proyectos\RolController as ProyectosRolController;
 use App\Http\Controllers\TenantController;
@@ -260,6 +261,11 @@ Route::prefix('proyectos')->name('proyectos.')->group(function () {
     Route::post('actividades/{actividad}/enviar-recursos', [ProyectosGrupoActividadRecursoController::class, 'enviarRecursos'])->name('actividades.recursos.enviar');
     Route::put('actividades-recursos/{recurso}', [ProyectosGrupoActividadRecursoController::class, 'update'])->name('actividades.recursos.update');
     Route::delete('actividades-recursos/{recurso}', [ProyectosGrupoActividadRecursoController::class, 'destroy'])->name('actividades.recursos.destroy');
+
+    // Opción Independiente: Kardex de Proyecto Estatus
+    Route::get('proyecto-estatus', [ProyectosProyectoEstatusController::class, 'index'])->name('proyecto-estatus.index');
+    Route::put('proyecto-estatus/{estatus}', [ProyectosProyectoEstatusController::class, 'update'])->name('proyecto-estatus.update');
+    Route::delete('proyecto-estatus/{estatus}', [ProyectosProyectoEstatusController::class, 'destroy'])->name('proyecto-estatus.destroy');
 
     // Opción Independiente: Kardex de Actividades Estatus
     Route::get('proyecto-actividades-estatus', [ProyectosActividadEstatusController::class, 'index'])->name('proyecto-actividades-estatus.index');
