@@ -21,6 +21,9 @@ use App\Http\Controllers\Contabilidad\ModuloRetoController;
 use App\Http\Controllers\Contabilidad\ModuloRetoRecursoEstatusController;
 use App\Http\Controllers\Contabilidad\OportunidadController;
 use App\Http\Controllers\Contabilidad\PeriodoController;
+use App\Http\Controllers\Desarrollo\CandidatoController as DesarrolloCandidatoController;
+use App\Http\Controllers\Desarrollo\CandidatoTipoController as DesarrolloCandidatoTipoController;
+use App\Http\Controllers\Desarrollo\EspecialidadController as DesarrolloEspecialidadController;
 use App\Http\Controllers\EjemploController;
 use App\Http\Controllers\GitHubConsultorController;
 use App\Http\Controllers\GoogleDriveController;
@@ -303,6 +306,19 @@ Route::prefix('api/contabilidad')->name('api.contabilidad.')->group(function () 
 
     // API Recursos de Lección (Solo lectura)
     Route::get('lecciones/{leccion}/recursos', [ModuloLeccionController::class, 'indexRecurso'])->name('lecciones.recursos.index');
+});
+
+// ==========================================================
+// Módulo: Desarrollo (Planificación Personal)
+// ==========================================================
+Route::prefix('desarrollo')->name('desarrollo.')->group(function () {
+    Route::resource('especialidades', DesarrolloEspecialidadController::class)
+        ->parameters(['especialidades' => 'especialidad'])
+        ->names('especialidades');
+    Route::resource('candidatos-tipos', DesarrolloCandidatoTipoController::class)
+        ->parameters(['candidatos-tipos' => 'candidatoTipo'])
+        ->names('candidatos-tipos');
+    Route::resource('candidatos', DesarrolloCandidatoController::class)->names('candidatos');
 });
 
 // ==========================================================

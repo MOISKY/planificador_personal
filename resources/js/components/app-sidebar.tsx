@@ -20,8 +20,8 @@ import { useActiveUrl } from '@/hooks/use-active-url';
 import { toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import cine from '@/routes/cine';
-import ejemplo from '@/routes/ejemplo';
 import github from '@/routes/github';
+import desarrollo from '@/routes/desarrollo';
 import { edit as editProfile } from '@/routes/profile';
 import { apariencia } from '@/routes/settings';
 import { Link, usePage } from '@inertiajs/react';
@@ -35,6 +35,7 @@ import {
     CalendarRange,
     CheckSquare,
     Clapperboard,
+    Code2,
     Film,
     Boxes,
     FolderGit2,
@@ -165,8 +166,8 @@ export function AppSidebar() {
     // Nivel 1: Módulos (Collapsibles interactivos con icono, título, badge y flecha animada)
     const modules: SidebarModuleGroup[] = [
         {
-            title: 'Planificador',
-            icon: CalendarCheck2,
+            title: 'Desarrollo',
+            icon: Code2,
             badge:
                 newProjectsCount > 0 ? (
                     <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
@@ -175,6 +176,27 @@ export function AppSidebar() {
                 ) : undefined,
             // Nivel 2: Opciones del módulo
             items: [
+                {
+                    title: 'Catálogos',
+                    icon: Boxes,
+                    children: [
+                        {
+                            title: 'Especialidad',
+                            href: toUrl(desarrollo.especialidades.index()),
+                            icon: Award,
+                        },
+                        {
+                            title: 'Tipo Candidato',
+                            href: toUrl(desarrollo.candidatosTipos.index()),
+                            icon: Layers,
+                        },
+                        {
+                            title: 'Candidatos',
+                            href: toUrl(desarrollo.candidatos.index()),
+                            icon: UserCheck,
+                        },
+                    ],
+                },
                 {
                     title: 'Proyectos',
                     href: toUrl(github.proyectos()),
@@ -185,11 +207,6 @@ export function AppSidebar() {
                                 {newProjectsCount}
                             </span>
                         ) : undefined,
-                },
-                {
-                    title: 'Ejemplo',
-                    href: toUrl(ejemplo.index()),
-                    icon: Table2,
                 },
             ],
         },
