@@ -13,10 +13,12 @@ import {
     GitCommit,
     X,
     FileText,
+    ExternalLink,
 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { PageShell, PageContent } from '@/components/page-shell';
 import { ContextPanel } from '@/components/context-panel';
+import { DataTable, type Column } from '@/components/data-table';
 import { type BreadcrumbItem } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,17 +34,37 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 
+interface CommitItem {
+    sha: string;
+    html_url?: string;
+    commit: {
+        message: string;
+        author: {
+            name: string;
+            email?: string;
+            date: string;
+        };
+    };
+    files?: Array<{
+        filename: string;
+        status: string;
+        additions?: number;
+        deletions?: number;
+        changes?: number;
+    }>;
+}
+
 export default function ProyectoDetalle({
     repo,
     commits = [],
     username,
 }: {
     repo: any;
-    commits: any[];
+    commits: CommitItem[];
     username: string;
 }) {
     const [openDrawer, setOpenDrawer] = useState<'day' | 'month' | 'year' | 'commit' | null>(null);
-    const [selectedCommit, setSelectedCommit] = useState<any>(null);
+    const [selectedCommit, setSelectedCommit] = useState<CommitItem | null>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Desarrollo', href: '/consultor/proyectos' },
@@ -70,7 +92,7 @@ export default function ProyectoDetalle({
     // Calculate files for period drawers
     const getPeriodData = (period: 'day' | 'month' | 'year') => {
         const now = new Date();
-        let filtered: any[] = [];
+        let filtered: CommitItem[] = [];
         if (period === 'day') {
             filtered = commits.filter(
                 (c) => new Date(c.commit.author.date).toDateString() === now.toDateString(),
@@ -97,7 +119,7 @@ export default function ProyectoDetalle({
                     minute: '2-digit',
                 });
                 if (!groupedByTime[timeStr]) groupedByTime[timeStr] = new Set();
-                (commit.files || []).forEach((f: any) =>
+                (commit.files || []).forEach((f) =>
                     groupedByTime[timeStr].add(getTopLevelFolder(f.filename)),
                 );
             });
@@ -105,7 +127,7 @@ export default function ProyectoDetalle({
         } else {
             const folders = new Set<string>();
             filtered.forEach((commit) => {
-                (commit.files || []).forEach((f: any) =>
+                (commit.files || []).forEach((f) =>
                     folders.add(getTopLevelFolder(f.filename)),
                 );
             });
@@ -193,6 +215,81 @@ export default function ProyectoDetalle({
         }
     };
 
+    const columns: Column<CommitItem>[] = [
+        {
+            key: 'sha',
+            label: 'Commit',
+            className: 'w-24 text-center font-mono text-xs',
+            render: (c) => (
+                <Badge variant="outline" className="font-mono text-xs bg-muted/50 px-2 py-0.5">
+                    {c.sha.substring(0, 7)}
+                </Badge>
+            ),
+        },
+        {
+            key: 'message',
+            label: 'Mensaje de Commit',
+            render: (c) => (
+                <div className="flex items-start gap-2.5 py-1">
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary mt-0.5">
+                        <GitCommit className="size-4" />
+                    </div>
+                    <div className="min-w-0 max-w-lg">
+                        <p
+                            className="font-semibold text-foreground text-sm line-clamp-2 leading-snug cursor-pointer hover:text-primary transition-colors"
+                            onClick={() => {
+                                setSelectedCommit(c);
+                                setOpenDrawer('commit');
+                            }}
+                            title={c.commit.message}
+                        >
+                            {c.commit.message}
+                        </p>
+                        {c.files && c.files.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 font-mono">
+                                <FileText className="size-3 text-muted-foreground/70" />
+                                <span>{c.files.length} archivo(s) modificado(s)</span>
+                            </p>
+                        )}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'author',
+            label: 'Autor',
+            render: (c) => (
+                <div className="flex items-center gap-2">
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground font-semibold text-xs">
+                        <User className="size-3.5" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium text-foreground">
+                            {c.commit.author.name}
+                        </p>
+                        {c.commit.author.email && (
+                            <p className="text-[11px] text-muted-foreground truncate max-w-[160px]">
+                                {c.commit.author.email}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'date',
+            label: 'Fecha y Hora',
+            sortable: true,
+            className: 'w-48 text-xs',
+            render: (c) => (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="size-3.5 text-muted-foreground/70 shrink-0" />
+                    <span>{formatDate(c.commit.author.date).replace(',', ' a las')}</span>
+                </div>
+            ),
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Detalle - ${repo.name}`} />
@@ -235,76 +332,43 @@ export default function ProyectoDetalle({
                 />
 
                 <PageContent>
-                    <div className="max-w-4xl mx-auto space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
-                                <GitCommit className="size-5 text-primary" />
-                                Historial de Commits
-                            </h2>
-                            <Badge variant="secondary" className="font-mono text-xs">
-                                {commits.length} commits
-                            </Badge>
-                        </div>
-
-                        <div className="space-y-3">
-                            {commits.length > 0 ? (
-                                commits.map((commitData: any) => {
-                                    const commit = commitData.commit;
-                                    return (
-                                        <div
-                                            key={commitData.sha}
-                                            className="overflow-hidden rounded-xl border bg-card shadow-xs p-4 transition-all hover:shadow-md hover:border-primary/40 flex items-start gap-4"
+                    <DataTable
+                        data={commits}
+                        columns={columns}
+                        idKey="sha"
+                        mode="client"
+                        searchPlaceholder="Buscar por mensaje, autor o sha..."
+                        customActions={(c) => (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="gap-1.5"
+                                    onClick={() => {
+                                        setSelectedCommit(c);
+                                        setOpenDrawer('commit');
+                                    }}
+                                >
+                                    <FileCode2 className="w-4 h-4 text-primary" />
+                                    <span>Detalle</span>
+                                </Button>
+                                {c.html_url && (
+                                    <Button asChild size="icon-sm" variant="ghost">
+                                        <a
+                                            href={c.html_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title="Ver commit en GitHub"
                                         >
-                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                                <User className="size-5" />
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <h3
-                                                    className="text-sm font-semibold text-foreground line-clamp-1"
-                                                    title={commit.message}
-                                                >
-                                                    {commit.message}
-                                                </h3>
-                                                <p className="text-xs font-medium text-muted-foreground mt-0.5 mb-1.5">
-                                                    {commit.author.name}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="text-[10px] py-0 px-1.5 font-mono"
-                                                    >
-                                                        {commitData.sha.substring(0, 7)}
-                                                    </Badge>
-                                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                                        <Clock className="w-3 h-3" />
-                                                        {formatDate(commit.author.date).replace(',', ' a las')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0 flex items-center h-full">
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    className="gap-1.5"
-                                                    onClick={() => {
-                                                        setSelectedCommit(commitData);
-                                                        setOpenDrawer('commit');
-                                                    }}
-                                                >
-                                                    <FileCode2 className="w-4 h-4 text-primary" />
-                                                    <span>Detalle</span>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <div className="p-12 text-center text-sm text-muted-foreground border rounded-xl bg-card">
-                                    No hay commits recientes en este proyecto.
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                            <ExternalLink className="size-3.5 text-muted-foreground" />
+                                        </a>
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+                        emptyTitle="No hay commits registrados"
+                        emptyDescription="No se encontraron commits recientes en este repositorio."
+                    />
                 </PageContent>
             </PageShell>
 
