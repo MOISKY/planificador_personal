@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Proyectos;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Proyectos\RecursosActividadMail;
 use App\Models\Proyectos\GrupoActividadEquipo;
 use App\Models\Proyectos\GrupoActividadRecurso;
 use App\Models\Proyectos\GrupoPersona;
@@ -11,6 +12,8 @@ use App\Models\Proyectos\ProyectoActividad;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -71,11 +74,104 @@ class GrupoActividadRecursoController extends Controller
 
         $actividad->load('proyecto');
 
+        // Integrantes asignados al proyecto en proyectos_grupo_persona con correo y rol
+        $personasGrupo = GrupoPersona::query()
+            ->where('IdProyecto', $actividad->IdProyecto)
+            ->with(['persona', 'rol'])
+            ->get()
+            ->map(function ($gp) {
+                $p = $gp->persona;
+                if (! $p) {
+                    return null;
+                }
+
+                return [
+                    'IdPersona' => $p->IdPersona,
+                    'Nombre' => $p->nombre_completo ?: trim($p->Nombre.' '.$p->ApellidoPaterno),
+                    'correoElectronico' => $p->correoElectronico,
+                    'Rol' => $gp->rol?->Rol ?? 'Miembro',
+                ];
+            })
+            ->filter()
+            ->values();
+
         return Inertia::render('proyectos/proyectos/actividades/recursos/index', [
             'actividad' => $actividad,
             'items' => $items,
             'personasDisponibles' => $personasDisponibles,
+            'personasGrupo' => $personasGrupo,
             'searchValue' => $search,
+        ]);
+    }
+
+    public function enviarRecursos(Request $request, ProyectoActividad $actividad): JsonResponse
+    {
+        $validated = $request->validate([
+            'destinatarios' => ['required', 'array', 'min:1'],
+            'destinatarios.*.correo' => ['required', 'email'],
+            'destinatarios.*.nombre' => ['nullable', 'string', 'max:200'],
+            'formato' => ['required', 'string', 'in:xlsx,csv'],
+            'archivo_base64' => ['required', 'string'],
+            'archivo_nombre' => ['nullable', 'string', 'max:255'],
+            'asunto' => ['nullable', 'string', 'max:255'],
+            'mensaje' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $actividad->load('proyecto');
+
+        $archivoBytes = base64_decode($validated['archivo_base64']);
+        $formato = strtolower($validated['formato']);
+        $extension = '.'.$formato;
+        $nombreLimpio = Str::slug($actividad->Nombre, '_');
+        $archivoNombre = $validated['archivo_nombre'] ?? "Recursos_{$nombreLimpio}{$extension}";
+        if (! str_ends_with(strtolower($archivoNombre), $extension)) {
+            $archivoNombre .= $extension;
+        }
+
+        $mimeType = $formato === 'xlsx'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'text/csv;charset=utf-8;';
+
+        $enviados = 0;
+        $fallidos = [];
+
+        foreach ($validated['destinatarios'] as $dest) {
+            $correo = trim($dest['correo']);
+            $nombre = ! empty($dest['nombre']) ? trim($dest['nombre']) : 'Equipo';
+
+            try {
+                Mail::to($correo)->send(new RecursosActividadMail(
+                    actividad: $actividad,
+                    nombreDestinatario: $nombre,
+                    mensajePersonalizado: $validated['mensaje'] ?? null,
+                    archivoBytes: $archivoBytes,
+                    archivoNombre: $archivoNombre,
+                    mimeType: $mimeType,
+                    formato: $formato,
+                    asunto: $validated['asunto'] ?? null,
+                ));
+                $enviados++;
+            } catch (\Throwable $e) {
+                $fallidos[] = [
+                    'correo' => $correo,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        if ($enviados === 0 && ! empty($fallidos)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo enviar el correo: '.($fallidos[0]['error'] ?? 'Error desconocido al conectar con el servidor de correo'),
+                'fallidos' => $fallidos,
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Recursos enviados exitosamente a {$enviados} destinatario(s).",
+            'enviados' => $enviados,
+            'fallidos' => $fallidos,
         ]);
     }
 
@@ -161,4 +257,3 @@ class GrupoActividadRecursoController extends Controller
         return back()->with('success', 'Recurso de actividad eliminado correctamente.');
     }
 }
-

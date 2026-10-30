@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/sheet';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { EnviarRecursosModal, type PersonaGrupoItem } from '@/components/proyectos/enviar-recursos-modal';
 import { type PaginatedData } from '@/types/pagination';
 import {
     type GrupoActividadRecursoItem,
@@ -44,6 +45,7 @@ import {
     ExternalLink,
     FolderOpen,
     Loader2,
+    Mail,
     Plus,
     Save,
     User,
@@ -55,6 +57,7 @@ interface Props {
     actividad: ProyectoActividadItem;
     items: PaginatedData<GrupoActividadRecursoItem>;
     personasDisponibles: PersonaItem[];
+    personasGrupo?: PersonaGrupoItem[];
     searchValue: string;
 }
 
@@ -62,6 +65,7 @@ export default function ProyectoActividadRecursosIndex({
     actividad,
     items,
     personasDisponibles,
+    personasGrupo = [],
     searchValue,
 }: Props) {
     const proyecto = actividad.proyecto;
@@ -79,6 +83,7 @@ export default function ProyectoActividadRecursosIndex({
     ];
 
     const [drawerAbierto, setDrawerAbierto] = useState(false);
+    const [modalEnviarAbierto, setModalEnviarAbierto] = useState(false);
     const [seleccionado, setSeleccionado] = useState<GrupoActividadRecursoItem | null>(null);
 
     const form = useForm({
@@ -213,10 +218,21 @@ export default function ProyectoActividadRecursosIndex({
                     title={`Recursos de la Actividad: ${actividad.Nombre}`}
                     description={`Gestión y registro de recursos asociados a la actividad de modalidad "${actividad.Tipo}".`}
                     actions={
-                        <Button size="sm" onClick={abrirNuevo}>
-                            <Plus className="mr-1.5 size-4" />
-                            Nuevo Recurso
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setModalEnviarAbierto(true)}
+                                className="gap-1.5 border-blue-500/30 text-blue-700 hover:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/40"
+                            >
+                                <Mail className="size-4" />
+                                Enviar Recursos
+                            </Button>
+                            <Button size="sm" onClick={abrirNuevo}>
+                                <Plus className="mr-1.5 size-4" />
+                                Nuevo Recurso
+                            </Button>
+                        </div>
                     }
                 />
 
@@ -340,6 +356,14 @@ export default function ProyectoActividadRecursosIndex({
                     </SheetFooter>
                 </SheetContent>
             </Sheet>
+
+            <EnviarRecursosModal
+                open={modalEnviarAbierto}
+                onOpenChange={setModalEnviarAbierto}
+                actividad={actividad}
+                items={items.data}
+                personasGrupo={personasGrupo}
+            />
         </AppLayout>
     );
 }

@@ -257,6 +257,7 @@ Route::prefix('proyectos')->name('proyectos.')->group(function () {
     // Actividades -> Recursos (condicionado por Tipo: Individual NULL / bloqueado, Equipo, Grupo)
     Route::get('actividades/{actividad}/recursos', [ProyectosGrupoActividadRecursoController::class, 'index'])->name('actividades.recursos.index');
     Route::post('actividades/{actividad}/recursos', [ProyectosGrupoActividadRecursoController::class, 'store'])->name('actividades.recursos.store');
+    Route::post('actividades/{actividad}/enviar-recursos', [ProyectosGrupoActividadRecursoController::class, 'enviarRecursos'])->name('actividades.recursos.enviar');
     Route::put('actividades-recursos/{recurso}', [ProyectosGrupoActividadRecursoController::class, 'update'])->name('actividades.recursos.update');
     Route::delete('actividades-recursos/{recurso}', [ProyectosGrupoActividadRecursoController::class, 'destroy'])->name('actividades.recursos.destroy');
 
