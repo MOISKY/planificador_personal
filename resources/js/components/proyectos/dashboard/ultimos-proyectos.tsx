@@ -1,0 +1,104 @@
+import { ProyectoEstatusBadge } from '@/components/proyectos/proyecto-estatus-badge';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { type ProyectoItem } from '@/types/proyectos';
+import { Link } from '@inertiajs/react';
+import { Calendar, ChevronRight, FolderGit2, Layers, Target, Users } from 'lucide-react';
+
+interface Props {
+    items: ProyectoItem[];
+}
+
+export function UltimosProyectos({ items = [] }: Props) {
+    return (
+        <Card className="flex flex-col h-[330px] py-0 gap-0 shadow-xs">
+            <CardHeader className="py-2.5 px-3 border-b flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                    <FolderGit2 className="size-3.5 sm:size-4 text-primary shrink-0" />
+                    <span>Últimos Proyectos</span>
+                </CardTitle>
+                <Button asChild variant="ghost" size="sm" className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground">
+                    <Link href="/proyectos/proyectos">
+                        Ver proyectos
+                        <ChevronRight className="ml-0.5 size-3" />
+                    </Link>
+                </Button>
+            </CardHeader>
+
+            <CardContent className="p-0 flex-1 min-h-0">
+                {items.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full">
+                        <FolderGit2 className="size-5 text-muted-foreground/40 mb-1" />
+                        No hay proyectos registrados.
+                    </div>
+                ) : (
+                    <div className="h-full overflow-y-auto p-2 pr-1.5 space-y-1.5 [scrollbar-width:thin] [scrollbar-color:hsl(var(--primary)/0.6)_hsl(var(--muted)/0.4)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary">
+                        {items.map((p) => (
+                            <div
+                                key={p.IdProyecto}
+                                className="flex flex-col gap-1 p-2 rounded-md border bg-card hover:bg-muted/40 transition shadow-2xs group"
+                            >
+                                <div className="flex items-center justify-between gap-1.5">
+                                    <div className="font-semibold text-xs text-foreground truncate flex-1" title={p.Nombre}>
+                                        {p.Nombre}
+                                    </div>
+                                    <ProyectoEstatusBadge estatus={p.estatus_actual?.Estatus ?? 'Pendiente'} />
+                                </div>
+
+                                {p.Descripcion && (
+                                    <p className="text-[11px] text-muted-foreground line-clamp-1">
+                                        {p.Descripcion}
+                                    </p>
+                                )}
+
+                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                    <span className="flex items-center gap-1">
+                                        <Calendar className="size-2.5 text-muted-foreground" />
+                                        {p.FechaInicio ?? '—'} → {p.FechaFinal ?? 'En curso'}
+                                    </span>
+                                    {p.duracion && (
+                                        <>
+                                            <span>•</span>
+                                            <span className="font-medium text-foreground">{p.duracion}</span>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/40 text-[10px]">
+                                    <div className="flex items-center gap-1">
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5">
+                                            <Target className="size-2 text-primary" />
+                                            {p.actividades_count ?? 0} act.
+                                        </Badge>
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5">
+                                            <Users className="size-2 text-indigo-500" />
+                                            {p.personas_asignadas_count ?? 0} pers.
+                                        </Badge>
+                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal gap-0.5">
+                                            <Layers className="size-2 text-emerald-500" />
+                                            {p.recursos_count ?? 0} rec.
+                                        </Badge>
+                                    </div>
+
+                                    <Button
+                                        asChild
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-5 px-1.5 text-[10px] hover:bg-primary/10 hover:text-primary gap-1"
+                                    >
+                                        <Link href={`/proyectos/proyectos/${p.IdProyecto}/actividades`}>
+                                            Actividades
+                                            <ChevronRight className="size-2.5" />
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+

@@ -48,6 +48,7 @@ use App\Http\Controllers\Proyectos\ProyectoActividadRecursoEstatusController as 
 use App\Http\Controllers\Proyectos\ProyectoController as ProyectosProyectoController;
 use App\Http\Controllers\Proyectos\ProyectoEstatusController as ProyectosProyectoEstatusController;
 use App\Http\Controllers\Proyectos\ProyectoRecursoController as ProyectosRecursoController;
+use App\Http\Controllers\Proyectos\ProyectosDashboardController;
 use App\Http\Controllers\Proyectos\RolController as ProyectosRolController;
 use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
@@ -220,6 +221,8 @@ Route::prefix('ingles')->name('ingles.')->group(function () {
 // Módulo: Proyectos (Planificación Personal)
 // ==========================================================
 Route::prefix('proyectos')->name('proyectos.')->group(function () {
+    Route::get('dashboard', [ProyectosDashboardController::class, 'index'])->name('dashboard');
+
     // Catálogos
     Route::resource('personas', ProyectosPersonaController::class)->names('personas');
     Route::resource('roles', ProyectosRolController::class)->names('roles');

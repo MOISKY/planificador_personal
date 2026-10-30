@@ -384,6 +384,11 @@ export function AppSidebar() {
             icon: FolderKanban,
             items: [
                 {
+                    title: 'Dashboard',
+                    href: '/proyectos/dashboard',
+                    icon: LayoutGrid,
+                },
+                {
                     title: 'Catálogos',
                     icon: Boxes,
                     children: [
