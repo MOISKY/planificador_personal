@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Admin\AdminPersonalUsuario;
+use App\Models\Admin\AdminUsuarioConfiguracionGithub;
+use App\Models\Admin\AdminUsuarioConfiguracionGmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -25,7 +29,7 @@ use Illuminate\Notifications\Notifiable;
  * @property-read string $name
  * @property-read string $email
  */
-#[Fillable(['IdUsuario', 'SIdUsuario', 'SPassword', 'SNombre', 'SMail', 'STelefono', 'EActivo'])]
+#[Fillable(['IdUsuario', 'SIdUsuario', 'NombreUsuario', 'SPassword', 'SNombre', 'SMail', 'STelefono', 'EActivo', 'FechaRegistro'])]
 #[Hidden(['SPassword', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -66,5 +70,20 @@ class User extends Authenticatable
     protected function email(): Attribute
     {
         return Attribute::get(fn () => $this->SMail);
+    }
+
+    public function personalUsuarios(): HasMany
+    {
+        return $this->hasMany(AdminPersonalUsuario::class, 'IdUsuario', 'IdUsuario');
+    }
+
+    public function configuracionesGithub(): HasMany
+    {
+        return $this->hasMany(AdminUsuarioConfiguracionGithub::class, 'IdUsuario', 'IdUsuario');
+    }
+
+    public function configuracionesGmail(): HasMany
+    {
+        return $this->hasMany(AdminUsuarioConfiguracionGmail::class, 'IdUsuario', 'IdUsuario');
     }
 }

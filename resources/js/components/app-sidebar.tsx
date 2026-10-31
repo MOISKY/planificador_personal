@@ -22,8 +22,6 @@ import { dashboard } from '@/routes';
 import cine from '@/routes/cine';
 import github from '@/routes/github';
 import desarrollo from '@/routes/desarrollo';
-import { edit as editProfile } from '@/routes/profile';
-import { apariencia } from '@/routes/settings';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Activity,
@@ -48,6 +46,7 @@ import {
     LayoutGrid,
     Link2,
     ListChecks,
+    Mail,
     MessageSquare,
     MessageSquareText,
     Palette,
@@ -58,6 +57,7 @@ import {
     TriangleAlert,
     User,
     UserCheck,
+    UserCog,
     Users,
 } from 'lucide-react';
 import * as React from 'react';
@@ -448,14 +448,19 @@ export function AppSidebar() {
             icon: Settings,
             items: [
                 {
-                    title: 'Perfil',
-                    href: toUrl(editProfile()),
-                    icon: User,
+                    title: 'Usuarios',
+                    href: '/configuracion/usuarios',
+                    icon: UserCog,
                 },
                 {
-                    title: 'Apariencia',
-                    href: toUrl(apariencia()),
-                    icon: Palette,
+                    title: 'Configuración GitHub',
+                    href: '/configuracion/github',
+                    icon: FolderGit2,
+                },
+                {
+                    title: 'Configuración Gmail',
+                    href: '/configuracion/gmail',
+                    icon: Mail,
                 },
             ],
         },

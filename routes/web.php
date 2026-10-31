@@ -9,6 +9,9 @@ use App\Http\Controllers\Cine\ProduccionRecursoController;
 use App\Http\Controllers\Cine\ProduccionSeguimientoController;
 use App\Http\Controllers\Cine\TipoOpinionController;
 use App\Http\Controllers\Cine\TmdbController;
+use App\Http\Controllers\Configuracion\ConfiguracionGithubController;
+use App\Http\Controllers\Configuracion\ConfiguracionGmailController;
+use App\Http\Controllers\Configuracion\UsuarioController;
 use App\Http\Controllers\Contabilidad\AlumnoController;
 use App\Http\Controllers\Contabilidad\AsesorController;
 use App\Http\Controllers\Contabilidad\CicloController;
@@ -319,6 +322,22 @@ Route::prefix('desarrollo')->name('desarrollo.')->group(function () {
         ->parameters(['candidatos-tipos' => 'candidatoTipo'])
         ->names('candidatos-tipos');
     Route::resource('candidatos', DesarrolloCandidatoController::class)->names('candidatos');
+});
+
+// ==========================================================
+// Módulo: Configuración
+// ==========================================================
+Route::prefix('configuracion')->name('configuracion.')->group(function () {
+    Route::resource('usuarios', UsuarioController::class)
+        ->except(['destroy'])
+        ->parameters(['usuarios' => 'usuario'])
+        ->names('usuarios');
+    Route::resource('github', ConfiguracionGithubController::class)
+        ->parameters(['github' => 'github'])
+        ->names('github');
+    Route::resource('gmail', ConfiguracionGmailController::class)
+        ->parameters(['gmail' => 'gmail'])
+        ->names('gmail');
 });
 
 // ==========================================================
