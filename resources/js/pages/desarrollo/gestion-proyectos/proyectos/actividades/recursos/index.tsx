@@ -319,7 +319,7 @@ export default function ProyectoActividadRecursoIndex({
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form id="actividad-recurso-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="Nombre" required>Nombre del Recurso</FieldLabel>
@@ -327,7 +327,7 @@ export default function ProyectoActividadRecursoIndex({
                                     id="Nombre"
                                     value={form.data.Nombre}
                                     onChange={(e) => form.setData('Nombre', e.target.value)}
-                                    placeholder="Ej. Documentación API, Código fuente..."
+                                    placeholder="Ej. Diagrama de arquitectura, API Docs..."
                                     required
                                     autoFocus
                                 />
@@ -336,20 +336,25 @@ export default function ProyectoActividadRecursoIndex({
 
                             {!esIndividual && (
                                 <Field>
-                                    <FieldLabel htmlFor="IdPersonal">Colaborador Asignado</FieldLabel>
+                                    <FieldLabel htmlFor="IdPersonal">
+                                        Colaborador Asignado {actividad.Tipo === 'Equipo' ? '(del Equipo)' : '(del Proyecto)'}
+                                    </FieldLabel>
                                     <Select
                                         value={form.data.IdPersonal}
                                         onValueChange={(val) => form.setData('IdPersonal', val)}
                                     >
                                         <SelectTrigger id="IdPersonal">
-                                            <SelectValue placeholder="Selecciona un colaborador" />
+                                            <SelectValue placeholder="Selecciona un colaborador (opcional)..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {personalDisponibles.map((p) => (
-                                                <SelectItem key={p.IdPersonal} value={String(p.IdPersonal)}>
-                                                    {p.Nombre} {p.APaterno} {p.AMaterno ?? ''}
-                                                </SelectItem>
-                                            ))}
+                                            {personalDisponibles.map((p) => {
+                                                const nom = `${p.Nombre} ${p.APaterno} ${p.AMaterno ?? ''}`.trim();
+                                                return (
+                                                    <SelectItem key={p.IdPersonal} value={String(p.IdPersonal)}>
+                                                        {nom}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                     <FieldError>{form.errors.IdPersonal}</FieldError>
@@ -357,13 +362,18 @@ export default function ProyectoActividadRecursoIndex({
                             )}
 
                             <FileOrLinkField
-                                id="URLRecurso"
-                                label="Archivo o Enlace"
+                                label="Enlace / Archivo del Recurso"
                                 value={form.data.URLRecurso}
                                 onChange={(val) => form.setData('URLRecurso', val)}
-                                placeholder="https://..."
+                                onFileNameChange={(name) => {
+                                    if (!form.data.Nombre) {
+                                        form.setData('Nombre', name);
+                                    }
+                                }}
+                                folder="Proyectos / Actividades / Recursos"
+                                placeholder="https://ejemplo.com/recurso"
                                 error={form.errors.URLRecurso}
-                                helpText="Puedes subir un archivo directo a Drive o pegar un enlace web."
+                                required
                             />
 
                             {seleccionado && (
@@ -387,31 +397,35 @@ export default function ProyectoActividadRecursoIndex({
                                 </Field>
                             )}
                         </FieldGroup>
-
-                        <Separator className="my-2" />
-
-                        <SheetFooter className="gap-2 sm:space-x-0">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-1.5 size-4" />
-                                        {seleccionado ? 'Guardar Cambios' : 'Registrar Recurso'}
-                                    </>
-                                )}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="actividad-recurso-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
 

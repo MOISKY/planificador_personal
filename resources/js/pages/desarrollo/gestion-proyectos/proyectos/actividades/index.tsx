@@ -433,13 +433,14 @@ export default function ProyectoActividadIndex({
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="Descripcion">Descripción Detallada</FieldLabel>
+                                <FieldLabel htmlFor="Descripcion">Instrucciones / Descripción</FieldLabel>
                                 <Textarea
                                     id="Descripcion"
+                                    rows={4}
+                                    className="min-h-24 resize-y"
                                     value={form.data.Descripcion}
                                     onChange={(e) => form.setData('Descripcion', e.target.value)}
-                                    placeholder="Detalles y requerimientos técnicos..."
-                                    rows={3}
+                                    placeholder="Detalles e instrucciones de la actividad, rúbrica o criterios..."
                                 />
                                 <FieldError>{form.errors.Descripcion}</FieldError>
                             </Field>
@@ -534,71 +535,142 @@ export default function ProyectoActividadIndex({
                                 </Field>
                             )}
                         </FieldGroup>
-
-                        <Separator className="my-2" />
-
-                        <SheetFooter className="gap-2 sm:space-x-0">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-1.5 size-4" />
-                                        {seleccionado ? 'Guardar Cambios' : 'Crear Actividad'}
-                                    </>
-                                )}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="actividad-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
 
             {/* Drawer para Actividad Adicional (Mostrar, Agregar, Eliminar con FileOrLinkField) */}
             <Sheet open={drawerAdicionalAbierto} onOpenChange={setDrawerAdicionalAbierto}>
-                <SheetContent className="overflow-y-auto sm:max-w-md">
+                <SheetContent className="overflow-y-auto sm:max-w-lg">
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <Paperclip className="size-5 text-primary" />
-                            Recursos Adicionales
+                            Actividad Adicional (Drawer)
                         </SheetTitle>
                         <SheetDescription>
                             {actividadParaAdicional
-                                ? `Archivos y enlaces de apoyo para "${actividadParaAdicional.Nombre}".`
-                                : 'Recursos adicionales de la actividad.'}
+                                ? `Enlaces de apoyo o rúbricas para "${actividadParaAdicional.Nombre}".`
+                                : 'Gestión de recursos adicionales para la actividad.'}
                         </SheetDescription>
                     </SheetHeader>
 
                     <div className="flex flex-col gap-6 px-6 py-4">
+                        {/* Formulario para Agregar Nuevo Adicional usando FileOrLinkField */}
+                        <div className="rounded-lg border bg-muted/40 p-4">
+                            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-foreground">
+                                Agregar Enlace o Archivo Adicional
+                            </h4>
+                            <form onSubmit={handleAgregarAdicional} className="flex flex-col gap-3">
+                                <FieldGroup>
+                                    <Field>
+                                        <FieldLabel htmlFor="ActividadAdicionalDescripcion" required>
+                                            Descripción del Recurso
+                                        </FieldLabel>
+                                        <Textarea
+                                            id="ActividadAdicionalDescripcion"
+                                            rows={3}
+                                            className="min-h-20 resize-y"
+                                            value={formAdicional.data.Descripcion}
+                                            onChange={(e) => formAdicional.setData('Descripcion', e.target.value)}
+                                            placeholder="Ej. Rúbrica de evaluación, guía detallada o formato de entrega..."
+                                            required
+                                        />
+                                        <FieldError>{formAdicional.errors.Descripcion}</FieldError>
+                                    </Field>
+
+                                    <FileOrLinkField
+                                        label="Enlace / Archivo del Recurso"
+                                        value={formAdicional.data.UrlRecurso}
+                                        onChange={(val) => formAdicional.setData('UrlRecurso', val)}
+                                        onFileNameChange={(name) => {
+                                            if (!formAdicional.data.Descripcion) {
+                                                formAdicional.setData('Descripcion', name);
+                                            }
+                                        }}
+                                        folder="Proyectos / Actividades"
+                                        placeholder="https://ejemplo.com/recurso..."
+                                        error={formAdicional.errors.UrlRecurso}
+                                        required
+                                    />
+                                </FieldGroup>
+
+                                <div className="flex justify-end pt-1">
+                                    <Button
+                                        size="sm"
+                                        type="submit"
+                                        disabled={formAdicional.processing || !formAdicional.data.Descripcion.trim()}
+                                    >
+                                        {formAdicional.processing ? (
+                                            <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        ) : (
+                                            <Plus className="mr-1.5 size-4" />
+                                        )}
+                                        Agregar Adicional
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+
                         {/* Lista de Adicionales Existentes */}
-                        <div>
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                                Recursos Registrados (
+                        <div className="flex flex-col gap-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Enlaces Registrados (
                                 {actividadParaAdicional?.actividadesAdicionales?.length ??
-                                    actividadParaAdicional?.actividades_adicionales_count ??
+                                    actividadParaAdicional?.actividades_adicionales?.length ??
                                     0}
                                 )
                             </h4>
 
-                            {actividadParaAdicional?.actividadesAdicionales &&
-                            actividadParaAdicional.actividadesAdicionales.length > 0 ? (
-                                <div className="space-y-2">
-                                    {actividadParaAdicional.actividadesAdicionales.map(
-                                        (adicional: AdminProyectoActividadAdicionalItem) => (
-                                            <div
-                                                key={adicional.IdActividadAdicional}
-                                                className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card text-xs"
-                                            >
-                                                <div className="flex flex-col gap-0.5 overflow-hidden">
-                                                    <span className="font-semibold text-foreground truncate">
+                            {(!actividadParaAdicional?.actividadesAdicionales &&
+                                !actividadParaAdicional?.actividades_adicionales) ||
+                            (actividadParaAdicional?.actividadesAdicionales?.length === 0 &&
+                                actividadParaAdicional?.actividades_adicionales?.length === 0) ? (
+                                <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                                    No hay recursos adicionales registrados en esta actividad.
+                                </div>
+                            ) : (
+                                <div className="flex flex-col divide-y rounded-lg border">
+                                    {(
+                                        actividadParaAdicional?.actividadesAdicionales ??
+                                        actividadParaAdicional?.actividades_adicionales ??
+                                        []
+                                    ).map((adicional: AdminProyectoActividadAdicionalItem) => (
+                                        <div
+                                            key={adicional.IdActividadAdicional}
+                                            className="flex items-center justify-between gap-3 p-3 text-sm hover:bg-muted/50"
+                                        >
+                                            <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                                                <Link2 className="size-4 shrink-0 text-primary mt-0.5" />
+                                                <div className="flex min-w-0 flex-col">
+                                                    <span className="font-medium text-foreground truncate">
                                                         {adicional.Descripcion}
                                                     </span>
                                                     {adicional.UrlRecurso && (
@@ -606,89 +678,41 @@ export default function ProyectoActividadIndex({
                                                             href={adicional.UrlRecurso}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex items-center gap-1 text-[11px] text-primary hover:underline truncate"
+                                                            className="flex items-center gap-1 text-xs text-primary hover:underline truncate"
                                                         >
-                                                            <ExternalLink className="size-3 shrink-0" />
                                                             <span className="truncate">{adicional.UrlRecurso}</span>
+                                                            <ExternalLink className="size-3 shrink-0" />
                                                         </a>
                                                     )}
                                                 </div>
-
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon-sm"
-                                                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                                    onClick={() => handleEliminarAdicional(adicional.IdActividadAdicional)}
-                                                    title="Eliminar recurso adicional"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
                                             </div>
-                                        ),
-                                    )}
+
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleEliminarAdicional(adicional.IdActividadAdicional)}
+                                                className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive shrink-0"
+                                                title="Eliminar recurso adicional"
+                                            >
+                                                <Trash2 className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
                                 </div>
-                            ) : (
-                                <p className="text-xs text-muted-foreground italic">
-                                    No hay recursos adicionales agregados a esta actividad.
-                                </p>
                             )}
                         </div>
-
-                        <Separator />
-
-                        {/* Formulario para Agregar Nuevo Adicional usando FileOrLinkField */}
-                        <form onSubmit={handleAgregarAdicional} className="flex flex-col gap-4">
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                Agregar Nuevo Recurso
-                            </h4>
-
-                            <FieldGroup>
-                                <Field>
-                                    <FieldLabel htmlFor="adicional-descripcion" required>
-                                        Descripción
-                                    </FieldLabel>
-                                    <Input
-                                        id="adicional-descripcion"
-                                        value={formAdicional.data.Descripcion}
-                                        onChange={(e) => formAdicional.setData('Descripcion', e.target.value)}
-                                        placeholder="Ej. Diagrama de arquitectura, Guía de estilo..."
-                                        required
-                                    />
-                                    <FieldError>{formAdicional.errors.Descripcion}</FieldError>
-                                </Field>
-
-                                <FileOrLinkField
-                                    id="adicional-url"
-                                    label="Archivo o Enlace"
-                                    value={formAdicional.data.UrlRecurso}
-                                    onChange={(val) => formAdicional.setData('UrlRecurso', val)}
-                                    placeholder="https://..."
-                                    error={formAdicional.errors.UrlRecurso}
-                                    helpText="Puedes subir un archivo a Drive o colocar una URL externa."
-                                />
-                            </FieldGroup>
-
-                            <Button
-                                type="submit"
-                                size="sm"
-                                disabled={formAdicional.processing || !formAdicional.data.Descripcion.trim()}
-                                className="w-full"
-                            >
-                                {formAdicional.processing ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                        Agregando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="mr-1.5 size-4" />
-                                        Agregar Recurso Adicional
-                                    </>
-                                )}
-                            </Button>
-                        </form>
                     </div>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button type="button" variant="outline" className="w-full">
+                                Cerrar
+                            </Button>
+                        </SheetClose>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

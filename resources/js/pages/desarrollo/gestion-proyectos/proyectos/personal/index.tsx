@@ -218,7 +218,7 @@ export default function ProyectoPersonalIndex({
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form id="personal-proyecto-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="IdPersonal" required>Colaborador Técnico</FieldLabel>
@@ -240,31 +240,35 @@ export default function ProyectoPersonalIndex({
                                 <FieldError>{form.errors.IdPersonal}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <Separator className="my-2" />
-
-                        <SheetFooter className="gap-2 sm:space-x-0">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                        Asignando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-1.5 size-4" />
-                                        Asignar Colaborador
-                                    </>
-                                )}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="personal-proyecto-form"
+                            disabled={form.processing || personalDisponibles.length === 0}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            Asignar Colaborador
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

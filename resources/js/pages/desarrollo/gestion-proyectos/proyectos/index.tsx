@@ -316,10 +316,11 @@ export default function ProyectosIndex({
                                 <FieldLabel htmlFor="Descripcion">Descripción</FieldLabel>
                                 <Textarea
                                     id="Descripcion"
+                                    rows={4}
+                                    className="min-h-24 resize-y"
                                     value={form.data.Descripcion}
                                     onChange={(e) => form.setData('Descripcion', e.target.value)}
                                     placeholder="Breve descripción o alcance del proyecto..."
-                                    rows={3}
                                 />
                                 <FieldError>{form.errors.Descripcion}</FieldError>
                             </Field>
@@ -369,31 +370,35 @@ export default function ProyectosIndex({
                                 </Field>
                             )}
                         </FieldGroup>
-
-                        <Separator className="my-2" />
-
-                        <SheetFooter className="gap-2 sm:space-x-0">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-1.5 size-4" />
-                                        {seleccionado ? 'Guardar Cambios' : 'Registrar Proyecto'}
-                                    </>
-                                )}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="proyecto-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>

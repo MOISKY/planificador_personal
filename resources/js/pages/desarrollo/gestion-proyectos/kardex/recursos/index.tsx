@@ -190,22 +190,20 @@ export default function KardexRecursosIndex({
                             Actualizar Estatus de Recurso
                         </SheetTitle>
                         <SheetDescription>
-                            {seleccionado?.recurso?.Nombre
-                                ? `Cambiar estatus para el recurso "${seleccionado.recurso.Nombre}".`
-                                : 'Selecciona el nuevo estatus para registrar en el kardex.'}
+                            Recurso: <span className="font-semibold text-foreground">{seleccionado?.recurso?.Nombre}</span>
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form id="recurso-estatus-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Estatus" required>Estatus</FieldLabel>
+                                <FieldLabel htmlFor="Estatus" required>Estatus del Recurso</FieldLabel>
                                 <Select
                                     value={form.data.Estatus}
                                     onValueChange={(val) => form.setData('Estatus', val)}
                                 >
                                     <SelectTrigger id="Estatus">
-                                        <SelectValue placeholder="Selecciona un estatus" />
+                                        <SelectValue placeholder="Selecciona el nuevo estatus..." />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {estatusesDisponibles.map((est) => (
@@ -218,31 +216,35 @@ export default function KardexRecursosIndex({
                                 <FieldError>{form.errors.Estatus}</FieldError>
                             </Field>
                         </FieldGroup>
-
-                        <Separator className="my-2" />
-
-                        <SheetFooter className="gap-2 sm:space-x-0">
-                            <SheetClose asChild>
-                                <Button type="button" variant="outline">
-                                    <X className="mr-1.5 size-4" />
-                                    Cancelar
-                                </Button>
-                            </SheetClose>
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
-                                        Actualizando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-1.5 size-4" />
-                                        Actualizar Estatus
-                                    </>
-                                )}
-                            </Button>
-                        </SheetFooter>
                     </form>
+
+                    <Separator className="my-2" />
+
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setDrawerAbierto(false)}
+                                disabled={form.processing}
+                            >
+                                <X className="mr-1.5 size-4" />
+                                Cancelar
+                            </Button>
+                        </SheetClose>
+                        <Button
+                            type="submit"
+                            form="recurso-estatus-form"
+                            disabled={form.processing}
+                        >
+                            {form.processing ? (
+                                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                            ) : (
+                                <Save className="mr-1.5 size-4" />
+                            )}
+                            Guardar Cambios
+                        </Button>
+                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>
