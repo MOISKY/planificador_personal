@@ -28,6 +28,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/fechas';
 import { type BreadcrumbItem } from '@/types';
 import {
     type AdminModuloSimple,
@@ -38,7 +39,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
     Boxes,
-    FolderKanban,
+    Calendar,
     Loader2,
     Plus,
     Save,
@@ -53,7 +54,7 @@ interface Props {
     searchValue: string;
 }
 
-export default function ProyectoModuloIndex({
+export default function ProyectoModulosIndex({
     proyecto,
     modulos,
     modulosDisponibles,
@@ -62,7 +63,6 @@ export default function ProyectoModuloIndex({
     const [drawerAbierto, setDrawerAbierto] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Desarrollo', href: '/consultor/proyectos' },
         { title: 'Proyectos', href: '/desarrollo/proyectos' },
         { title: proyecto.Nombre, href: '/desarrollo/proyectos' },
         {
@@ -119,32 +119,29 @@ export default function ProyectoModuloIndex({
         },
         {
             key: 'modulo',
-            label: 'Nombre del Módulo',
+            label: 'Módulo',
             render: (item) => (
-                <div className="flex items-center gap-2.5">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Boxes className="size-4" />
-                    </div>
-                    <div>
-                        <div className="font-semibold text-foreground">
-                            {item.modulo?.Nombre ?? 'Sin Nombre'}
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <Boxes className="size-4 text-primary shrink-0" />
+                    <span className="font-semibold text-foreground">
+                        {item.modulo?.Nombre ?? '—'}
+                    </span>
                 </div>
             ),
         },
         {
             key: 'FechaRegistro',
             label: 'Fecha Vinculación',
-            className: 'w-44 text-xs text-muted-foreground',
+            className: 'w-40',
             render: (item) =>
-                item.FechaRegistro
-                    ? new Date(item.FechaRegistro).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                      })
-                    : '—',
+                item.FechaRegistro ? (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="size-3.5 shrink-0" />
+                        <span>{formatDate(item.FechaRegistro)}</span>
+                    </div>
+                ) : (
+                    <span className="text-muted-foreground">—</span>
+                ),
         },
     ];
 
@@ -152,23 +149,24 @@ export default function ProyectoModuloIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Módulos - ${proyecto.Nombre}`} />
             <PageShell>
+                <div className="mb-2">
+                    <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                        <Link href="/desarrollo/proyectos">
+                            <ArrowLeft className="size-4" />
+                            Volver a Proyectos
+                        </Link>
+                    </Button>
+                </div>
+
                 <ContextPanel
                     icon={<Boxes />}
-                    title={`Módulos del Proyecto: ${proyecto.Nombre}`}
+                    title={`Módulos de ${proyecto.Nombre}`}
                     description="Módulos del sistema asociados a este proyecto. Solo los módulos vinculados aquí estarán disponibles para la creación de actividades."
                     actions={
-                        <div className="flex items-center gap-2">
-                            <Link href="/desarrollo/proyectos">
-                                <Button variant="outline" size="sm">
-                                    <ArrowLeft className="mr-1.5 size-4" />
-                                    Volver a Proyectos
-                                </Button>
-                            </Link>
-                            <Button size="sm" onClick={abrirNuevo} disabled={modulosDisponibles.length === 0}>
-                                <Plus className="mr-1.5 size-4" />
-                                Vincular Módulo
-                            </Button>
-                        </div>
+                        <Button size="sm" onClick={abrirNuevo} disabled={modulosDisponibles.length === 0}>
+                            <Plus className="mr-1.5 size-4" />
+                            Vincular Módulo
+                        </Button>
                     }
                 />
 
@@ -195,16 +193,14 @@ export default function ProyectoModuloIndex({
                             Vincular Módulo al Proyecto
                         </SheetTitle>
                         <SheetDescription>
-                            Selecciona un módulo activo del catálogo para asociarlo a este proyecto.
+                            Selecciona un módulo del sistema para asociarlo a "{proyecto.Nombre}".
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="modulo-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="IdModulo" required>
-                                    Módulo Disponible
-                                </FieldLabel>
+                                <FieldLabel htmlFor="IdModulo" required>Módulo</FieldLabel>
                                 <Select
                                     value={form.data.IdModulo}
                                     onValueChange={(val) => form.setData('IdModulo', val)}
@@ -215,7 +211,7 @@ export default function ProyectoModuloIndex({
                                     <SelectContent>
                                         {modulosDisponibles.map((m) => (
                                             <SelectItem key={m.IdModulo} value={String(m.IdModulo)}>
-                                                [{m.Codigo}] {m.Nombre}
+                                                {m.Codigo} - {m.Nombre}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -223,38 +219,33 @@ export default function ProyectoModuloIndex({
                                 <FieldError>{form.errors.IdModulo}</FieldError>
                             </Field>
                         </FieldGroup>
-                    </form>
 
-                    <Separator className="my-2" />
+                        <Separator className="my-2" />
 
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setDrawerAbierto(false)}
-                                disabled={form.processing}
-                            >
-                                <X className="mr-1.5 size-4" />
-                                Cancelar
+                        <SheetFooter className="gap-2 sm:space-x-0">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    <X className="mr-1.5 size-4" />
+                                    Cancelar
+                                </Button>
+                            </SheetClose>
+                            <Button type="submit" disabled={form.processing}>
+                                {form.processing ? (
+                                    <>
+                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        Vinculando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-1.5 size-4" />
+                                        Vincular Módulo
+                                    </>
+                                )}
                             </Button>
-                        </SheetClose>
-                        <Button
-                            type="submit"
-                            form="modulo-form"
-                            disabled={form.processing || modulosDisponibles.length === 0}
-                        >
-                            {form.processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
-                            )}
-                            Vincular al Proyecto
-                        </Button>
-                    </SheetFooter>
+                        </SheetFooter>
+                    </form>
                 </SheetContent>
             </Sheet>
         </AppLayout>
     );
 }
-

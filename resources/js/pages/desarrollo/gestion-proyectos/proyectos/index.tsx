@@ -2,7 +2,7 @@ import { confirmDialog } from '@/components/confirm-dialog';
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { PageContent, PageShell } from '@/components/page-shell';
-import { Badge } from '@/components/ui/badge';
+import { ProyectoEstatusBadge } from '@/components/proyectos/proyecto-estatus-badge';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/fechas';
 import { type BreadcrumbItem } from '@/types';
 import {
     type AdminModuloSimple,
@@ -41,14 +42,12 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Boxes,
     Calendar,
-    CheckCircle2,
     Clock,
-    FolderKanban,
-    ListChecks,
-    ListTodo,
+    FolderGit2,
     Loader2,
     Plus,
     Save,
+    Target,
     Users,
     X,
 } from 'lucide-react';
@@ -63,14 +62,12 @@ interface Props {
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Desarrollo', href: '/consultor/proyectos' },
+    { title: 'Proyectos', href: '/desarrollo/proyectos' },
     { title: 'Proyectos', href: '/desarrollo/proyectos' },
 ];
 
-export default function GestionProyectosIndex({
+export default function ProyectosIndex({
     items,
-    personalDisponibles,
-    modulosDisponibles,
     estatusesDisponibles,
     searchValue,
 }: Props) {
@@ -82,6 +79,7 @@ export default function GestionProyectosIndex({
         Descripcion: '',
         FechaInicio: '',
         Duracion: '',
+        Estatus: 'Pendiente',
     });
 
     useEffect(() => {
@@ -91,6 +89,7 @@ export default function GestionProyectosIndex({
                 Descripcion: seleccionado.Descripcion ?? '',
                 FechaInicio: seleccionado.FechaInicio ? seleccionado.FechaInicio.slice(0, 10) : '',
                 Duracion: seleccionado.Duracion ?? '',
+                Estatus: seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus ?? 'Pendiente',
             });
         } else {
             form.reset();
@@ -99,6 +98,7 @@ export default function GestionProyectosIndex({
                 Descripcion: '',
                 FechaInicio: '',
                 Duracion: '',
+                Estatus: 'Pendiente',
             });
         }
         form.clearErrors();
@@ -117,7 +117,7 @@ export default function GestionProyectosIndex({
     const eliminar = async (item: AdminProyectoItem) => {
         if (
             await confirmDialog(
-                `¿Estás seguro que deseas eliminar el proyecto "${item.Nombre}"? Se eliminarán todas sus actividades, módulos y asignaciones asociadas.`,
+                `¿Estás seguro que deseas eliminar el proyecto "${item.Nombre}" junto con sus módulos, asignaciones y actividades? Esta acción no se puede deshacer.`,
             )
         ) {
             router.delete(`/desarrollo/proyectos/${item.IdProyecto}`, {
@@ -126,20 +126,22 @@ export default function GestionProyectosIndex({
         }
     };
 
-    const cambiarEstatus = (proyecto: AdminProyectoItem, nuevoEstatus: string) => {
-        router.post(
-            `/desarrollo/proyectos/${proyecto.IdProyecto}/estatus`,
-            { Estatus: nuevoEstatus },
-            { preserveScroll: true },
-        );
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (seleccionado) {
             form.put(`/desarrollo/proyectos/${seleccionado.IdProyecto}`, {
                 preserveScroll: true,
-                onSuccess: () => setDrawerAbierto(false),
+                onSuccess: () => {
+                    const actualEstatus = seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus;
+                    if (form.data.Estatus && form.data.Estatus !== actualEstatus) {
+                        router.post(
+                            `/desarrollo/proyectos/${seleccionado.IdProyecto}/estatus`,
+                            { Estatus: form.data.Estatus },
+                            { preserveScroll: true },
+                        );
+                    }
+                    setDrawerAbierto(false);
+                },
             });
         } else {
             form.post('/desarrollo/proyectos', {
@@ -149,169 +151,76 @@ export default function GestionProyectosIndex({
         }
     };
 
-    const getEstatusVariant = (estatus?: string) => {
-        switch (estatus) {
-            case 'Finalizado':
-                return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400';
-            case 'En Emision':
-                return 'border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-400';
-            case 'Pausado':
-                return 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-400';
-            case 'Cancelado':
-                return 'border-red-500/30 bg-red-500/15 text-red-700 dark:text-red-400';
-            case 'Pendiente':
-            default:
-                return 'border-zinc-500/30 bg-zinc-500/15 text-zinc-700 dark:text-zinc-400';
-        }
-    };
-
     const columns: Column<AdminProyectoItem>[] = [
         {
             key: 'Nombre',
             label: 'Proyecto',
             render: (item) => (
-                <div className="flex items-start gap-2.5">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <FolderKanban className="size-5" />
-                    </div>
-                    <div>
-                        <div className="font-semibold text-foreground text-sm">{item.Nombre}</div>
-                        {item.Descripcion && (
-                            <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm">
-                                {item.Descripcion}
-                            </p>
-                        )}
-                        <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">
-                            {item.FechaInicio && (
-                                <span className="flex items-center gap-1">
-                                    <Calendar className="size-3" />
-                                    {new Date(item.FechaInicio).toLocaleDateString('es-ES', {
-                                        day: '2-digit',
-                                        month: 'short',
-                                        year: 'numeric',
-                                    })}
-                                </span>
-                            )}
-                            {item.Duracion && (
-                                <span className="flex items-center gap-1 font-medium text-foreground/80">
-                                    <Clock className="size-3 text-muted-foreground" />
-                                    {item.Duracion}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <FolderGit2 className="size-4 text-primary shrink-0" />
+                    <span className="font-semibold text-foreground">{item.Nombre}</span>
                 </div>
             ),
         },
         {
-            key: 'estatus',
-            label: 'Estatus (Kardex)',
-            className: 'w-44',
-            render: (item) => {
-                const estatusActual = item.estatusActual?.Estatus ?? 'Pendiente';
-                return (
-                    <div className="flex flex-col gap-1.5">
-                        <Select
-                            value={estatusActual}
-                            onValueChange={(val) => cambiarEstatus(item, val)}
-                        >
-                            <SelectTrigger className="h-7 text-xs border rounded-md px-2">
-                                <SelectValue>
-                                    <Badge
-                                        variant="outline"
-                                        className={`text-[11px] px-2 py-0.5 border ${getEstatusVariant(
-                                            estatusActual,
-                                        )}`}
-                                    >
-                                        {estatusActual}
-                                    </Badge>
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {estatusesDisponibles.map((st) => (
-                                    <SelectItem key={st} value={st} className="text-xs">
-                                        <Badge
-                                            variant="outline"
-                                            className={`text-[11px] mr-1.5 ${getEstatusVariant(st)}`}
-                                        >
-                                            {st}
-                                        </Badge>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+            key: 'Descripcion',
+            label: 'Descripción',
+            render: (item) => (
+                <p className="max-w-md truncate text-xs text-muted-foreground" title={item.Descripcion ?? ''}>
+                    {item.Descripcion || '—'}
+                </p>
+            ),
+        },
+        {
+            key: 'FechaInicio',
+            label: 'Fecha Inicio',
+            render: (item) => (
+                item.FechaInicio ? (
+                    <div className="flex items-center gap-1.5 text-xs text-foreground">
+                        <Calendar className="size-3.5 text-muted-foreground shrink-0" />
+                        <span>{formatDate(item.FechaInicio)}</span>
                     </div>
-                );
-            },
-        },
-        {
-            key: 'modulos',
-            label: 'Módulos',
-            className: 'w-32 text-center',
-            render: (item) => (
-                <Link
-                    href={`/desarrollo/proyectos/${item.IdProyecto}/modulos`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md border bg-card hover:bg-accent transition-colors"
-                    title="Ver y asignar módulos del proyecto"
-                >
-                    <Boxes className="size-3.5 text-primary" />
-                    <span>{item.modulos_count ?? item.modulos?.length ?? 0}</span>
-                </Link>
+                ) : (
+                    <span className="text-muted-foreground">—</span>
+                )
             ),
         },
         {
-            key: 'miembros',
-            label: 'Miembros',
-            className: 'w-32 text-center',
+            key: 'Duracion',
+            label: 'Duración',
             render: (item) => (
-                <Link
-                    href={`/desarrollo/proyectos/${item.IdProyecto}/personal`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md border bg-card hover:bg-accent transition-colors"
-                    title="Ver integrantes del proyecto"
-                >
-                    <Users className="size-3.5 text-primary" />
-                    <span>{item.miembros_count ?? item.miembros?.length ?? 0}</span>
-                </Link>
+                item.Duracion ? (
+                    <div className="flex items-center gap-1.5 text-xs">
+                        <Clock className="size-3.5 text-primary shrink-0" />
+                        <span className="font-medium text-foreground">{item.Duracion}</span>
+                    </div>
+                ) : (
+                    <span className="text-muted-foreground">—</span>
+                )
             ),
         },
         {
-            key: 'actividades',
-            label: 'Actividades',
-            className: 'w-36 text-center',
+            key: 'estatus',
+            label: 'Estatus',
             render: (item) => (
-                <Link
-                    href={`/desarrollo/proyectos/${item.IdProyecto}/actividades`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
-                    title="Ir a las actividades de este proyecto"
-                >
-                    <ListTodo className="size-3.5" />
-                    <span>{item.actividades_count ?? item.actividades?.length ?? 0} Actividades</span>
-                </Link>
+                <ProyectoEstatusBadge estatus={item.estatus_actual?.Estatus ?? (item as any).estatusActual?.Estatus} />
             ),
         },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Proyectos - Desarrollo" />
+            <Head title="Proyectos" />
             <PageShell>
                 <ContextPanel
-                    icon={<FolderKanban />}
+                    icon={<FolderGit2 />}
                     title="Proyectos"
-                    description="Administración de proyectos, módulos de desarrollo asignados, personal técnico, actividades y control de estatus."
+                    description="Gestión integral de proyectos, módulos asignados, personal técnico colaborador y actividades de seguimiento."
                     actions={
-                        <div className="flex items-center gap-2">
-                            <Link href="/desarrollo/kardex-proyectos">
-                                <Button variant="outline" size="sm">
-                                    <ListChecks className="mr-1.5 size-4" />
-                                    Historial Kardex
-                                </Button>
-                            </Link>
-                            <Button size="sm" onClick={abrirNuevo}>
-                                <Plus className="mr-1.5 size-4" />
-                                Nuevo Proyecto
-                            </Button>
-                        </div>
+                        <Button size="sm" onClick={abrirNuevo}>
+                            <Plus className="mr-1.5 size-4" />
+                            Nuevo Proyecto
+                        </Button>
                     }
                 />
 
@@ -322,12 +231,54 @@ export default function GestionProyectosIndex({
                         pagination={items}
                         baseUrl="/desarrollo/proyectos"
                         searchValue={searchValue}
-                        searchPlaceholder="Buscar por nombre, descripción o duración..."
+                        searchPlaceholder="Buscar proyecto por nombre o descripción..."
                         idKey="IdProyecto"
                         onEdit={abrirEditar}
                         onDelete={eliminar}
+                        customActions={(item) => (
+                            <div className="flex items-center gap-1">
+                                <Button
+                                    asChild
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                    title="Módulos del proyecto"
+                                    aria-label="Módulos del proyecto"
+                                >
+                                    <Link href={`/desarrollo/proyectos/${item.IdProyecto}/modulos`}>
+                                        <Boxes className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+
+                                <Button
+                                    asChild
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400"
+                                    title="Miembros del proyecto"
+                                    aria-label="Miembros del proyecto"
+                                >
+                                    <Link href={`/desarrollo/proyectos/${item.IdProyecto}/personal`}>
+                                        <Users className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+
+                                <Button
+                                    asChild
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
+                                    title="Actividades del proyecto"
+                                    aria-label="Actividades del proyecto"
+                                >
+                                    <Link href={`/desarrollo/proyectos/${item.IdProyecto}/actividades`}>
+                                        <Target className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        )}
                         emptyTitle="No hay proyectos registrados"
-                        emptyDescription="Registra un nuevo proyecto para comenzar a asignar módulos, colaboradores y planificar sus actividades."
+                        emptyDescription="Crea tu primer proyecto para empezar a planificar módulos, colaboradores y actividades."
                     />
                 </PageContent>
             </PageShell>
@@ -336,27 +287,25 @@ export default function GestionProyectosIndex({
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
-                            <FolderKanban className="size-5 text-primary" />
+                            <FolderGit2 className="size-5 text-primary" />
                             {seleccionado ? 'Editar Proyecto' : 'Nuevo Proyecto'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
-                                ? 'Modifica los parámetros y la duración del proyecto.'
-                                : 'Ingresa la información general para registrar un nuevo proyecto.'}
+                                ? 'Modifica los datos, fechas y estatus del proyecto seleccionado.'
+                                : 'Ingresa la información requerida para registrar un nuevo proyecto.'}
                         </SheetDescription>
                     </SheetHeader>
 
                     <form id="proyecto-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre" required>
-                                    Nombre del Proyecto
-                                </FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>Nombre del Proyecto</FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
                                     onChange={(e) => form.setData('Nombre', e.target.value)}
-                                    placeholder="Ej. Rediseño del Módulo de Facturación"
+                                    placeholder="Ej. Sistema ERP Comercial"
                                     required
                                     autoFocus
                                 />
@@ -364,14 +313,12 @@ export default function GestionProyectosIndex({
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="Descripcion">
-                                    Descripción / Alcance
-                                </FieldLabel>
+                                <FieldLabel htmlFor="Descripcion">Descripción</FieldLabel>
                                 <Textarea
                                     id="Descripcion"
                                     value={form.data.Descripcion}
                                     onChange={(e) => form.setData('Descripcion', e.target.value)}
-                                    placeholder="Detalles, objetivos principales o entregables esperados..."
+                                    placeholder="Breve descripción o alcance del proyecto..."
                                     rows={3}
                                 />
                                 <FieldError>{form.errors.Descripcion}</FieldError>
@@ -379,9 +326,7 @@ export default function GestionProyectosIndex({
 
                             <div className="grid grid-cols-2 gap-3">
                                 <Field>
-                                    <FieldLabel htmlFor="FechaInicio">
-                                        Fecha de Inicio
-                                    </FieldLabel>
+                                    <FieldLabel htmlFor="FechaInicio">Fecha Inicio</FieldLabel>
                                     <Input
                                         id="FechaInicio"
                                         type="date"
@@ -392,51 +337,65 @@ export default function GestionProyectosIndex({
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel htmlFor="Duracion">
-                                        Duración
-                                    </FieldLabel>
+                                    <FieldLabel htmlFor="Duracion">Duración Estimada</FieldLabel>
                                     <Input
                                         id="Duracion"
                                         value={form.data.Duracion}
                                         onChange={(e) => form.setData('Duracion', e.target.value)}
-                                        placeholder="Ej. 3 meses, 120 hrs"
+                                        placeholder="Ej. 4 meses, 6 semanas"
                                     />
                                     <FieldError>{form.errors.Duracion}</FieldError>
                                 </Field>
                             </div>
-                        </FieldGroup>
-                    </form>
 
-                    <Separator className="my-2" />
-
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setDrawerAbierto(false)}
-                                disabled={form.processing}
-                            >
-                                <X className="mr-1.5 size-4" />
-                                Cancelar
-                            </Button>
-                        </SheetClose>
-                        <Button
-                            type="submit"
-                            form="proyecto-form"
-                            disabled={form.processing}
-                        >
-                            {form.processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
+                            {seleccionado && (
+                                <Field>
+                                    <FieldLabel htmlFor="Estatus">Estatus del Proyecto</FieldLabel>
+                                    <Select
+                                        value={form.data.Estatus}
+                                        onValueChange={(val) => form.setData('Estatus', val)}
+                                    >
+                                        <SelectTrigger id="Estatus">
+                                            <SelectValue placeholder="Selecciona un estatus" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {estatusesDisponibles.map((st) => (
+                                                <SelectItem key={st} value={st}>
+                                                    {st}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
                             )}
-                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
-                        </Button>
-                    </SheetFooter>
+                        </FieldGroup>
+
+                        <Separator className="my-2" />
+
+                        <SheetFooter className="gap-2 sm:space-x-0">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    <X className="mr-1.5 size-4" />
+                                    Cancelar
+                                </Button>
+                            </SheetClose>
+                            <Button type="submit" disabled={form.processing}>
+                                {form.processing ? (
+                                    <>
+                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-1.5 size-4" />
+                                        {seleccionado ? 'Guardar Cambios' : 'Registrar Proyecto'}
+                                    </>
+                                )}
+                            </Button>
+                        </SheetFooter>
+                    </form>
                 </SheetContent>
             </Sheet>
         </AppLayout>
     );
 }
-

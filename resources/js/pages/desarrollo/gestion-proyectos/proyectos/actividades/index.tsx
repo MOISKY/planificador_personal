@@ -3,6 +3,7 @@ import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { FileOrLinkField } from '@/components/file-or-link-field';
 import { PageContent, PageShell } from '@/components/page-shell';
+import { EstatusBadge } from '@/components/proyectos/estatus-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,10 +32,12 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/fechas';
 import { type BreadcrumbItem } from '@/types';
 import {
     type AdminModuloSimple,
     type AdminPersonalSimple,
+    type AdminProyectoActividadAdicionalItem,
     type AdminProyectoActividadItem,
     type AdminProyectoItem,
 } from '@/types/admin-proyectos';
@@ -43,22 +46,17 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowLeft,
-    Boxes,
     Calendar,
-    CheckCircle2,
-    Clock,
     ExternalLink,
-    FilePlus,
-    FileText,
-    FolderKanban,
-    Layers,
-    ListTodo,
+    FolderOpen,
+    Link2,
     Loader2,
+    Paperclip,
     Plus,
     Save,
+    Target,
     Trash2,
     Users,
-    Users2,
     X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -77,22 +75,18 @@ export default function ProyectoActividadIndex({
     proyecto,
     items,
     modulosProyecto,
-    miembrosProyecto,
     tiposDisponibles,
     estatusesDisponibles,
     searchValue,
 }: Props) {
     const [drawerAbierto, setDrawerAbierto] = useState(false);
-    const [seleccionado, setSeleccionado] =
-        useState<AdminProyectoActividadItem | null>(null);
+    const [seleccionado, setSeleccionado] = useState<AdminProyectoActividadItem | null>(null);
 
     // Drawer de Actividad Adicional
     const [drawerAdicionalAbierto, setDrawerAdicionalAbierto] = useState(false);
-    const [actividadParaAdicional, setActividadParaAdicional] =
-        useState<AdminProyectoActividadItem | null>(null);
+    const [actividadParaAdicional, setActividadParaAdicional] = useState<AdminProyectoActividadItem | null>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Desarrollo', href: '/consultor/proyectos' },
         { title: 'Proyectos', href: '/desarrollo/proyectos' },
         { title: proyecto.Nombre, href: '/desarrollo/proyectos' },
         {
@@ -107,6 +101,7 @@ export default function ProyectoActividadIndex({
         FechaEntrega: '',
         IdModulo: modulosProyecto.length > 0 ? String(modulosProyecto[0].IdModulo) : '',
         Tipo: 'Individual',
+        Estatus: 'No Realizada',
     });
 
     const formAdicional = useForm({
@@ -119,11 +114,10 @@ export default function ProyectoActividadIndex({
             form.setData({
                 Nombre: seleccionado.Nombre ?? '',
                 Descripcion: seleccionado.Descripcion ?? '',
-                FechaEntrega: seleccionado.FechaEntrega
-                    ? seleccionado.FechaEntrega.slice(0, 10)
-                    : '',
+                FechaEntrega: seleccionado.FechaEntrega ? seleccionado.FechaEntrega.slice(0, 10) : '',
                 IdModulo: seleccionado.IdModulo ? String(seleccionado.IdModulo) : '',
                 Tipo: seleccionado.Tipo ?? 'Individual',
+                Estatus: seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus ?? 'No Realizada',
             });
         } else {
             form.reset();
@@ -131,9 +125,9 @@ export default function ProyectoActividadIndex({
                 Nombre: '',
                 Descripcion: '',
                 FechaEntrega: '',
-                IdModulo:
-                    modulosProyecto.length > 0 ? String(modulosProyecto[0].IdModulo) : '',
+                IdModulo: modulosProyecto.length > 0 ? String(modulosProyecto[0].IdModulo) : '',
                 Tipo: 'Individual',
+                Estatus: 'No Realizada',
             });
         }
         form.clearErrors();
@@ -169,17 +163,6 @@ export default function ProyectoActividadIndex({
         }
     };
 
-    const cambiarEstatus = (
-        actividad: AdminProyectoActividadItem,
-        nuevoEstatus: string,
-    ) => {
-        router.post(
-            `/desarrollo/proyectos/${proyecto.IdProyecto}/actividades/${actividad.IdActividad}/estatus`,
-            { Estatus: nuevoEstatus },
-            { preserveScroll: true },
-        );
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (seleccionado) {
@@ -187,7 +170,17 @@ export default function ProyectoActividadIndex({
                 `/desarrollo/proyectos/${proyecto.IdProyecto}/actividades/${seleccionado.IdActividad}`,
                 {
                     preserveScroll: true,
-                    onSuccess: () => setDrawerAbierto(false),
+                    onSuccess: () => {
+                        const actualEstatus = seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus;
+                        if (form.data.Estatus && form.data.Estatus !== actualEstatus) {
+                            router.post(
+                                `/desarrollo/proyectos/${proyecto.IdProyecto}/actividades/${seleccionado.IdActividad}/estatus`,
+                                { Estatus: form.data.Estatus },
+                                { preserveScroll: true },
+                            );
+                        }
+                        setDrawerAbierto(false);
+                    },
                 },
             );
         } else {
@@ -210,7 +203,6 @@ export default function ProyectoActividadIndex({
                 preserveScroll: true,
                 onSuccess: () => {
                     formAdicional.reset();
-                    // Refrescar la actividad seleccionada con sus nuevos adicionales
                     const updated = items.data.find(
                         (i) => i.IdActividad === actividadParaAdicional.IdActividad,
                     );
@@ -243,16 +235,26 @@ export default function ProyectoActividadIndex({
         }
     };
 
-    const getEstatusVariant = (estatus?: string) => {
-        switch (estatus) {
-            case 'Realizada':
-                return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400';
-            case 'En Proceso':
-                return 'border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-400';
-            case 'No Realizada':
-            default:
-                return 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-400';
+    const formatTipoBadge = (tipo: string) => {
+        if (tipo === 'Individual') {
+            return (
+                <Badge variant="outline" className="border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    Individual
+                </Badge>
+            );
         }
+        if (tipo === 'Equipo') {
+            return (
+                <Badge variant="outline" className="border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    Equipo
+                </Badge>
+            );
+        }
+        return (
+            <Badge variant="outline" className="border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                Todos
+            </Badge>
+        );
     };
 
     const columns: Column<AdminProyectoActividadItem>[] = [
@@ -260,161 +262,58 @@ export default function ProyectoActividadIndex({
             key: 'Nombre',
             label: 'Actividad',
             render: (item) => (
-                <div className="flex items-start gap-2.5">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <ListTodo className="size-4" />
-                    </div>
-                    <div>
-                        <div className="font-semibold text-foreground text-sm">
-                            {item.Nombre}
-                        </div>
-                        {item.Descripcion && (
-                            <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm">
-                                {item.Descripcion}
-                            </p>
-                        )}
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                            {item.FechaEntrega && (
-                                <span className="flex items-center gap-1 font-medium text-foreground/80">
-                                    <Calendar className="size-3 text-muted-foreground" />
-                                    Entrega:{' '}
-                                    {new Date(item.FechaEntrega).toLocaleDateString(
-                                        'es-ES',
-                                        {
-                                            day: '2-digit',
-                                            month: 'short',
-                                            year: 'numeric',
-                                        },
-                                    )}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <Target className="size-4 text-primary shrink-0" />
+                    <span className="font-semibold text-foreground">{item.Nombre}</span>
                 </div>
             ),
         },
         {
+            key: 'Descripcion',
+            label: 'Descripción',
+            render: (item) => (
+                <p className="max-w-md truncate text-xs text-muted-foreground" title={item.Descripcion ?? ''}>
+                    {item.Descripcion || '—'}
+                </p>
+            ),
+        },
+        {
             key: 'modulo',
-            label: 'Módulo Asignado',
-            className: 'w-44',
-            render: (item) =>
+            label: 'Módulo',
+            render: (item) => (
                 item.modulo ? (
-                    <div className="flex items-center gap-1.5 font-medium text-xs text-foreground">
-                        <Boxes className="size-3.5 text-primary shrink-0" />
-                        <span className="truncate">{item.modulo.Nombre}</span>
+                    <Badge variant="outline" className="text-xs">
+                        {item.modulo.Nombre}
+                    </Badge>
+                ) : (
+                    <span className="text-muted-foreground">—</span>
+                )
+            ),
+        },
+        {
+            key: 'FechaEntrega',
+            label: 'Fecha Entrega',
+            render: (item) => (
+                item.FechaEntrega ? (
+                    <div className="flex items-center gap-1.5 text-xs text-foreground">
+                        <Calendar className="size-3.5 text-muted-foreground shrink-0" />
+                        <span>{formatDate(item.FechaEntrega)}</span>
                     </div>
                 ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                ),
+                    <span className="text-muted-foreground">—</span>
+                )
+            ),
         },
         {
             key: 'Tipo',
             label: 'Modalidad',
-            className: 'w-32 text-center',
-            render: (item) => {
-                const badgeVariant =
-                    item.Tipo === 'Equipo'
-                        ? 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30'
-                        : item.Tipo === 'Todos'
-                            ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30'
-                            : 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400 border-zinc-500/30';
-                return (
-                    <Badge variant="outline" className={`text-xs ${badgeVariant}`}>
-                        {item.Tipo}
-                    </Badge>
-                );
-            },
+            render: (item) => formatTipoBadge(item.Tipo),
         },
         {
             key: 'estatus',
-            label: 'Estatus (Kardex)',
-            className: 'w-44',
-            render: (item) => {
-                const estatusActual = item.estatusActual?.Estatus ?? 'No Realizada';
-                return (
-                    <Select
-                        value={estatusActual}
-                        onValueChange={(val) => cambiarEstatus(item, val)}
-                    >
-                        <SelectTrigger className="h-7 text-xs border rounded-md px-2">
-                            <SelectValue>
-                                <Badge
-                                    variant="outline"
-                                    className={`text-[11px] px-2 py-0.5 border ${getEstatusVariant(
-                                        estatusActual,
-                                    )}`}
-                                >
-                                    {estatusActual}
-                                </Badge>
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {estatusesDisponibles.map((st) => (
-                                <SelectItem key={st} value={st} className="text-xs">
-                                    <Badge
-                                        variant="outline"
-                                        className={`text-[11px] mr-1.5 ${getEstatusVariant(st)}`}
-                                    >
-                                        {st}
-                                    </Badge>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                );
-            },
-        },
-        {
-            key: 'adicionales',
-            label: 'Adicionales',
-            className: 'w-32 text-center',
+            label: 'Estatus',
             render: (item) => (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs gap-1 font-semibold"
-                    onClick={() => abrirDrawerAdicional(item)}
-                    title="Recursos adicionales de la actividad"
-                >
-                    <FileText className="size-3 text-primary" />
-                    <span>
-                        {item.actividades_adicionales_count ??
-                            item.actividadesAdicionales?.length ??
-                            0}
-                    </span>
-                </Button>
-            ),
-        },
-        {
-            key: 'equipos',
-            label: 'Equipo',
-            className: 'w-28 text-center',
-            render: (item) => (
-                <Link
-                    href={`/desarrollo/actividades/${item.IdActividad}/equipos`}
-                    className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-md border bg-card hover:bg-accent transition-colors"
-                    title="Ver y asignar equipo de la actividad"
-                >
-                    <Users2 className="size-3.5 text-primary" />
-                    <span>{item.equipos_count ?? item.equipos?.length ?? 0}</span>
-                </Link>
-            ),
-        },
-        {
-            key: 'recursos',
-            label: 'Recursos',
-            className: 'w-32 text-center',
-            render: (item) => (
-                <Link
-                    href={`/desarrollo/actividades/${item.IdActividad}/recursos`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
-                    title="Ver entregas y recursos de los colaboradores"
-                >
-                    <FilePlus className="size-3.5" />
-                    <span>
-                        {item.recursos_count ?? item.recursos?.length ?? 0} Entregas
-                    </span>
-                </Link>
+                <EstatusBadge estatus={item.estatus_actual?.Estatus ?? (item as any).estatusActual?.Estatus} />
             ),
         },
     ];
@@ -423,23 +322,24 @@ export default function ProyectoActividadIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Actividades - ${proyecto.Nombre}`} />
             <PageShell>
+                <div className="mb-2">
+                    <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                        <Link href="/desarrollo/proyectos">
+                            <ArrowLeft className="size-4" />
+                            Volver a Proyectos
+                        </Link>
+                    </Button>
+                </div>
+
                 <ContextPanel
-                    icon={<ListTodo />}
-                    title={`Actividades: ${proyecto.Nombre}`}
-                    description="Planificación de actividades, módulos de software vinculados, entregables del equipo y seguimiento de kardex."
+                    icon={<Target />}
+                    title={`Actividades de ${proyecto.Nombre}`}
+                    description="Administra los entregables y actividades del proyecto. Organiza equipos de trabajo y recepción de recursos."
                     actions={
-                        <div className="flex items-center gap-2">
-                            <Link href="/desarrollo/proyectos">
-                                <Button variant="outline" size="sm">
-                                    <ArrowLeft className="mr-1.5 size-4" />
-                                    Volver a Proyectos
-                                </Button>
-                            </Link>
-                            <Button size="sm" onClick={abrirNuevo}>
-                                <Plus className="mr-1.5 size-4" />
-                                Nueva Actividad
-                            </Button>
-                        </div>
+                        <Button size="sm" onClick={abrirNuevo}>
+                            <Plus className="mr-1.5 size-4" />
+                            Nueva Actividad
+                        </Button>
                     }
                 />
 
@@ -450,10 +350,52 @@ export default function ProyectoActividadIndex({
                         pagination={items}
                         baseUrl={`/desarrollo/proyectos/${proyecto.IdProyecto}/actividades`}
                         searchValue={searchValue}
-                        searchPlaceholder="Buscar por actividad, descripción, modalidad o módulo..."
+                        searchPlaceholder="Buscar por nombre o descripción de actividad..."
                         idKey="IdActividad"
                         onEdit={abrirEditar}
                         onDelete={eliminar}
+                        customActions={(item) => (
+                            <div className="flex items-center gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400"
+                                    onClick={() => abrirDrawerAdicional(item)}
+                                    title="Actividades adicionales"
+                                    aria-label="Actividades adicionales"
+                                >
+                                    <Paperclip className="h-4 w-4" />
+                                </Button>
+
+                                {item.Tipo === 'Equipo' && (
+                                    <Button
+                                        asChild
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="rounded-full text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
+                                        title="Integrantes del equipo"
+                                        aria-label="Integrantes del equipo"
+                                    >
+                                        <Link href={`/desarrollo/actividades/${item.IdActividad}/equipos`}>
+                                            <Users className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                )}
+
+                                <Button
+                                    asChild
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="rounded-full text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                    title="Recursos de la actividad"
+                                    aria-label="Recursos de la actividad"
+                                >
+                                    <Link href={`/desarrollo/actividades/${item.IdActividad}/recursos`}>
+                                        <FolderOpen className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        )}
                         emptyTitle="No hay actividades planificadas"
                         emptyDescription="Agrega una nueva actividad vinculando un módulo del proyecto y definiendo su modalidad de trabajo."
                     />
@@ -465,7 +407,7 @@ export default function ProyectoActividadIndex({
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
-                            <ListTodo className="size-5 text-primary" />
+                            <Target className="size-5 text-primary" />
                             {seleccionado ? 'Editar Actividad' : 'Nueva Actividad'}
                         </SheetTitle>
                         <SheetDescription>
@@ -475,21 +417,15 @@ export default function ProyectoActividadIndex({
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form
-                        id="actividad-form"
-                        onSubmit={handleSubmit}
-                        className="flex flex-col gap-4 px-6 py-4"
-                    >
+                    <form id="actividad-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre" required>
-                                    Nombre de la Actividad
-                                </FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>Nombre de la Actividad</FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
                                     onChange={(e) => form.setData('Nombre', e.target.value)}
-                                    placeholder="Ej. Implementar endpoints de autenticación"
+                                    placeholder="Ej. Implementar autenticación JWT"
                                     required
                                     autoFocus
                                 />
@@ -497,43 +433,31 @@ export default function ProyectoActividadIndex({
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="Descripcion">
-                                    Descripción / Requerimientos
-                                </FieldLabel>
+                                <FieldLabel htmlFor="Descripcion">Descripción Detallada</FieldLabel>
                                 <Textarea
                                     id="Descripcion"
                                     value={form.data.Descripcion}
-                                    onChange={(e) =>
-                                        form.setData('Descripcion', e.target.value)
-                                    }
-                                    placeholder="Alcance, criterios de aceptación o notas de implementación..."
+                                    onChange={(e) => form.setData('Descripcion', e.target.value)}
+                                    placeholder="Detalles y requerimientos técnicos..."
                                     rows={3}
                                 />
                                 <FieldError>{form.errors.Descripcion}</FieldError>
                             </Field>
 
-                            {/* REGLA DEL DIAGRAMA: SOLO SE PODRAN SELECCIONAR LOS MODULOS QUE ESTAN EN LA LISTA DE PROYECTO admin_proyecto_modulo */}
                             <Field>
-                                <FieldLabel htmlFor="IdModulo">
-                                    Módulo del Proyecto
-                                </FieldLabel>
+                                <FieldLabel htmlFor="IdModulo" required>Módulo Vinculado al Proyecto</FieldLabel>
                                 {modulosProyecto.length > 0 ? (
                                     <Select
                                         value={form.data.IdModulo}
-                                        onValueChange={(val) =>
-                                            form.setData('IdModulo', val)
-                                        }
+                                        onValueChange={(val) => form.setData('IdModulo', val)}
                                     >
                                         <SelectTrigger id="IdModulo">
                                             <SelectValue placeholder="Selecciona un módulo del proyecto" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {modulosProyecto.map((m) => (
-                                                <SelectItem
-                                                    key={m.IdModulo}
-                                                    value={String(m.IdModulo)}
-                                                >
-                                                    [{m.Codigo}] {m.Nombre}
+                                            {modulosProyecto.map((mod) => (
+                                                <SelectItem key={mod.IdModulo} value={String(mod.IdModulo)}>
+                                                    {mod.Codigo} - {mod.Nombre}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -558,20 +482,18 @@ export default function ProyectoActividadIndex({
 
                             <div className="grid grid-cols-2 gap-3">
                                 <Field>
-                                    <FieldLabel htmlFor="Tipo" required>
-                                        Modalidad
-                                    </FieldLabel>
+                                    <FieldLabel htmlFor="Tipo" required>Modalidad</FieldLabel>
                                     <Select
                                         value={form.data.Tipo}
                                         onValueChange={(val) => form.setData('Tipo', val)}
                                     >
                                         <SelectTrigger id="Tipo">
-                                            <SelectValue />
+                                            <SelectValue placeholder="Modalidad" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {tiposDisponibles.map((t) => (
-                                                <SelectItem key={t} value={t}>
-                                                    {t}
+                                            {tiposDisponibles.map((tp) => (
+                                                <SelectItem key={tp} value={tp}>
+                                                    {tp}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -580,192 +502,195 @@ export default function ProyectoActividadIndex({
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel htmlFor="FechaEntrega">
-                                        Fecha de Entrega
-                                    </FieldLabel>
+                                    <FieldLabel htmlFor="FechaEntrega">Fecha Entrega</FieldLabel>
                                     <Input
                                         id="FechaEntrega"
                                         type="date"
                                         value={form.data.FechaEntrega}
-                                        onChange={(e) =>
-                                            form.setData('FechaEntrega', e.target.value)
-                                        }
+                                        onChange={(e) => form.setData('FechaEntrega', e.target.value)}
                                     />
                                     <FieldError>{form.errors.FechaEntrega}</FieldError>
                                 </Field>
                             </div>
-                        </FieldGroup>
-                    </form>
 
-                    <Separator className="my-2" />
-
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setDrawerAbierto(false)}
-                                disabled={form.processing}
-                            >
-                                <X className="mr-1.5 size-4" />
-                                Cancelar
-                            </Button>
-                        </SheetClose>
-                        <Button
-                            type="submit"
-                            form="actividad-form"
-                            disabled={form.processing}
-                        >
-                            {form.processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
+                            {seleccionado && (
+                                <Field>
+                                    <FieldLabel htmlFor="Estatus">Estatus de la Actividad</FieldLabel>
+                                    <Select
+                                        value={form.data.Estatus}
+                                        onValueChange={(val) => form.setData('Estatus', val)}
+                                    >
+                                        <SelectTrigger id="Estatus">
+                                            <SelectValue placeholder="Selecciona un estatus" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {estatusesDisponibles.map((st) => (
+                                                <SelectItem key={st} value={st}>
+                                                    {st}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
                             )}
-                            {seleccionado ? 'Guardar Cambios' : 'Registrar'}
-                        </Button>
-                    </SheetFooter>
+                        </FieldGroup>
+
+                        <Separator className="my-2" />
+
+                        <SheetFooter className="gap-2 sm:space-x-0">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    <X className="mr-1.5 size-4" />
+                                    Cancelar
+                                </Button>
+                            </SheetClose>
+                            <Button type="submit" disabled={form.processing}>
+                                {form.processing ? (
+                                    <>
+                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-1.5 size-4" />
+                                        {seleccionado ? 'Guardar Cambios' : 'Crear Actividad'}
+                                    </>
+                                )}
+                            </Button>
+                        </SheetFooter>
+                    </form>
                 </SheetContent>
             </Sheet>
 
-            {/* Sheet para Actividades Adicionales (Drawer Mostrar, Agregar, Eliminar) */}
-            <Sheet
-                open={drawerAdicionalAbierto}
-                onOpenChange={setDrawerAdicionalAbierto}
-            >
+            {/* Drawer para Actividad Adicional (Mostrar, Agregar, Eliminar con FileOrLinkField) */}
+            <Sheet open={drawerAdicionalAbierto} onOpenChange={setDrawerAdicionalAbierto}>
                 <SheetContent className="overflow-y-auto sm:max-w-md">
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
-                            <FileText className="size-5 text-primary" />
-                            Recursos Adicionales de la Actividad
+                            <Paperclip className="size-5 text-primary" />
+                            Recursos Adicionales
                         </SheetTitle>
                         <SheetDescription>
-                            {actividadParaAdicional?.Nombre} &bull; Agrega o remueve enlaces
-                            y archivos de apoyo complementarios.
+                            {actividadParaAdicional
+                                ? `Archivos y enlaces de apoyo para "${actividadParaAdicional.Nombre}".`
+                                : 'Recursos adicionales de la actividad.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <div className="flex flex-col gap-4 px-6 py-4">
-                        {/* Formulario para agregar */}
-                        <form
-                            onSubmit={handleAgregarAdicional}
-                            className="p-3.5 rounded-lg border bg-muted/40 flex flex-col gap-3"
-                        >
-                            <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                                Agregar Nuevo Recurso
-                            </span>
-                            <Field>
-                                <FieldLabel htmlFor="adicional-desc">
-                                    Descripción / Nota
-                                </FieldLabel>
-                                <Input
-                                    id="adicional-desc"
-                                    value={formAdicional.data.Descripcion}
-                                    onChange={(e) =>
-                                        formAdicional.setData('Descripcion', e.target.value)
-                                    }
-                                    placeholder="Ej. Guía de integración de la API"
-                                />
-                            </Field>
+                    <div className="flex flex-col gap-6 px-6 py-4">
+                        {/* Lista de Adicionales Existentes */}
+                        <div>
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                Recursos Registrados (
+                                {actividadParaAdicional?.actividadesAdicionales?.length ??
+                                    actividadParaAdicional?.actividades_adicionales_count ??
+                                    0}
+                                )
+                            </h4>
 
-                            {/* Componente FileOrLinkField para subir archivo o URL */}
-                            <FileOrLinkField
-                                id="adicional-url"
-                                label="Archivo o Enlace URL"
-                                value={formAdicional.data.UrlRecurso ?? ''}
-                                onChange={(val) =>
-                                    formAdicional.setData('UrlRecurso', val)
-                                }
-                                folder="Desarrollo / Actividades / Adicionales"
-                                disabled={formAdicional.processing}
-                                error={formAdicional.errors.UrlRecurso}
-                            />
+                            {actividadParaAdicional?.actividadesAdicionales &&
+                            actividadParaAdicional.actividadesAdicionales.length > 0 ? (
+                                <div className="space-y-2">
+                                    {actividadParaAdicional.actividadesAdicionales.map(
+                                        (adicional: AdminProyectoActividadAdicionalItem) => (
+                                            <div
+                                                key={adicional.IdActividadAdicional}
+                                                className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card text-xs"
+                                            >
+                                                <div className="flex flex-col gap-0.5 overflow-hidden">
+                                                    <span className="font-semibold text-foreground truncate">
+                                                        {adicional.Descripcion}
+                                                    </span>
+                                                    {adicional.UrlRecurso && (
+                                                        <a
+                                                            href={adicional.UrlRecurso}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-1 text-[11px] text-primary hover:underline truncate"
+                                                        >
+                                                            <ExternalLink className="size-3 shrink-0" />
+                                                            <span className="truncate">{adicional.UrlRecurso}</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                                    onClick={() => handleEliminarAdicional(adicional.IdActividadAdicional)}
+                                                    title="Eliminar recurso adicional"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-muted-foreground italic">
+                                    No hay recursos adicionales agregados a esta actividad.
+                                </p>
+                            )}
+                        </div>
+
+                        <Separator />
+
+                        {/* Formulario para Agregar Nuevo Adicional usando FileOrLinkField */}
+                        <form onSubmit={handleAgregarAdicional} className="flex flex-col gap-4">
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                Agregar Nuevo Recurso
+                            </h4>
+
+                            <FieldGroup>
+                                <Field>
+                                    <FieldLabel htmlFor="adicional-descripcion" required>
+                                        Descripción
+                                    </FieldLabel>
+                                    <Input
+                                        id="adicional-descripcion"
+                                        value={formAdicional.data.Descripcion}
+                                        onChange={(e) => formAdicional.setData('Descripcion', e.target.value)}
+                                        placeholder="Ej. Diagrama de arquitectura, Guía de estilo..."
+                                        required
+                                    />
+                                    <FieldError>{formAdicional.errors.Descripcion}</FieldError>
+                                </Field>
+
+                                <FileOrLinkField
+                                    id="adicional-url"
+                                    label="Archivo o Enlace"
+                                    value={formAdicional.data.UrlRecurso}
+                                    onChange={(val) => formAdicional.setData('UrlRecurso', val)}
+                                    placeholder="https://..."
+                                    error={formAdicional.errors.UrlRecurso}
+                                    helpText="Puedes subir un archivo a Drive o colocar una URL externa."
+                                />
+                            </FieldGroup>
 
                             <Button
                                 type="submit"
                                 size="sm"
-                                disabled={formAdicional.processing}
-                                className="self-end mt-1"
+                                disabled={formAdicional.processing || !formAdicional.data.Descripcion.trim()}
+                                className="w-full"
                             >
                                 {formAdicional.processing ? (
-                                    <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                                    <>
+                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        Agregando...
+                                    </>
                                 ) : (
-                                    <Plus className="mr-1.5 size-3.5" />
+                                    <>
+                                        <Plus className="mr-1.5 size-4" />
+                                        Agregar Recurso Adicional
+                                    </>
                                 )}
-                                Agregar Recurso
                             </Button>
                         </form>
-
-                        <Separator className="my-1" />
-
-                        {/* Lista de Recursos Adicionales existentes */}
-                        <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                Recursos Registrados (
-                                {actividadParaAdicional?.actividadesAdicionales?.length ?? 0}
-                                )
-                            </span>
-
-                            {(!actividadParaAdicional?.actividadesAdicionales ||
-                                actividadParaAdicional.actividadesAdicionales.length ===
-                                0) && (
-                                    <p className="text-xs text-muted-foreground text-center py-6 border rounded-lg border-dashed">
-                                        No hay recursos adicionales registrados aún.
-                                    </p>
-                                )}
-
-                            {actividadParaAdicional?.actividadesAdicionales?.map((ad) => (
-                                <div
-                                    key={ad.IdActividadAdicional}
-                                    className="flex items-center justify-between p-2.5 rounded-lg border bg-card text-xs gap-2"
-                                >
-                                    <div className="flex flex-col gap-0.5 truncate">
-                                        <span className="font-semibold text-foreground truncate">
-                                            {ad.Descripcion || 'Recurso adicional'}
-                                        </span>
-                                        {ad.UrlRecurso && (
-                                            <a
-                                                href={ad.UrlRecurso}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-primary hover:underline flex items-center gap-1 text-[11px] truncate"
-                                            >
-                                                <ExternalLink className="size-3 shrink-0" />
-                                                <span className="truncate">{ad.UrlRecurso}</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 text-muted-foreground hover:text-destructive shrink-0"
-                                        onClick={() =>
-                                            handleEliminarAdicional(ad.IdActividadAdicional)
-                                        }
-                                        title="Eliminar recurso adicional"
-                                    >
-                                        <Trash2 className="size-3.5" />
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
                     </div>
-
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setDrawerAdicionalAbierto(false)}
-                            >
-                                <X className="mr-1.5 size-4" />
-                                Cerrar
-                            </Button>
-                        </SheetClose>
-                    </SheetFooter>
                 </SheetContent>
             </Sheet>
         </AppLayout>
     );
 }
-

@@ -1,7 +1,7 @@
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { PageContent, PageShell } from '@/components/page-shell';
-import { Badge } from '@/components/ui/badge';
+import { ProyectoEstatusBadge } from '@/components/proyectos/proyecto-estatus-badge';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -27,78 +27,68 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/fechas';
 import { type BreadcrumbItem } from '@/types';
-import { type AdminKardexProyectoEstatusItem } from '@/types/admin-proyectos';
-import { type PaginatedData } from '@/types/pagination';
-import { Head, Link, useForm } from '@inertiajs/react';
 import {
-    ArrowLeft,
-    Clock,
-    FolderKanban,
-    ListChecks,
-    Loader2,
-    Plus,
-    Save,
-    X,
-} from 'lucide-react';
-import { useState } from 'react';
+    type AdminKardexProyectoEstatusItem,
+    type AdminProyectoSimple,
+} from '@/types/admin-proyectos';
+import { type PaginatedData } from '@/types/pagination';
+import { Head, router, useForm } from '@inertiajs/react';
+import { Calendar, FolderGit2, ListChecks, Loader2, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Props {
     items: PaginatedData<AdminKardexProyectoEstatusItem>;
-    proyectos: { IdProyecto: number; Nombre: string }[];
+    proyectos: AdminProyectoSimple[];
     estatusesDisponibles: string[];
     searchValue: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Desarrollo', href: '/consultor/proyectos' },
+    { title: 'Proyectos', href: '/desarrollo/proyectos' },
     { title: 'Kardex Proyectos', href: '/desarrollo/kardex-proyectos' },
 ];
 
 export default function KardexProyectosIndex({
     items,
-    proyectos,
     estatusesDisponibles,
     searchValue,
 }: Props) {
     const [drawerAbierto, setDrawerAbierto] = useState(false);
+    const [seleccionado, setSeleccionado] = useState<AdminKardexProyectoEstatusItem | null>(null);
 
     const form = useForm({
-        IdProyecto: proyectos.length > 0 ? String(proyectos[0].IdProyecto) : '',
         Estatus: 'Pendiente',
     });
 
-    const abrirNuevo = () => {
-        form.setData({
-            IdProyecto: proyectos.length > 0 ? String(proyectos[0].IdProyecto) : '',
-            Estatus: 'Pendiente',
-        });
+    useEffect(() => {
+        if (seleccionado) {
+            form.setData({
+                Estatus: seleccionado.Estatus,
+            });
+        }
         form.clearErrors();
+    }, [seleccionado, drawerAbierto]);
+
+    const abrirEditar = (item: AdminKardexProyectoEstatusItem) => {
+        setSeleccionado(item);
         setDrawerAbierto(true);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post('/desarrollo/kardex-proyectos', {
-            preserveScroll: true,
-            onSuccess: () => setDrawerAbierto(false),
-        });
-    };
+        if (!seleccionado) return;
 
-    const getEstatusVariant = (estatus?: string) => {
-        switch (estatus) {
-            case 'Finalizado':
-                return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400';
-            case 'En Emision':
-                return 'border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-400';
-            case 'Pausado':
-                return 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-400';
-            case 'Cancelado':
-                return 'border-red-500/30 bg-red-500/15 text-red-700 dark:text-red-400';
-            case 'Pendiente':
-            default:
-                return 'border-zinc-500/30 bg-zinc-500/15 text-zinc-700 dark:text-zinc-400';
-        }
+        // Si se actualiza el estatus, registrar el cambio de estatus en el proyecto
+        router.post(
+            `/desarrollo/proyectos/${seleccionado.IdProyecto}/estatus`,
+            { Estatus: form.data.Estatus },
+            {
+                preserveScroll: true,
+                onSuccess: () => setDrawerAbierto(false),
+            },
+        );
     };
 
     const columns: Column<AdminKardexProyectoEstatusItem>[] = [
@@ -106,77 +96,61 @@ export default function KardexProyectosIndex({
             key: 'proyecto',
             label: 'Proyecto',
             render: (item) => (
-                <div className="flex items-center gap-2">
-                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <FolderKanban className="size-3.5" />
-                    </div>
-                    <span className="font-semibold text-foreground text-sm">
-                        {item.proyecto?.Nombre ?? 'Sin Proyecto'}
-                    </span>
+                <div className="flex items-center gap-1.5 text-foreground font-medium text-xs">
+                    <FolderGit2 className="size-3.5 text-primary shrink-0" />
+                    <span>{item.proyecto?.Nombre ?? '—'}</span>
                 </div>
             ),
         },
         {
-            key: 'Estatus',
-            label: 'Estatus Registrado',
-            className: 'w-44',
+            key: 'Descripcion',
+            label: 'Descripción',
             render: (item) => (
-                <Badge
-                    variant="outline"
-                    className={`text-xs px-2.5 py-0.5 border ${getEstatusVariant(
-                        item.Estatus,
-                    )}`}
-                >
-                    {item.Estatus}
-                </Badge>
+                <span className="text-xs text-muted-foreground line-clamp-2">
+                    {item.proyecto?.Descripcion || '—'}
+                </span>
             ),
         },
         {
-            key: 'FechaRegistro',
-            label: 'Fecha y Hora del Cambio',
-            className: 'w-52 text-xs text-muted-foreground',
-            render: (item) =>
-                item.FechaRegistro ? (
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="size-3 text-muted-foreground" />
-                        <span>
-                            {new Date(item.FechaRegistro).toLocaleString('es-ES', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                            })}
-                        </span>
+            key: 'FechaInicio',
+            label: 'Fecha Inicio',
+            render: (item) => (
+                item.proyecto?.FechaInicio ? (
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Calendar className="size-3 shrink-0" />
+                        <span>{formatDate(item.proyecto.FechaInicio)}</span>
                     </div>
                 ) : (
-                    '—'
-                ),
+                    <span className="text-muted-foreground text-xs">—</span>
+                )
+            ),
+        },
+        {
+            key: 'Estatus',
+            label: 'Estatus',
+            render: (item) => <ProyectoEstatusBadge estatus={item.Estatus} />,
+        },
+        {
+            key: 'FechaRegistro',
+            label: 'Fecha de Registro',
+            className: 'w-44',
+            render: (item) => (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Calendar className="size-3.5 shrink-0" />
+                    <span>{formatDate(item.FechaRegistro)}</span>
+                </div>
+            ),
         },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Kardex de Proyectos - Desarrollo" />
+            <Head title="Kardex de Proyectos" />
             <PageShell>
                 <ContextPanel
                     icon={<ListChecks />}
                     title="Kardex de Estatus: Proyectos"
                     description="Historial cronológico de cambios de estatus en los proyectos administrativos."
-                    actions={
-                        <div className="flex items-center gap-2">
-                            <Link href="/desarrollo/proyectos">
-                                <Button variant="outline" size="sm">
-                                    <ArrowLeft className="mr-1.5 size-4" />
-                                    Volver a Proyectos
-                                </Button>
-                            </Link>
-                            <Button size="sm" onClick={abrirNuevo}>
-                                <Plus className="mr-1.5 size-4" />
-                                Nuevo Registro Kardex
-                            </Button>
-                        </div>
-                    }
                 />
 
                 <PageContent>
@@ -188,6 +162,7 @@ export default function KardexProyectosIndex({
                         searchValue={searchValue}
                         searchPlaceholder="Buscar por estatus o nombre de proyecto..."
                         idKey="IdAdminProyectoEstatus"
+                        onEdit={abrirEditar}
                         emptyTitle="No hay movimientos registrados en el kardex"
                         emptyDescription="Los cambios de estatus realizados en los proyectos se registrarán automáticamente aquí."
                     />
@@ -199,52 +174,30 @@ export default function KardexProyectosIndex({
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <ListChecks className="size-5 text-primary" />
-                            Nuevo Registro en Kardex
+                            Actualizar Estatus del Proyecto
                         </SheetTitle>
                         <SheetDescription>
-                            Registra manualmente un cambio de estatus para un proyecto.
+                            {seleccionado?.proyecto?.Nombre
+                                ? `Cambiar estatus para "${seleccionado.proyecto.Nombre}".`
+                                : 'Selecciona el nuevo estatus para registrar en el kardex.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="kardex-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="IdProyecto" required>
-                                    Proyecto
-                                </FieldLabel>
-                                <Select
-                                    value={form.data.IdProyecto}
-                                    onValueChange={(val) => form.setData('IdProyecto', val)}
-                                >
-                                    <SelectTrigger id="IdProyecto">
-                                        <SelectValue placeholder="Selecciona un proyecto" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {proyectos.map((p) => (
-                                            <SelectItem key={p.IdProyecto} value={String(p.IdProyecto)}>
-                                                {p.Nombre}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FieldError>{form.errors.IdProyecto}</FieldError>
-                            </Field>
-
-                            <Field>
-                                <FieldLabel htmlFor="Estatus" required>
-                                    Nuevo Estatus
-                                </FieldLabel>
+                                <FieldLabel htmlFor="Estatus" required>Estatus</FieldLabel>
                                 <Select
                                     value={form.data.Estatus}
                                     onValueChange={(val) => form.setData('Estatus', val)}
                                 >
                                     <SelectTrigger id="Estatus">
-                                        <SelectValue />
+                                        <SelectValue placeholder="Selecciona un estatus" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {estatusesDisponibles.map((st) => (
-                                            <SelectItem key={st} value={st}>
-                                                {st}
+                                        {estatusesDisponibles.map((est) => (
+                                            <SelectItem key={est} value={est}>
+                                                {est}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -252,38 +205,33 @@ export default function KardexProyectosIndex({
                                 <FieldError>{form.errors.Estatus}</FieldError>
                             </Field>
                         </FieldGroup>
-                    </form>
 
-                    <Separator className="my-2" />
+                        <Separator className="my-2" />
 
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setDrawerAbierto(false)}
-                                disabled={form.processing}
-                            >
-                                <X className="mr-1.5 size-4" />
-                                Cancelar
+                        <SheetFooter className="gap-2 sm:space-x-0">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    <X className="mr-1.5 size-4" />
+                                    Cancelar
+                                </Button>
+                            </SheetClose>
+                            <Button type="submit" disabled={form.processing}>
+                                {form.processing ? (
+                                    <>
+                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        Actualizando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-1.5 size-4" />
+                                        Actualizar Estatus
+                                    </>
+                                )}
                             </Button>
-                        </SheetClose>
-                        <Button
-                            type="submit"
-                            form="kardex-form"
-                            disabled={form.processing || proyectos.length === 0}
-                        >
-                            {form.processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
-                            )}
-                            Registrar Movimiento
-                        </Button>
-                    </SheetFooter>
+                        </SheetFooter>
+                    </form>
                 </SheetContent>
             </Sheet>
         </AppLayout>
     );
 }
-

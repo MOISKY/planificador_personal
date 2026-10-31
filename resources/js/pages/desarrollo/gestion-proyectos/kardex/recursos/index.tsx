@@ -1,7 +1,7 @@
 import { ContextPanel } from '@/components/context-panel';
 import { DataTable, type Column } from '@/components/data-table';
 import { PageContent, PageShell } from '@/components/page-shell';
-import { Badge } from '@/components/ui/badge';
+import { EstatusBadge } from '@/components/proyectos/estatus-badge';
 import { Button } from '@/components/ui/button';
 import {
     Field,
@@ -27,21 +27,13 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import AppLayout from '@/layouts/app-layout';
+import { formatDate } from '@/lib/fechas';
 import { type BreadcrumbItem } from '@/types';
 import { type AdminKardexProyectoActividadRecursoEstatusItem } from '@/types/admin-proyectos';
 import { type PaginatedData } from '@/types/pagination';
-import { Head, Link, useForm } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    CheckSquare,
-    Clock,
-    FileText,
-    Loader2,
-    Plus,
-    Save,
-    X,
-} from 'lucide-react';
-import { useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { Calendar, CheckSquare, FileCheck, FolderGit2, Loader2, Save, Target, User, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Props {
     items: PaginatedData<AdminKardexProyectoActividadRecursoEstatusItem>;
@@ -55,135 +47,123 @@ interface Props {
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Desarrollo', href: '/consultor/proyectos' },
+    { title: 'Proyectos', href: '/desarrollo/proyectos' },
     { title: 'Kardex Recursos', href: '/desarrollo/kardex-recursos' },
 ];
 
 export default function KardexRecursosIndex({
     items,
-    recursos,
     estatusesDisponibles,
     searchValue,
 }: Props) {
     const [drawerAbierto, setDrawerAbierto] = useState(false);
+    const [seleccionado, setSeleccionado] =
+        useState<AdminKardexProyectoActividadRecursoEstatusItem | null>(null);
 
     const form = useForm({
-        IdActividadRecurso: recursos.length > 0 ? String(recursos[0].IdActividadRecurso) : '',
         Estatus: 'No Realizada',
     });
 
-    const abrirNuevo = () => {
-        form.setData({
-            IdActividadRecurso: recursos.length > 0 ? String(recursos[0].IdActividadRecurso) : '',
-            Estatus: 'No Realizada',
-        });
+    useEffect(() => {
+        if (seleccionado) {
+            form.setData({
+                Estatus: seleccionado.Estatus,
+            });
+        }
         form.clearErrors();
+    }, [seleccionado, drawerAbierto]);
+
+    const abrirEditar = (item: AdminKardexProyectoActividadRecursoEstatusItem) => {
+        setSeleccionado(item);
         setDrawerAbierto(true);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post('/desarrollo/kardex-recursos', {
-            preserveScroll: true,
-            onSuccess: () => setDrawerAbierto(false),
-        });
-    };
+        if (!seleccionado) return;
 
-    const getEstatusVariant = (estatus?: string) => {
-        switch (estatus) {
-            case 'Realizada':
-                return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400';
-            case 'En Proceso':
-                return 'border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-400';
-            case 'No Realizada':
-            default:
-                return 'border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-400';
-        }
+        const idActividad = seleccionado.recurso?.IdActividad ?? 0;
+        router.post(
+            `/desarrollo/actividades/${idActividad}/recursos/${seleccionado.IdActividadRecurso}/estatus`,
+            { Estatus: form.data.Estatus },
+            {
+                preserveScroll: true,
+                onSuccess: () => setDrawerAbierto(false),
+            },
+        );
     };
 
     const columns: Column<AdminKardexProyectoActividadRecursoEstatusItem>[] = [
         {
-            key: 'recurso',
-            label: 'Recurso / Actividad',
+            key: 'proyecto',
+            label: 'Proyecto',
             render: (item) => (
-                <div className="flex items-center gap-2">
-                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <FileText className="size-3.5" />
-                    </div>
-                    <div>
-                        <div className="font-semibold text-foreground text-sm">
-                            {item.recurso?.Nombre ?? 'Sin Recurso'}
-                        </div>
-                        {item.recurso?.actividad && (
-                            <div className="text-[11px] text-muted-foreground">
-                                Actividad: {item.recurso.actividad.Nombre}
-                            </div>
-                        )}
-                    </div>
+                <div className="flex items-center gap-1.5 text-foreground font-medium text-xs">
+                    <FolderGit2 className="size-3.5 text-primary shrink-0" />
+                    <span>{item.recurso?.actividad?.proyecto?.Nombre ?? '—'}</span>
+                </div>
+            ),
+        },
+        {
+            key: 'actividad',
+            label: 'Actividad',
+            render: (item) => (
+                <div className="flex items-center gap-1.5 text-foreground font-medium text-xs">
+                    <Target className="size-3.5 text-primary shrink-0" />
+                    <span>{item.recurso?.actividad?.Nombre ?? '—'}</span>
+                </div>
+            ),
+        },
+        {
+            key: 'recurso',
+            label: 'Recurso',
+            render: (item) => (
+                <div className="flex items-center gap-1.5 text-foreground font-medium text-xs">
+                    <FileCheck className="size-3.5 text-primary shrink-0" />
+                    <span>{item.recurso?.Nombre ?? '—'}</span>
+                </div>
+            ),
+        },
+        {
+            key: 'persona',
+            label: 'Colaborador',
+            render: (item) => (
+                <div className="flex items-center gap-1.5 text-xs text-foreground">
+                    <User className="size-3.5 text-muted-foreground shrink-0" />
+                    <span>
+                        {item.recurso?.personal
+                            ? `${item.recurso.personal.Nombre} ${item.recurso.personal.APaterno}`
+                            : 'Individual'}
+                    </span>
                 </div>
             ),
         },
         {
             key: 'Estatus',
-            label: 'Estatus Registrado',
-            className: 'w-44',
-            render: (item) => (
-                <Badge
-                    variant="outline"
-                    className={`text-xs px-2.5 py-0.5 border ${getEstatusVariant(
-                        item.Estatus,
-                    )}`}
-                >
-                    {item.Estatus}
-                </Badge>
-            ),
+            label: 'Estatus',
+            render: (item) => <EstatusBadge estatus={item.Estatus} />,
         },
         {
             key: 'FechaRegistro',
-            label: 'Fecha y Hora del Cambio',
-            className: 'w-52 text-xs text-muted-foreground',
-            render: (item) =>
-                item.FechaRegistro ? (
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="size-3 text-muted-foreground" />
-                        <span>
-                            {new Date(item.FechaRegistro).toLocaleString('es-ES', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                            })}
-                        </span>
-                    </div>
-                ) : (
-                    '—'
-                ),
+            label: 'Fecha de Registro',
+            className: 'w-44',
+            render: (item) => (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Calendar className="size-3.5 shrink-0" />
+                    <span>{formatDate(item.FechaRegistro)}</span>
+                </div>
+            ),
         },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Kardex de Recursos - Desarrollo" />
+            <Head title="Kardex de Recursos" />
             <PageShell>
                 <ContextPanel
                     icon={<CheckSquare />}
                     title="Kardex de Estatus: Recursos y Entregas"
                     description="Historial cronológico de cambios de estatus en los recursos y entregables de las actividades."
-                    actions={
-                        <div className="flex items-center gap-2">
-                            <Link href="/desarrollo/proyectos">
-                                <Button variant="outline" size="sm">
-                                    <ArrowLeft className="mr-1.5 size-4" />
-                                    Volver a Proyectos
-                                </Button>
-                            </Link>
-                            <Button size="sm" onClick={abrirNuevo}>
-                                <Plus className="mr-1.5 size-4" />
-                                Nuevo Registro Kardex
-                            </Button>
-                        </div>
-                    }
                 />
 
                 <PageContent>
@@ -195,6 +175,7 @@ export default function KardexRecursosIndex({
                         searchValue={searchValue}
                         searchPlaceholder="Buscar por estatus, recurso o actividad..."
                         idKey="IdAdminActividadRecursoEstatus"
+                        onEdit={abrirEditar}
                         emptyTitle="No hay movimientos registrados en el kardex"
                         emptyDescription="Los cambios de estatus realizados en los recursos de las actividades se registrarán automáticamente aquí."
                     />
@@ -206,52 +187,30 @@ export default function KardexRecursosIndex({
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <CheckSquare className="size-5 text-primary" />
-                            Nuevo Registro en Kardex de Recurso
+                            Actualizar Estatus de Recurso
                         </SheetTitle>
                         <SheetDescription>
-                            Registra manualmente un cambio de estatus para un recurso o entregable.
+                            {seleccionado?.recurso?.Nombre
+                                ? `Cambiar estatus para el recurso "${seleccionado.recurso.Nombre}".`
+                                : 'Selecciona el nuevo estatus para registrar en el kardex.'}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="kardex-rec-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="IdActividadRecurso" required>
-                                    Recurso / Entregable
-                                </FieldLabel>
-                                <Select
-                                    value={form.data.IdActividadRecurso}
-                                    onValueChange={(val) => form.setData('IdActividadRecurso', val)}
-                                >
-                                    <SelectTrigger id="IdActividadRecurso">
-                                        <SelectValue placeholder="Selecciona un recurso" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {recursos.map((r) => (
-                                            <SelectItem key={r.IdActividadRecurso} value={String(r.IdActividadRecurso)}>
-                                                {r.Nombre} {r.actividad ? `(${r.actividad.Nombre})` : ''}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FieldError>{form.errors.IdActividadRecurso}</FieldError>
-                            </Field>
-
-                            <Field>
-                                <FieldLabel htmlFor="Estatus" required>
-                                    Nuevo Estatus
-                                </FieldLabel>
+                                <FieldLabel htmlFor="Estatus" required>Estatus</FieldLabel>
                                 <Select
                                     value={form.data.Estatus}
                                     onValueChange={(val) => form.setData('Estatus', val)}
                                 >
                                     <SelectTrigger id="Estatus">
-                                        <SelectValue />
+                                        <SelectValue placeholder="Selecciona un estatus" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {estatusesDisponibles.map((st) => (
-                                            <SelectItem key={st} value={st}>
-                                                {st}
+                                        {estatusesDisponibles.map((est) => (
+                                            <SelectItem key={est} value={est}>
+                                                {est}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -259,38 +218,33 @@ export default function KardexRecursosIndex({
                                 <FieldError>{form.errors.Estatus}</FieldError>
                             </Field>
                         </FieldGroup>
-                    </form>
 
-                    <Separator className="my-2" />
+                        <Separator className="my-2" />
 
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setDrawerAbierto(false)}
-                                disabled={form.processing}
-                            >
-                                <X className="mr-1.5 size-4" />
-                                Cancelar
+                        <SheetFooter className="gap-2 sm:space-x-0">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    <X className="mr-1.5 size-4" />
+                                    Cancelar
+                                </Button>
+                            </SheetClose>
+                            <Button type="submit" disabled={form.processing}>
+                                {form.processing ? (
+                                    <>
+                                        <Loader2 className="mr-1.5 size-4 animate-spin" />
+                                        Actualizando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-1.5 size-4" />
+                                        Actualizar Estatus
+                                    </>
+                                )}
                             </Button>
-                        </SheetClose>
-                        <Button
-                            type="submit"
-                            form="kardex-rec-form"
-                            disabled={form.processing || recursos.length === 0}
-                        >
-                            {form.processing ? (
-                                <Loader2 className="mr-1.5 size-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-1.5 size-4" />
-                            )}
-                            Registrar Movimiento
-                        </Button>
-                    </SheetFooter>
+                        </SheetFooter>
+                    </form>
                 </SheetContent>
             </Sheet>
         </AppLayout>
     );
 }
-
