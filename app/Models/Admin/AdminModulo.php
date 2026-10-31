@@ -4,6 +4,7 @@ namespace App\Models\Admin;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Módulo del sistema.
@@ -36,5 +37,10 @@ class AdminModulo extends Model
         return [
             'FechaRegistro' => 'datetime',
         ];
+    }
+
+    public function proyectosModulos(): HasMany
+    {
+        return $this->hasMany(AdminProyectoModulo::class, 'IdModulo', 'IdModulo');
     }
 }

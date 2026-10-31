@@ -198,7 +198,7 @@ export function AppSidebar() {
                     ],
                 },
                 {
-                    title: 'Proyectos',
+                    title: 'Proyectos GitHub',
                     href: toUrl(github.proyectos()),
                     icon: FolderGit2,
                     badge:
@@ -207,6 +207,26 @@ export function AppSidebar() {
                                 {newProjectsCount}
                             </span>
                         ) : undefined,
+                },
+                {
+                    title: 'Proyectos',
+                    href: '/desarrollo/proyectos',
+                    icon: FolderKanban,
+                },
+                {
+                    title: 'Kardex Proyectos',
+                    href: '/desarrollo/kardex-proyectos',
+                    icon: ListChecks,
+                },
+                {
+                    title: 'Kardex Actividades',
+                    href: '/desarrollo/kardex-actividades',
+                    icon: BookmarkCheck,
+                },
+                {
+                    title: 'Kardex Recursos',
+                    href: '/desarrollo/kardex-recursos',
+                    icon: CheckSquare,
                 },
             ],
         },

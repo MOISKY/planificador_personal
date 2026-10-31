@@ -71,4 +71,9 @@ class AdminPersonal extends Model
     {
         return $this->hasMany(AdminPersonalUsuario::class, 'IdPersonal', 'IdPersonal');
     }
+
+    public function proyectosAsignados(): HasMany
+    {
+        return $this->hasMany(AdminProyectoPersonal::class, 'IdPersonal', 'IdPersonal');
+    }
 }

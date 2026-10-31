@@ -27,6 +27,16 @@ use App\Http\Controllers\Contabilidad\PeriodoController;
 use App\Http\Controllers\Desarrollo\CandidatoController as DesarrolloCandidatoController;
 use App\Http\Controllers\Desarrollo\CandidatoTipoController as DesarrolloCandidatoTipoController;
 use App\Http\Controllers\Desarrollo\EspecialidadController as DesarrolloEspecialidadController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\KardexProyectoActividadEstatusController as AdminKardexProyectoActividadEstatusController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\KardexProyectoActividadRecursoEstatusController as AdminKardexProyectoActividadRecursoEstatusController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\KardexProyectoEstatusController as AdminKardexProyectoEstatusController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoActividadAdicionalController as AdminProyectoActividadAdicionalController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoActividadController as AdminProyectoActividadController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoActividadEquipoController as AdminProyectoActividadEquipoController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoActividadRecursoController as AdminProyectoActividadRecursoController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoController as AdminGestionProyectoController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoModuloController as AdminProyectoModuloController;
+use App\Http\Controllers\Desarrollo\GestionProyectos\ProyectoPersonalController as AdminProyectoPersonalController;
 use App\Http\Controllers\EjemploController;
 use App\Http\Controllers\GitHubConsultorController;
 use App\Http\Controllers\GoogleDriveController;
@@ -322,6 +332,52 @@ Route::prefix('desarrollo')->name('desarrollo.')->group(function () {
         ->parameters(['candidatos-tipos' => 'candidatoTipo'])
         ->names('candidatos-tipos');
     Route::resource('candidatos', DesarrolloCandidatoController::class)->names('candidatos');
+
+    // Proyectos Administrativos
+    Route::resource('proyectos', AdminGestionProyectoController::class)->names('proyectos');
+    Route::post('proyectos/{proyecto}/estatus', [AdminGestionProyectoController::class, 'cambiarEstatus'])->name('proyectos.estatus');
+
+    // Miembros del Proyecto
+    Route::get('proyectos/{proyecto}/personal', [AdminProyectoPersonalController::class, 'index'])->name('proyectos.personal.index');
+    Route::post('proyectos/{proyecto}/personal', [AdminProyectoPersonalController::class, 'store'])->name('proyectos.personal.store');
+    Route::delete('proyectos/{proyecto}/personal/{personal}', [AdminProyectoPersonalController::class, 'destroy'])->name('proyectos.personal.destroy');
+
+    // Módulos del Proyecto
+    Route::get('proyectos/{proyecto}/modulos', [AdminProyectoModuloController::class, 'index'])->name('proyectos.modulos.index');
+    Route::post('proyectos/{proyecto}/modulos', [AdminProyectoModuloController::class, 'store'])->name('proyectos.modulos.store');
+    Route::delete('proyectos/{proyecto}/modulos/{modulo}', [AdminProyectoModuloController::class, 'destroy'])->name('proyectos.modulos.destroy');
+
+    // Actividades del Proyecto
+    Route::get('proyectos/{proyecto}/actividades', [AdminProyectoActividadController::class, 'index'])->name('proyectos.actividades.index');
+    Route::post('proyectos/{proyecto}/actividades', [AdminProyectoActividadController::class, 'store'])->name('proyectos.actividades.store');
+    Route::put('proyectos/{proyecto}/actividades/{actividad}', [AdminProyectoActividadController::class, 'update'])->name('proyectos.actividades.update');
+    Route::delete('proyectos/{proyecto}/actividades/{actividad}', [AdminProyectoActividadController::class, 'destroy'])->name('proyectos.actividades.destroy');
+    Route::post('proyectos/{proyecto}/actividades/{actividad}/estatus', [AdminProyectoActividadController::class, 'cambiarEstatus'])->name('proyectos.actividades.estatus');
+
+    // Actividades Adicionales (Drawer)
+    Route::post('actividades/{actividad}/adicionales', [AdminProyectoActividadAdicionalController::class, 'store'])->name('actividades.adicionales.store');
+    Route::delete('actividades-adicionales/{adicional}', [AdminProyectoActividadAdicionalController::class, 'destroy'])->name('actividades.adicionales.destroy');
+
+    // Equipos de la Actividad
+    Route::get('actividades/{actividad}/equipos', [AdminProyectoActividadEquipoController::class, 'index'])->name('actividades.equipos.index');
+    Route::post('actividades/{actividad}/equipos', [AdminProyectoActividadEquipoController::class, 'store'])->name('actividades.equipos.store');
+    Route::delete('actividades/{actividad}/equipos/{equipo}', [AdminProyectoActividadEquipoController::class, 'destroy'])->name('actividades.equipos.destroy');
+
+    // Recursos de la Actividad
+    Route::get('actividades/{actividad}/recursos', [AdminProyectoActividadRecursoController::class, 'index'])->name('actividades.recursos.index');
+    Route::post('actividades/{actividad}/recursos', [AdminProyectoActividadRecursoController::class, 'store'])->name('actividades.recursos.store');
+    Route::put('actividades/{actividad}/recursos/{recurso}', [AdminProyectoActividadRecursoController::class, 'update'])->name('actividades.recursos.update');
+    Route::delete('actividades/{actividad}/recursos/{recurso}', [AdminProyectoActividadRecursoController::class, 'destroy'])->name('actividades.recursos.destroy');
+    Route::post('actividades/{actividad}/recursos/{recurso}/estatus', [AdminProyectoActividadRecursoController::class, 'cambiarEstatus'])->name('actividades.recursos.estatus');
+    Route::post('actividades/{actividad}/enviar-recursos', [AdminProyectoActividadRecursoController::class, 'enviarRecursos'])->name('actividades.recursos.enviar');
+
+    // Kardex de Estatus
+    Route::get('kardex-proyectos', [AdminKardexProyectoEstatusController::class, 'index'])->name('kardex.proyectos.index');
+    Route::post('kardex-proyectos', [AdminKardexProyectoEstatusController::class, 'store'])->name('kardex.proyectos.store');
+    Route::get('kardex-actividades', [AdminKardexProyectoActividadEstatusController::class, 'index'])->name('kardex.actividades.index');
+    Route::post('kardex-actividades', [AdminKardexProyectoActividadEstatusController::class, 'store'])->name('kardex.actividades.store');
+    Route::get('kardex-recursos', [AdminKardexProyectoActividadRecursoEstatusController::class, 'index'])->name('kardex.recursos.index');
+    Route::post('kardex-recursos', [AdminKardexProyectoActividadRecursoEstatusController::class, 'store'])->name('kardex.recursos.store');
 });
 
 // ==========================================================
