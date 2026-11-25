@@ -163,4 +163,61 @@ class DesarrolloTest extends TestCase
         $tipo->delete();
         $especialidad->delete();
     }
+
+    public function test_candidatos_index_oculta_candidatos_inactivos(): void
+    {
+        $user = $this->admin();
+
+        $especialidad = Especialidad::create([
+            'Nombre' => 'Frontend React '.uniqid(),
+            'Descripcion' => 'Especialidad de prueba',
+        ]);
+
+        $tipo = CandidatoTipo::create([
+            'Nombre' => 'Tiempo Completo '.uniqid(),
+            'Descripcion' => 'Nómina directa',
+        ]);
+
+        $activo = Candidato::create([
+            'Nombre' => 'Activo',
+            'APaterno' => 'Visible',
+            'IOrden' => 1,
+            'EActivo' => 'Si',
+            'IdEspecialidad' => $especialidad->IdEspecialidad,
+            'IdCandidatoTipo' => $tipo->IdCandidatoTipo,
+        ]);
+
+        $inactivo = Candidato::create([
+            'Nombre' => 'Inactivo',
+            'APaterno' => 'Oculto',
+            'IOrden' => 2,
+            'EActivo' => 'No',
+            'IdEspecialidad' => $especialidad->IdEspecialidad,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('desarrollo.candidatos.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('desarrollo/catalogos/candidatos/index')
+                ->where('items.data', function ($items) use ($activo, $inactivo, $tipo): bool {
+                    $ids = collect($items)->pluck('IdCandidato')->all();
+                    $encontrado = collect($items)->firstWhere('IdCandidato', $activo->IdCandidato);
+
+                    return in_array($activo->IdCandidato, $ids, true)
+                        && ! in_array($inactivo->IdCandidato, $ids, true)
+                        && data_get($encontrado, 'candidato_tipo.Nombre') === $tipo->Nombre;
+                }));
+
+        $this->actingAs($user)
+            ->getJson(route('desarrollo.candidatos.index'))
+            ->assertOk()
+            ->assertJsonFragment(['IdCandidato' => $activo->IdCandidato])
+            ->assertJsonMissing(['IdCandidato' => $inactivo->IdCandidato]);
+
+        $activo->delete();
+        $inactivo->delete();
+        $tipo->delete();
+        $especialidad->delete();
+    }
 }

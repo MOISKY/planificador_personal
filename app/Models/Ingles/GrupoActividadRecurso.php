@@ -99,7 +99,6 @@ class GrupoActividadRecurso extends Model
     public function estatusActual(): HasOne
     {
         return $this->hasOne(KardexGrupoActividadRecursoEstatus::class, 'IdActividadRecurso', 'IdActividadRecurso')
-            ->latestOfMany('FechaRegistro');
+            ->latestOfMany(['FechaRegistro', 'IdActividadRecursoEstatus']);
     }
 }
-

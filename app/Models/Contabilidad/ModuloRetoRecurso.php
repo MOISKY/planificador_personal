@@ -93,6 +93,6 @@ class ModuloRetoRecurso extends Model
     public function estatusActual(): HasOne
     {
         return $this->hasOne(ModuloRetoRecursoEstatus::class, 'IdRetoRecurso', 'IdRetoRecurso')
-            ->latestOfMany('FechaRegistro');
+            ->latestOfMany(['FechaRegistro', 'IdRetoRecursoEstatus']);
     }
 }

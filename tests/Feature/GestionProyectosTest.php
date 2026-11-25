@@ -263,4 +263,56 @@ class GestionProyectosTest extends TestCase
             ->get(route('desarrollo.kardex.recursos.index'))
             ->assertOk();
     }
+
+    public function test_update_proyecto_actividad_y_recurso_actualiza_estatus_en_misma_peticion(): void
+    {
+        $user = $this->admin();
+
+        $proyecto = AdminProyecto::create(['Nombre' => 'Proyecto Estatus Atomico']);
+
+        $this->actingAs($user)->put(route('desarrollo.proyectos.update', $proyecto->IdProyecto), [
+            'Nombre' => 'Proyecto Estatus Atomico Editado',
+            'Estatus' => AdminKardexProyectoEstatus::ESTATUS_FINALIZADO,
+        ])->assertSessionHas('success');
+
+        $this->assertSame(
+            AdminKardexProyectoEstatus::ESTATUS_FINALIZADO,
+            $proyecto->fresh()->estatusActual?->Estatus
+        );
+
+        $actividad = AdminProyectoActividad::create([
+            'IdProyecto' => $proyecto->IdProyecto,
+            'Nombre' => 'Actividad Atomica',
+            'Tipo' => AdminProyectoActividad::TIPO_INDIVIDUAL,
+        ]);
+
+        $this->actingAs($user)->put(route('desarrollo.proyectos.actividades.update', [
+            'proyecto' => $proyecto->IdProyecto,
+            'actividad' => $actividad->IdActividad,
+        ]), [
+            'Nombre' => 'Actividad Atomica Editada',
+            'Tipo' => AdminProyectoActividad::TIPO_INDIVIDUAL,
+            'Estatus' => 'Realizada',
+        ])->assertSessionHas('success');
+
+        $this->assertSame('Realizada', $actividad->fresh()->estatusActual?->Estatus);
+
+        $recurso = AdminProyectoActividadRecurso::create([
+            'IdActividad' => $actividad->IdActividad,
+            'Nombre' => 'Recurso Atomico',
+        ]);
+
+        $this->actingAs($user)->put(route('desarrollo.actividades.recursos.update', [
+            'actividad' => $actividad->IdActividad,
+            'recurso' => $recurso->IdActividadRecurso,
+        ]), [
+            'Nombre' => 'Recurso Atomico Editado',
+            'Estatus' => AdminKardexProyectoActividadRecursoEstatus::ESTATUS_REALIZADA,
+        ])->assertSessionHas('success');
+
+        $this->assertSame(
+            AdminKardexProyectoActividadRecursoEstatus::ESTATUS_REALIZADA,
+            $recurso->fresh()->estatusActual?->Estatus
+        );
+    }
 }

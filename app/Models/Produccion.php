@@ -138,7 +138,7 @@ class Produccion extends Model
     public function estatusActual(): HasOne
     {
         return $this->hasOne(ProduccionEstatus::class, 'IdProduccion', 'IdProduccion')
-            ->latestOfMany('FechaRegistro');
+            ->latestOfMany(['FechaRegistro', 'IdProduccionEstatus']);
     }
 
     /**

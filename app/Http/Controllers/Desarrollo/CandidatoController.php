@@ -19,34 +19,8 @@ class CandidatoController extends Controller
         $search = trim((string) ($request->input('search') ?? ''));
         $perPage = max(1, (int) $request->integer('per_page', 10));
 
-        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
-            $apiItems = Candidato::query()
-                ->with(['especialidad', 'candidatoTipo'])
-                ->when($search !== '', function ($query) use ($search): void {
-                    $query->where(function ($q) use ($search): void {
-                        $q->where('Nombre', 'ilike', "%{$search}%")
-                            ->orWhere('APaterno', 'ilike', "%{$search}%")
-                            ->orWhere('AMaterno', 'ilike', "%{$search}%")
-                            ->orWhere('CorreoElectronico', 'ilike', "%{$search}%")
-                            ->orWhere('Telefono', 'ilike', "%{$search}%")
-                            ->orWhere('Movil', 'ilike', "%{$search}%")
-                            ->orWhereHas('especialidad', function ($eq) use ($search): void {
-                                $eq->where('Nombre', 'ilike', "%{$search}%");
-                            })
-                            ->orWhereHas('candidatoTipo', function ($tq) use ($search): void {
-                                $tq->where('Nombre', 'ilike', "%{$search}%");
-                            });
-                    });
-                })
-                ->orderBy('IOrden')
-                ->orderBy('APaterno')
-                ->orderBy('Nombre')
-                ->get();
-
-            return response()->json($apiItems);
-        }
-
-        $items = Candidato::query()
+        $query = Candidato::query()
+            ->where('EActivo', 'Si')
             ->with(['especialidad', 'candidatoTipo'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($q) use ($search): void {
@@ -66,7 +40,13 @@ class CandidatoController extends Controller
             })
             ->orderBy('IOrden')
             ->orderBy('APaterno')
-            ->orderBy('Nombre')
+            ->orderBy('Nombre');
+
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            return response()->json($query->get());
+        }
+
+        $items = $query
             ->paginate($perPage)
             ->withQueryString();
 

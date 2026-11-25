@@ -101,7 +101,9 @@ export interface AdminProyectoActividadRecursoItem {
     URLRecurso?: string | null;
     FechaRegistro: string;
     personal?: AdminPersonalSimple | null;
+    estatus_actual?: AdminKardexProyectoActividadRecursoEstatusItem | null;
     estatusActual?: AdminKardexProyectoActividadRecursoEstatusItem | null;
+    estatus_kardex?: AdminKardexProyectoActividadRecursoEstatusItem[];
     estatusKardex?: AdminKardexProyectoActividadRecursoEstatusItem[];
 }
 
@@ -115,8 +117,11 @@ export interface AdminProyectoActividadItem {
     Tipo: 'Individual' | 'Equipo' | 'Todos';
     FechaRegistro: string;
     modulo?: AdminModuloSimple | null;
+    estatus_actual?: AdminKardexProyectoActividadEstatusItem | null;
     estatusActual?: AdminKardexProyectoActividadEstatusItem | null;
+    estatus_kardex?: AdminKardexProyectoActividadEstatusItem[];
     estatusKardex?: AdminKardexProyectoActividadEstatusItem[];
+    actividades_adicionales?: AdminProyectoActividadAdicionalItem[];
     actividadesAdicionales?: AdminProyectoActividadAdicionalItem[];
     actividades_adicionales_count?: number;
     equipos?: AdminProyectoActividadEquipoItem[];
@@ -132,7 +137,9 @@ export interface AdminProyectoItem {
     FechaInicio?: string | null;
     Duracion?: string | null;
     FechaRegistro: string;
+    estatus_actual?: AdminKardexProyectoEstatusItem | null;
     estatusActual?: AdminKardexProyectoEstatusItem | null;
+    estatus_kardex?: AdminKardexProyectoEstatusItem[];
     estatusKardex?: AdminKardexProyectoEstatusItem[];
     miembros?: AdminProyectoPersonalItem[];
     miembros_count?: number;
@@ -141,4 +148,3 @@ export interface AdminProyectoItem {
     actividades?: AdminProyectoActividadItem[];
     actividades_count?: number;
 }
-

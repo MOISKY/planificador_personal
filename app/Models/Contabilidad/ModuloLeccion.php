@@ -103,6 +103,6 @@ class ModuloLeccion extends Model
     public function estatusActual(): HasOne
     {
         return $this->hasOne(ModuloLeccionEstatus::class, 'IdLeccion', 'IdLeccion')
-            ->latestOfMany('FechaRegistro');
+            ->latestOfMany(['FechaRegistro', 'IdLeccionEstatus']);
     }
 }

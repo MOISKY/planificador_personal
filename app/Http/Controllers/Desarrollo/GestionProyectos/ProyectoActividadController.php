@@ -130,9 +130,19 @@ class ProyectoActividadController extends Controller
                 }
             }],
             'Tipo' => ['required', 'string', 'in:'.implode(',', AdminProyectoActividad::TIPOS)],
+            'Estatus' => ['nullable', 'string', 'in:'.implode(',', AdminKardexProyectoActividadEstatus::ESTATUSES)],
         ]);
 
+        $nuevoEstatus = $validated['Estatus'] ?? null;
+        unset($validated['Estatus']);
+
         $actividad->update($validated);
+
+        if ($nuevoEstatus !== null && $nuevoEstatus !== '' && $nuevoEstatus !== $actividad->estatusActual?->Estatus) {
+            $actividad->estatusKardex()->create([
+                'Estatus' => $nuevoEstatus,
+            ]);
+        }
 
         return back()->with('success', "Actividad \"{$actividad->Nombre}\" actualizada correctamente.");
     }

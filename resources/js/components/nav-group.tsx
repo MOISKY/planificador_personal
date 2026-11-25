@@ -66,10 +66,9 @@ function LeafItem({
             <SidebarMenuSubButton asChild isActive={urlIsActive(item.href)}>
                 <Link
                     href={item.href}
-                    prefetch
-                    className="flex items-center justify-between w-full"
+                    className="flex w-full items-center justify-between"
                 >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
                         {item.icon && <item.icon className="size-4 shrink-0" />}
                         <span className="line-clamp-2 min-w-0 flex-1 break-words">
                             {item.title}
@@ -122,7 +121,7 @@ function SubMenuGroup({
                             {item.title}
                         </span>
                         {item.badge && (
-                            <div className="ml-auto mr-1 shrink-0">
+                            <div className="mr-1 ml-auto shrink-0">
                                 {item.badge}
                             </div>
                         )}
@@ -194,7 +193,7 @@ function GroupItem({
                             {group.title}
                         </span>
                         {group.badge && (
-                            <div className="ml-auto mr-1 shrink-0">
+                            <div className="mr-1 ml-auto shrink-0">
                                 {group.badge}
                             </div>
                         )}

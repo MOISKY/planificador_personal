@@ -1,5 +1,9 @@
 import { Button } from '@/components/ui/button';
 import {
+    isCredentialAuthError,
+    useGoogleDriveAuth,
+} from '@/hooks/use-google-drive-auth';
+import {
     AlertCircle,
     CheckCircle2,
     Cloud,
@@ -8,7 +12,7 @@ import {
     Loader2,
     RefreshCw,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface GoogleDriveUploaderProps {
     onUploaded: (file: { name: string; url: string }) => void;
@@ -21,39 +25,21 @@ export function GoogleDriveUploader({
     folder = 'Archivos ERP',
     className = '',
 }: GoogleDriveUploaderProps) {
-    const [isConnected, setIsConnected] = useState<boolean | null>(null);
-    const [isChecking, setIsChecking] = useState<boolean>(true);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    const {
+        isConnected,
+        isChecking,
+        isAuthorizing,
+        authError,
+        forceRequireAuth,
+        checkConnection,
+        openAuthPopup,
+    } = useGoogleDriveAuth();
+
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const checkConnection = async () => {
-        setIsChecking(true);
-        setErrorMessage(null);
-        try {
-            const res = await fetch('/api/google/status', {
-                headers: {
-                    Accept: 'application/json',
-                },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIsConnected(Boolean(data.connected));
-            } else {
-                setIsConnected(false);
-            }
-        } catch {
-            setIsConnected(false);
-        } finally {
-            setIsChecking(false);
-        }
-    };
-
-    useEffect(() => {
-        checkConnection();
-    }, []);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -84,16 +70,29 @@ export function GoogleDriveUploader({
                 body: formData,
             });
 
-            const data = await res.json();
+            const data = (await res.json().catch(() => null)) as {
+                success?: boolean;
+                error?: string;
+                requires_auth?: boolean;
+                file?: { webViewLink: string; name: string };
+            } | null;
 
-            if (!res.ok || !data.success) {
-                throw new Error(data.error || 'Error al subir el archivo a Google Drive.');
+            if (!res.ok || !data?.success || !data.file) {
+                const msg =
+                    data?.error || 'Error al subir el archivo a Google Drive.';
+                if (isCredentialAuthError(res.status, data, msg)) {
+                    forceRequireAuth(msg);
+                    return;
+                }
+                throw new Error(msg);
             }
 
             const driveUrl = data.file.webViewLink;
             const fileName = data.file.name;
 
-            setSuccessMessage(`"${fileName}" subido a Google Drive correctamente.`);
+            setSuccessMessage(
+                `"${fileName}" subido a Google Drive correctamente.`,
+            );
             onUploaded({
                 name: fileName,
                 url: driveUrl,
@@ -114,7 +113,9 @@ export function GoogleDriveUploader({
 
     if (isChecking) {
         return (
-            <div className={`flex items-center gap-2 rounded-lg border border-dashed p-3 text-xs text-muted-foreground ${className}`}>
+            <div
+                className={`flex items-center gap-2 rounded-lg border border-dashed p-3 text-xs text-muted-foreground ${className}`}
+            >
                 <Loader2 className="size-3.5 animate-spin" />
                 <span>Verificando estado de Google Drive...</span>
             </div>
@@ -123,36 +124,64 @@ export function GoogleDriveUploader({
 
     if (!isConnected) {
         return (
-            <div className={`flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200 ${className}`}>
+            <div
+                className={`flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200 ${className}`}
+            >
+                {authError && (
+                    <div className="flex items-start gap-1.5 rounded bg-destructive/10 p-2 text-xs text-destructive">
+                        <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                        <span>{authError}</span>
+                    </div>
+                )}
+
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2">
-                        <Cloud className="size-4 shrink-0 text-amber-600 mt-0.5" />
+                        <Cloud className="mt-0.5 size-4 shrink-0 text-amber-600" />
                         <div>
-                            <span className="font-semibold">Subida a Google Drive</span>
+                            <span className="font-semibold">
+                                {authError
+                                    ? 'Se requiere autorizar Google Drive'
+                                    : 'Subida a Google Drive'}
+                            </span>
                             <p className="mt-0.5 text-xs text-amber-800/80 dark:text-amber-300/80">
-                                Para subir archivos directamente a tu almacenamiento en la nube, primero vincula tu cuenta de Google.
+                                Para subir archivos directamente a tu
+                                almacenamiento en la nube, primero vincula tu
+                                cuenta de Google.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex flex-wrap items-center gap-2 pt-1">
                     <Button
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="h-7 text-xs border-amber-300 bg-white hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950 dark:hover:bg-amber-900"
-                        onClick={() => window.open('/google/connect', '_blank')}
+                        disabled={isAuthorizing}
+                        className="h-7 border-amber-300 bg-white text-xs hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950 dark:hover:bg-amber-900"
+                        onClick={openAuthPopup}
                     >
-                        <ExternalLink className="mr-1.5 size-3" />
-                        Vincular Google Drive
+                        {isAuthorizing ? (
+                            <>
+                                <Loader2 className="mr-1.5 size-3 animate-spin" />
+                                Autorizando...
+                            </>
+                        ) : (
+                            <>
+                                <ExternalLink className="mr-1.5 size-3" />
+                                {authError
+                                    ? 'Autorizar Google Drive'
+                                    : 'Vincular Google Drive'}
+                            </>
+                        )}
                     </Button>
                     <Button
                         type="button"
                         size="sm"
                         variant="ghost"
+                        disabled={isAuthorizing}
                         className="h-7 text-xs text-amber-800 hover:bg-amber-100/60 dark:text-amber-300"
-                        onClick={checkConnection}
+                        onClick={() => void checkConnection()}
                         title="Comprobar si ya autorizaste la cuenta"
                     >
                         <RefreshCw className="mr-1 size-3" />
@@ -164,7 +193,9 @@ export function GoogleDriveUploader({
     }
 
     return (
-        <div className={`flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50/40 p-3 text-xs dark:border-blue-900/40 dark:bg-blue-950/20 ${className}`}>
+        <div
+            className={`flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50/40 p-3 text-xs dark:border-blue-900/40 dark:bg-blue-950/20 ${className}`}
+        >
             <input
                 ref={fileInputRef}
                 type="file"
@@ -174,9 +205,9 @@ export function GoogleDriveUploader({
             />
 
             <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex min-w-0 items-center gap-2">
                     <Cloud className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
-                    <span className="font-medium text-blue-950 dark:text-blue-100 truncate">
+                    <span className="truncate font-medium text-blue-950 dark:text-blue-100">
                         Google Drive Conectado
                     </span>
                 </div>
@@ -186,7 +217,7 @@ export function GoogleDriveUploader({
                     size="sm"
                     variant="outline"
                     disabled={isUploading}
-                    className="h-7 text-xs border-blue-200 bg-white hover:bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
+                    className="h-7 border-blue-200 bg-white text-xs text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
                     onClick={() => fileInputRef.current?.click()}
                 >
                     {isUploading ? (
@@ -205,18 +236,17 @@ export function GoogleDriveUploader({
 
             {errorMessage && (
                 <div className="flex items-start gap-1.5 rounded bg-destructive/10 p-2 text-xs text-destructive">
-                    <AlertCircle className="size-3.5 shrink-0 mt-0.5" />
+                    <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                     <span>{errorMessage}</span>
                 </div>
             )}
 
             {successMessage && (
                 <div className="flex items-start gap-1.5 rounded bg-emerald-50 p-2 text-xs text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                    <CheckCircle2 className="size-3.5 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
                     <span className="truncate">{successMessage}</span>
                 </div>
             )}
         </div>
     );
 }
-

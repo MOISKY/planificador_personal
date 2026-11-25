@@ -84,9 +84,19 @@ class ProyectoController extends Controller
             'Descripcion' => ['nullable', 'string'],
             'FechaInicio' => ['nullable', 'date'],
             'Duracion' => ['nullable', 'string', 'max:100'],
+            'Estatus' => ['nullable', 'string', 'in:'.implode(',', AdminKardexProyectoEstatus::ESTATUSES)],
         ]);
 
+        $nuevoEstatus = $validated['Estatus'] ?? null;
+        unset($validated['Estatus']);
+
         $proyecto->update($validated);
+
+        if ($nuevoEstatus !== null && $nuevoEstatus !== '' && $nuevoEstatus !== $proyecto->estatusActual?->Estatus) {
+            $proyecto->estatusKardex()->create([
+                'Estatus' => $nuevoEstatus,
+            ]);
+        }
 
         return back()->with('success', "Proyecto \"{$proyecto->Nombre}\" actualizado correctamente.");
     }

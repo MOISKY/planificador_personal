@@ -114,9 +114,19 @@ class ProyectoActividadRecursoController extends Controller
             'Nombre' => ['required', 'string', 'max:200'],
             'IdPersonal' => ['nullable', 'integer', 'exists:admin_personal,IdPersonal'],
             'URLRecurso' => ['nullable', 'string', 'max:1000'],
+            'Estatus' => ['nullable', 'string', 'in:'.implode(',', AdminKardexProyectoActividadRecursoEstatus::ESTATUSES)],
         ]);
 
+        $nuevoEstatus = $validated['Estatus'] ?? null;
+        unset($validated['Estatus']);
+
         $recurso->update($validated);
+
+        if ($nuevoEstatus !== null && $nuevoEstatus !== '' && $nuevoEstatus !== $recurso->estatusActual?->Estatus) {
+            $recurso->estatusKardex()->create([
+                'Estatus' => $nuevoEstatus,
+            ]);
+        }
 
         return back()->with('success', "Recurso \"{$recurso->Nombre}\" actualizado correctamente.");
     }

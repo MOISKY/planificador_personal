@@ -136,7 +136,9 @@ export function AdminEnviarRecursosModal({
         }
 
         if (items.length === 0) {
-            setError('No hay recursos registrados en esta actividad para enviar.');
+            setError(
+                'No hay recursos registrados en esta actividad para enviar.',
+            );
             return;
         }
 
@@ -156,11 +158,17 @@ export function AdminEnviarRecursosModal({
                     ? `${r.personal.Nombre} ${r.personal.APaterno}`
                     : 'Sin asignar',
                 URLRecurso: r.URLRecurso || '—',
-                Estatus: r.estatusActual?.Estatus ?? 'No Realizada',
+                Estatus:
+                    r.estatus_actual?.Estatus ??
+                    r.estatusActual?.Estatus ??
+                    'No Realizada',
             }));
 
             let archivoBase64 = '';
-            const nombreLimpio = actividad.Nombre.replace(/[^a-zA-Z0-9_\-]/g, '_');
+            const nombreLimpio = actividad.Nombre.replace(
+                /[^a-zA-Z0-9_-]/g,
+                '_',
+            );
             const archivoNombre = `Recursos_${nombreLimpio}.${formato}`;
 
             if (formato === 'xlsx') {
@@ -231,35 +239,35 @@ export function AdminEnviarRecursosModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-lg">
                         <Mail className="size-5 text-primary" />
                         Enviar Recursos de la Actividad por Correo
                     </DialogTitle>
                     <DialogDescription>
-                        {actividad.Nombre} &bull; Exporta la tabla de recursos en formato{' '}
-                        {formato.toUpperCase()} y envíala a los colaboradores del
-                        proyecto.
+                        {actividad.Nombre} &bull; Exporta la tabla de recursos
+                        en formato {formato.toUpperCase()} y envíala a los
+                        colaboradores del proyecto.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-4 py-2">
                     {/* Alerta de error si ocurre */}
                     {error && (
-                        <div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-xs text-destructive">
+                        <div className="flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
                             <AlertCircle className="size-4 shrink-0" />
                             <span>{error}</span>
                         </div>
                     )}
 
                     {/* Resumen del adjunto */}
-                    <div className="p-3 rounded-lg border bg-muted/40 flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-3 text-xs">
                         <div className="flex items-center gap-2">
                             {formato === 'xlsx' ? (
-                                <FileSpreadsheet className="size-4 text-emerald-600 shrink-0" />
+                                <FileSpreadsheet className="size-4 shrink-0 text-emerald-600" />
                             ) : (
-                                <FileText className="size-4 text-blue-600 shrink-0" />
+                                <FileText className="size-4 shrink-0 text-blue-600" />
                             )}
                             <div>
                                 <span className="font-semibold text-foreground">
@@ -272,11 +280,11 @@ export function AdminEnviarRecursosModal({
                         </div>
 
                         {/* Selector de Formato */}
-                        <div className="flex items-center gap-1 bg-background p-1 rounded-md border">
+                        <div className="flex items-center gap-1 rounded-md border bg-background p-1">
                             <button
                                 type="button"
                                 onClick={() => setFormato('xlsx')}
-                                className={`px-2 py-1 text-xs rounded font-medium transition-colors ${
+                                className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
                                     formato === 'xlsx'
                                         ? 'bg-primary text-primary-foreground shadow-xs'
                                         : 'text-muted-foreground hover:text-foreground'
@@ -287,7 +295,7 @@ export function AdminEnviarRecursosModal({
                             <button
                                 type="button"
                                 onClick={() => setFormato('csv')}
-                                className={`px-2 py-1 text-xs rounded font-medium transition-colors ${
+                                className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
                                     formato === 'csv'
                                         ? 'bg-primary text-primary-foreground shadow-xs'
                                         : 'text-muted-foreground hover:text-foreground'
@@ -300,7 +308,7 @@ export function AdminEnviarRecursosModal({
 
                     {/* Selector de Destinatarios */}
                     <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                             Destinatarios
                         </label>
 
@@ -308,23 +316,25 @@ export function AdminEnviarRecursosModal({
                             <button
                                 type="button"
                                 onClick={() => setTipoDestinatario('todos')}
-                                className={`p-2.5 rounded-lg border text-left text-xs transition-all flex flex-col gap-1 ${
+                                className={`flex flex-col gap-1 rounded-lg border p-2.5 text-left text-xs transition-all ${
                                     tipoDestinatario === 'todos'
-                                        ? 'border-primary bg-primary/10 text-primary font-semibold'
-                                        : 'border-border hover:bg-muted text-muted-foreground'
+                                        ? 'border-primary bg-primary/10 font-semibold text-primary'
+                                        : 'border-border text-muted-foreground hover:bg-muted'
                                 }`}
                             >
                                 <Users className="size-4" />
-                                <span>Todos ({destinatariosConCorreo.length})</span>
+                                <span>
+                                    Todos ({destinatariosConCorreo.length})
+                                </span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => setTipoDestinatario('uno')}
-                                className={`p-2.5 rounded-lg border text-left text-xs transition-all flex flex-col gap-1 ${
+                                className={`flex flex-col gap-1 rounded-lg border p-2.5 text-left text-xs transition-all ${
                                     tipoDestinatario === 'uno'
-                                        ? 'border-primary bg-primary/10 text-primary font-semibold'
-                                        : 'border-border hover:bg-muted text-muted-foreground'
+                                        ? 'border-primary bg-primary/10 font-semibold text-primary'
+                                        : 'border-border text-muted-foreground hover:bg-muted'
                                 }`}
                             >
                                 <User className="size-4" />
@@ -334,27 +344,36 @@ export function AdminEnviarRecursosModal({
                             <button
                                 type="button"
                                 onClick={() => setTipoDestinatario('algunos')}
-                                className={`p-2.5 rounded-lg border text-left text-xs transition-all flex flex-col gap-1 ${
+                                className={`flex flex-col gap-1 rounded-lg border p-2.5 text-left text-xs transition-all ${
                                     tipoDestinatario === 'algunos'
-                                        ? 'border-primary bg-primary/10 text-primary font-semibold'
-                                        : 'border-border hover:bg-muted text-muted-foreground'
+                                        ? 'border-primary bg-primary/10 font-semibold text-primary'
+                                        : 'border-border text-muted-foreground hover:bg-muted'
                                 }`}
                             >
                                 <CheckCircle2 className="size-4" />
-                                <span>Selección ({personasSeleccionadasIds.length})</span>
+                                <span>
+                                    Selección ({personasSeleccionadasIds.length}
+                                    )
+                                </span>
                             </button>
                         </div>
 
                         {/* Si seleccionó Uno */}
                         {tipoDestinatario === 'uno' && (
                             <select
-                                className="w-full text-xs p-2 rounded-md border bg-background mt-2"
+                                className="mt-2 w-full rounded-md border bg-background p-2 text-xs"
                                 value={personaUnoId}
-                                onChange={(e) => setPersonaUnoId(Number(e.target.value))}
+                                onChange={(e) =>
+                                    setPersonaUnoId(Number(e.target.value))
+                                }
                             >
                                 {destinatariosConCorreo.map((p) => (
-                                    <option key={p.IdPersonal} value={p.IdPersonal}>
-                                        {p.Nombre} {p.APaterno} ({p.CorreoElectronico})
+                                    <option
+                                        key={p.IdPersonal}
+                                        value={p.IdPersonal}
+                                    >
+                                        {p.Nombre} {p.APaterno} (
+                                        {p.CorreoElectronico})
                                     </option>
                                 ))}
                             </select>
@@ -362,26 +381,29 @@ export function AdminEnviarRecursosModal({
 
                         {/* Si seleccionó Algunos */}
                         {tipoDestinatario === 'algunos' && (
-                            <div className="max-h-40 overflow-y-auto border rounded-md p-2 flex flex-col gap-1.5 mt-2 bg-background">
+                            <div className="mt-2 flex max-h-40 flex-col gap-1.5 overflow-y-auto rounded-md border bg-background p-2">
                                 {destinatariosConCorreo.map((p) => {
-                                    const checked = personasSeleccionadasIds.includes(
-                                        p.IdPersonal,
-                                    );
+                                    const checked =
+                                        personasSeleccionadasIds.includes(
+                                            p.IdPersonal,
+                                        );
                                     return (
                                         <label
                                             key={p.IdPersonal}
-                                            className="flex items-center gap-2 text-xs p-1.5 rounded hover:bg-muted cursor-pointer"
+                                            className="flex cursor-pointer items-center gap-2 rounded p-1.5 text-xs hover:bg-muted"
                                         >
                                             <input
                                                 type="checkbox"
                                                 checked={checked}
-                                                onChange={() => togglePersona(p.IdPersonal)}
-                                                className="rounded border-zinc-300 text-primary focus:ring-primary size-3.5"
+                                                onChange={() =>
+                                                    togglePersona(p.IdPersonal)
+                                                }
+                                                className="size-3.5 rounded border-zinc-300 text-primary focus:ring-primary"
                                             />
                                             <span className="font-medium text-foreground">
                                                 {p.Nombre} {p.APaterno}
                                             </span>
-                                            <span className="text-muted-foreground text-[11px] truncate">
+                                            <span className="truncate text-[11px] text-muted-foreground">
                                                 ({p.CorreoElectronico})
                                             </span>
                                         </label>
@@ -448,4 +470,3 @@ export function AdminEnviarRecursosModal({
         </Dialog>
     );
 }
-

@@ -1,8 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import {
+    isCredentialAuthError,
+    useGoogleDriveAuth,
+} from '@/hooks/use-google-drive-auth';
 import { cn } from '@/lib/utils';
 import {
+    AlertCircle,
     Check,
     Cloud,
     Copy,
@@ -15,7 +20,7 @@ import {
     UploadCloud,
     X,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 type Mode = 'archivo' | 'enlace';
 
@@ -50,40 +55,32 @@ export function FileOrLinkField({
     className,
     helpText,
 }: FileOrLinkFieldProps) {
-    const [mode, setMode] = useState<Mode>(value && !value.includes('drive.google.com') ? 'enlace' : 'archivo');
+    const [mode, setMode] = useState<Mode>(
+        value && !value.includes('drive.google.com') ? 'enlace' : 'archivo',
+    );
     const [fileName, setFileName] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
-    const [isDriveConnected, setIsDriveConnected] = useState<boolean | null>(null);
-    const [checkingDrive, setCheckingDrive] = useState<boolean>(true);
+    const {
+        isConnected: isDriveConnected,
+        isChecking: checkingDrive,
+        isAuthorizing,
+        authError,
+        forceRequireAuth,
+        checkConnection,
+        openAuthPopup,
+    } = useGoogleDriveAuth();
 
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const checkConnection = async () => {
-        setCheckingDrive(true);
-        try {
-            const res = await fetch('/api/google/status', {
-                headers: { Accept: 'application/json' },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIsDriveConnected(Boolean(data.connected));
-            } else {
-                setIsDriveConnected(false);
-            }
-        } catch {
-            setIsDriveConnected(false);
-        } finally {
-            setCheckingDrive(false);
+    const resetFileInput = () => {
+        if (inputRef.current) {
+            inputRef.current.value = '';
         }
     };
-
-    useEffect(() => {
-        checkConnection();
-    }, []);
 
     const upload = (file: File) => {
         setUploadError(null);
@@ -113,34 +110,54 @@ export function FileOrLinkField({
 
         xhr.onload = () => {
             setUploading(false);
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    const data = JSON.parse(xhr.responseText);
-                    if (data.success && data.file?.webViewLink) {
-                        const driveUrl = data.file.webViewLink;
-                        onChange(driveUrl);
-                        setFileName(file.name);
-                        if (onFileNameChange) {
-                            onFileNameChange(file.name);
-                        }
-                    } else {
-                        setUploadError(data.error || 'Error al procesar el archivo en Google Drive.');
-                    }
-                } catch {
-                    setUploadError('Respuesta inválida del servidor.');
-                }
-            } else {
-                try {
-                    const data = JSON.parse(xhr.responseText);
-                    setUploadError(data.error || `Error del servidor (HTTP ${xhr.status}).`);
-                } catch {
-                    setUploadError(`Error al subir el archivo (HTTP ${xhr.status}).`);
-                }
+            resetFileInput();
+
+            let data: {
+                success?: boolean;
+                error?: string;
+                requires_auth?: boolean;
+                file?: { webViewLink?: string };
+            } | null = null;
+
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch {
+                data = null;
             }
+
+            if (
+                xhr.status >= 200 &&
+                xhr.status < 300 &&
+                data?.success &&
+                data.file?.webViewLink
+            ) {
+                onChange(data.file.webViewLink);
+                setFileName(file.name);
+                if (onFileNameChange) {
+                    onFileNameChange(file.name);
+                }
+                return;
+            }
+
+            const message =
+                data?.error ||
+                (xhr.status >= 200 && xhr.status < 300
+                    ? data
+                        ? 'Error al procesar el archivo en Google Drive.'
+                        : 'Respuesta inválida del servidor.'
+                    : `Error al subir el archivo (HTTP ${xhr.status}).`);
+
+            if (isCredentialAuthError(xhr.status, data, message)) {
+                forceRequireAuth(message);
+                return;
+            }
+
+            setUploadError(message);
         };
 
         xhr.onerror = () => {
             setUploading(false);
+            resetFileInput();
             setUploadError('Error de red al intentar subir el archivo.');
         };
 
@@ -150,7 +167,6 @@ export function FileOrLinkField({
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setFileName(file.name);
         upload(file);
     };
 
@@ -158,9 +174,7 @@ export function FileOrLinkField({
         setFileName(null);
         setUploadError(null);
         onChange('');
-        if (inputRef.current) {
-            inputRef.current.value = '';
-        }
+        resetFileInput();
     };
 
     const copyValue = async () => {
@@ -234,7 +248,7 @@ export function FileOrLinkField({
                 <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                         <div className="relative flex-1">
-                            <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                            <Link2 className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 id={id}
                                 type="url"
@@ -249,7 +263,9 @@ export function FileOrLinkField({
                         {value && copyButton}
                     </div>
                     {helpText && (
-                        <p className="text-xs text-muted-foreground">{helpText}</p>
+                        <p className="text-xs text-muted-foreground">
+                            {helpText}
+                        </p>
                     )}
                 </div>
             ) : checkingDrive ? (
@@ -259,32 +275,57 @@ export function FileOrLinkField({
                 </div>
             ) : !isDriveConnected ? (
                 <div className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+                    {authError && (
+                        <div className="flex items-start gap-1.5 rounded bg-destructive/10 p-2 text-xs text-destructive">
+                            <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                            <span>{authError}</span>
+                        </div>
+                    )}
                     <div className="flex items-start gap-2">
-                        <Cloud className="size-4 text-amber-600 mt-0.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <span className="font-semibold">Google Drive no está vinculado</span>
+                        <Cloud className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                        <div className="min-w-0 flex-1">
+                            <span className="font-semibold">
+                                {authError
+                                    ? 'Se requiere autorizar Google Drive'
+                                    : 'Google Drive no está vinculado'}
+                            </span>
                             <p className="mt-0.5 text-amber-800/80 dark:text-amber-300/80">
-                                Para subir archivos directamente, autoriza Google Drive o cambia a &quot;Pegar Enlace&quot; para escribir una URL.
+                                Para subir archivos directamente, autoriza
+                                Google Drive o cambia a &quot;Pegar Enlace&quot;
+                                para escribir una URL.
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
                         <Button
                             type="button"
                             size="sm"
                             variant="outline"
-                            className="h-7 text-xs border-amber-300 bg-white hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950 dark:hover:bg-amber-900"
-                            onClick={() => window.open('/google/connect', '_blank')}
+                            disabled={isAuthorizing || disabled}
+                            className="h-7 border-amber-300 bg-white text-xs hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950 dark:hover:bg-amber-900"
+                            onClick={openAuthPopup}
                         >
-                            <ExternalLink className="mr-1.5 size-3" />
-                            Vincular Google Drive
+                            {isAuthorizing ? (
+                                <>
+                                    <Loader2 className="mr-1.5 size-3 animate-spin" />
+                                    Autorizando...
+                                </>
+                            ) : (
+                                <>
+                                    <ExternalLink className="mr-1.5 size-3" />
+                                    {authError
+                                        ? 'Autorizar Google Drive'
+                                        : 'Vincular Google Drive'}
+                                </>
+                            )}
                         </Button>
                         <Button
                             type="button"
                             size="sm"
                             variant="ghost"
+                            disabled={isAuthorizing || disabled}
                             className="h-7 text-xs text-amber-800 hover:bg-amber-100/60 dark:text-amber-300"
-                            onClick={checkConnection}
+                            onClick={() => void checkConnection()}
                         >
                             <RefreshCw className="mr-1 size-3" />
                             Ya autoricé
@@ -308,7 +349,7 @@ export function FileOrLinkField({
                 <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                         <div className="relative flex-1">
-                            <Cloud className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-blue-500" />
+                            <Cloud className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-blue-500" />
                             <Input
                                 id={id}
                                 type="url"
@@ -343,14 +384,18 @@ export function FileOrLinkField({
                     {fileName && (
                         <p className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                             <Paperclip className="size-3 shrink-0 text-primary" />
-                            <span className="font-medium text-foreground truncate">{fileName}</span>
-                            <span className="text-[11px] text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.2 rounded">
+                            <span className="truncate font-medium text-foreground">
+                                {fileName}
+                            </span>
+                            <span className="py-0.2 rounded bg-blue-50 px-1.5 text-[11px] text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
                                 Google Drive
                             </span>
                         </p>
                     )}
                     {uploadError && (
-                        <p className="text-xs text-destructive">{uploadError}</p>
+                        <p className="text-xs text-destructive">
+                            {uploadError}
+                        </p>
                     )}
                 </div>
             ) : (
@@ -363,14 +408,18 @@ export function FileOrLinkField({
                     >
                         <UploadCloud className="size-6 text-primary" />
                         <span className="text-xs font-semibold text-foreground">
-                            Haz clic para seleccionar y subir archivo a Google Drive
+                            Haz clic para seleccionar y subir archivo a Google
+                            Drive
                         </span>
                         <span className="text-[11px] text-muted-foreground">
-                            o cambia a &quot;Pegar Enlace&quot; para escribir una URL directamente
+                            o cambia a &quot;Pegar Enlace&quot; para escribir
+                            una URL directamente
                         </span>
                     </button>
                     {uploadError && (
-                        <p className="text-xs text-destructive">{uploadError}</p>
+                        <p className="text-xs text-destructive">
+                            {uploadError}
+                        </p>
                     )}
                 </div>
             )}
@@ -388,4 +437,3 @@ export function FileOrLinkField({
         </Field>
     );
 }
-

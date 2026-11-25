@@ -72,7 +72,9 @@ export default function ProyectosIndex({
     searchValue,
 }: Props) {
     const [drawerAbierto, setDrawerAbierto] = useState(false);
-    const [seleccionado, setSeleccionado] = useState<AdminProyectoItem | null>(null);
+    const [seleccionado, setSeleccionado] = useState<AdminProyectoItem | null>(
+        null,
+    );
 
     const form = useForm({
         Nombre: '',
@@ -87,9 +89,14 @@ export default function ProyectosIndex({
             form.setData({
                 Nombre: seleccionado.Nombre ?? '',
                 Descripcion: seleccionado.Descripcion ?? '',
-                FechaInicio: seleccionado.FechaInicio ? seleccionado.FechaInicio.slice(0, 10) : '',
+                FechaInicio: seleccionado.FechaInicio
+                    ? seleccionado.FechaInicio.slice(0, 10)
+                    : '',
                 Duracion: seleccionado.Duracion ?? '',
-                Estatus: seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus ?? 'Pendiente',
+                Estatus:
+                    seleccionado.estatus_actual?.Estatus ??
+                    (seleccionado as any).estatusActual?.Estatus ??
+                    'Pendiente',
             });
         } else {
             form.reset();
@@ -131,17 +138,7 @@ export default function ProyectosIndex({
         if (seleccionado) {
             form.put(`/desarrollo/proyectos/${seleccionado.IdProyecto}`, {
                 preserveScroll: true,
-                onSuccess: () => {
-                    const actualEstatus = seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus;
-                    if (form.data.Estatus && form.data.Estatus !== actualEstatus) {
-                        router.post(
-                            `/desarrollo/proyectos/${seleccionado.IdProyecto}/estatus`,
-                            { Estatus: form.data.Estatus },
-                            { preserveScroll: true },
-                        );
-                    }
-                    setDrawerAbierto(false);
-                },
+                onSuccess: () => setDrawerAbierto(false),
             });
         } else {
             form.post('/desarrollo/proyectos', {
@@ -157,8 +154,10 @@ export default function ProyectosIndex({
             label: 'Proyecto',
             render: (item) => (
                 <div className="flex items-center gap-2">
-                    <FolderGit2 className="size-4 text-primary shrink-0" />
-                    <span className="font-semibold text-foreground">{item.Nombre}</span>
+                    <FolderGit2 className="size-4 shrink-0 text-primary" />
+                    <span className="font-semibold text-foreground">
+                        {item.Nombre}
+                    </span>
                 </div>
             ),
         },
@@ -166,7 +165,10 @@ export default function ProyectosIndex({
             key: 'Descripcion',
             label: 'Descripción',
             render: (item) => (
-                <p className="max-w-md truncate text-xs text-muted-foreground" title={item.Descripcion ?? ''}>
+                <p
+                    className="max-w-md truncate text-xs text-muted-foreground"
+                    title={item.Descripcion ?? ''}
+                >
                     {item.Descripcion || '—'}
                 </p>
             ),
@@ -174,36 +176,41 @@ export default function ProyectosIndex({
         {
             key: 'FechaInicio',
             label: 'Fecha Inicio',
-            render: (item) => (
+            render: (item) =>
                 item.FechaInicio ? (
                     <div className="flex items-center gap-1.5 text-xs text-foreground">
-                        <Calendar className="size-3.5 text-muted-foreground shrink-0" />
+                        <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
                         <span>{formatDate(item.FechaInicio)}</span>
                     </div>
                 ) : (
                     <span className="text-muted-foreground">—</span>
-                )
-            ),
+                ),
         },
         {
             key: 'Duracion',
             label: 'Duración',
-            render: (item) => (
+            render: (item) =>
                 item.Duracion ? (
                     <div className="flex items-center gap-1.5 text-xs">
-                        <Clock className="size-3.5 text-primary shrink-0" />
-                        <span className="font-medium text-foreground">{item.Duracion}</span>
+                        <Clock className="size-3.5 shrink-0 text-primary" />
+                        <span className="font-medium text-foreground">
+                            {item.Duracion}
+                        </span>
                     </div>
                 ) : (
                     <span className="text-muted-foreground">—</span>
-                )
-            ),
+                ),
         },
         {
             key: 'estatus',
             label: 'Estatus',
             render: (item) => (
-                <ProyectoEstatusBadge estatus={item.estatus_actual?.Estatus ?? (item as any).estatusActual?.Estatus} />
+                <ProyectoEstatusBadge
+                    estatus={
+                        item.estatus_actual?.Estatus ??
+                        (item as any).estatusActual?.Estatus
+                    }
+                />
             ),
         },
     ];
@@ -245,7 +252,9 @@ export default function ProyectosIndex({
                                     title="Módulos del proyecto"
                                     aria-label="Módulos del proyecto"
                                 >
-                                    <Link href={`/desarrollo/proyectos/${item.IdProyecto}/modulos`}>
+                                    <Link
+                                        href={`/desarrollo/proyectos/${item.IdProyecto}/modulos`}
+                                    >
                                         <Boxes className="h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -258,7 +267,9 @@ export default function ProyectosIndex({
                                     title="Miembros del proyecto"
                                     aria-label="Miembros del proyecto"
                                 >
-                                    <Link href={`/desarrollo/proyectos/${item.IdProyecto}/personal`}>
+                                    <Link
+                                        href={`/desarrollo/proyectos/${item.IdProyecto}/personal`}
+                                    >
                                         <Users className="h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -271,7 +282,9 @@ export default function ProyectosIndex({
                                     title="Actividades del proyecto"
                                     aria-label="Actividades del proyecto"
                                 >
-                                    <Link href={`/desarrollo/proyectos/${item.IdProyecto}/actividades`}>
+                                    <Link
+                                        href={`/desarrollo/proyectos/${item.IdProyecto}/actividades`}
+                                    >
                                         <Target className="h-4 w-4" />
                                     </Link>
                                 </Button>
@@ -288,7 +301,9 @@ export default function ProyectosIndex({
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <FolderGit2 className="size-5 text-primary" />
-                            {seleccionado ? 'Editar Proyecto' : 'Nuevo Proyecto'}
+                            {seleccionado
+                                ? 'Editar Proyecto'
+                                : 'Nuevo Proyecto'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
@@ -297,14 +312,22 @@ export default function ProyectosIndex({
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="proyecto-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form
+                        id="proyecto-form"
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-4 px-6 py-4"
+                    >
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre" required>Nombre del Proyecto</FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>
+                                    Nombre del Proyecto
+                                </FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
-                                    onChange={(e) => form.setData('Nombre', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('Nombre', e.target.value)
+                                    }
                                     placeholder="Ej. Sistema ERP Comercial"
                                     required
                                     autoFocus
@@ -313,48 +336,79 @@ export default function ProyectosIndex({
                             </Field>
 
                             <Field>
-                                <FieldLabel htmlFor="Descripcion">Descripción</FieldLabel>
+                                <FieldLabel htmlFor="Descripcion">
+                                    Descripción
+                                </FieldLabel>
                                 <Textarea
                                     id="Descripcion"
                                     rows={4}
                                     className="min-h-24 resize-y"
                                     value={form.data.Descripcion}
-                                    onChange={(e) => form.setData('Descripcion', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'Descripcion',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="Breve descripción o alcance del proyecto..."
                                 />
-                                <FieldError>{form.errors.Descripcion}</FieldError>
+                                <FieldError>
+                                    {form.errors.Descripcion}
+                                </FieldError>
                             </Field>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <Field>
-                                    <FieldLabel htmlFor="FechaInicio">Fecha Inicio</FieldLabel>
+                                    <FieldLabel htmlFor="FechaInicio">
+                                        Fecha Inicio
+                                    </FieldLabel>
                                     <Input
                                         id="FechaInicio"
                                         type="date"
                                         value={form.data.FechaInicio}
-                                        onChange={(e) => form.setData('FechaInicio', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'FechaInicio',
+                                                e.target.value,
+                                            )
+                                        }
                                     />
-                                    <FieldError>{form.errors.FechaInicio}</FieldError>
+                                    <FieldError>
+                                        {form.errors.FechaInicio}
+                                    </FieldError>
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel htmlFor="Duracion">Duración Estimada</FieldLabel>
+                                    <FieldLabel htmlFor="Duracion">
+                                        Duración Estimada
+                                    </FieldLabel>
                                     <Input
                                         id="Duracion"
                                         value={form.data.Duracion}
-                                        onChange={(e) => form.setData('Duracion', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'Duracion',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Ej. 4 meses, 6 semanas"
                                     />
-                                    <FieldError>{form.errors.Duracion}</FieldError>
+                                    <FieldError>
+                                        {form.errors.Duracion}
+                                    </FieldError>
                                 </Field>
                             </div>
 
                             {seleccionado && (
                                 <Field>
-                                    <FieldLabel htmlFor="Estatus">Estatus del Proyecto</FieldLabel>
+                                    <FieldLabel htmlFor="Estatus">
+                                        Estatus del Proyecto
+                                    </FieldLabel>
                                     <Select
                                         value={form.data.Estatus}
-                                        onValueChange={(val) => form.setData('Estatus', val)}
+                                        onValueChange={(val) =>
+                                            form.setData('Estatus', val)
+                                        }
                                     >
                                         <SelectTrigger id="Estatus">
                                             <SelectValue placeholder="Selecciona un estatus" />

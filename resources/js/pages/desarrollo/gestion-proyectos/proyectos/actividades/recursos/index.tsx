@@ -100,15 +100,23 @@ export default function ProyectoActividadRecursoIndex({
         if (seleccionado) {
             form.setData({
                 Nombre: seleccionado.Nombre ?? '',
-                IdPersonal: seleccionado.IdPersonal ? String(seleccionado.IdPersonal) : '',
+                IdPersonal: seleccionado.IdPersonal
+                    ? String(seleccionado.IdPersonal)
+                    : '',
                 URLRecurso: seleccionado.URLRecurso ?? '',
-                Estatus: seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus ?? 'No Realizada',
+                Estatus:
+                    seleccionado.estatus_actual?.Estatus ??
+                    (seleccionado as any).estatusActual?.Estatus ??
+                    'No Realizada',
             });
         } else {
             form.reset();
             form.setData({
                 Nombre: '',
-                IdPersonal: !esIndividual && personalDisponibles.length > 0 ? String(personalDisponibles[0].IdPersonal) : '',
+                IdPersonal:
+                    !esIndividual && personalDisponibles.length > 0
+                        ? String(personalDisponibles[0].IdPersonal)
+                        : '',
                 URLRecurso: '',
                 Estatus: 'No Realizada',
             });
@@ -146,17 +154,7 @@ export default function ProyectoActividadRecursoIndex({
                 `/desarrollo/actividades/${actividad.IdActividad}/recursos/${seleccionado.IdActividadRecurso}`,
                 {
                     preserveScroll: true,
-                    onSuccess: () => {
-                        const actualEstatus = seleccionado.estatus_actual?.Estatus ?? (seleccionado as any).estatusActual?.Estatus;
-                        if (form.data.Estatus && form.data.Estatus !== actualEstatus) {
-                            router.post(
-                                `/desarrollo/actividades/${actividad.IdActividad}/recursos/${seleccionado.IdActividadRecurso}/estatus`,
-                                { Estatus: form.data.Estatus },
-                                { preserveScroll: true },
-                            );
-                        }
-                        setDrawerAbierto(false);
-                    },
+                    onSuccess: () => setDrawerAbierto(false),
                 },
             );
         } else {
@@ -176,8 +174,10 @@ export default function ProyectoActividadRecursoIndex({
             label: 'Recurso',
             render: (item) => (
                 <div className="flex items-center gap-2">
-                    <FolderOpen className="size-4 text-primary shrink-0" />
-                    <span className="font-semibold text-foreground">{item.Nombre}</span>
+                    <FolderOpen className="size-4 shrink-0 text-primary" />
+                    <span className="font-semibold text-foreground">
+                        {item.Nombre}
+                    </span>
                 </div>
             ),
         },
@@ -200,8 +200,10 @@ export default function ProyectoActividadRecursoIndex({
 
                 return (
                     <div className="flex items-center gap-1.5 text-xs text-foreground">
-                        <User className="size-3.5 text-muted-foreground shrink-0" />
-                        <span>{item.personal.Nombre} {item.personal.APaterno}</span>
+                        <User className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span>
+                            {item.personal.Nombre} {item.personal.APaterno}
+                        </span>
                     </div>
                 );
             },
@@ -219,10 +221,12 @@ export default function ProyectoActividadRecursoIndex({
                         href={item.URLRecurso}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                     >
                         <ExternalLink className="size-3.5 shrink-0" />
-                        <span className="max-w-[200px] truncate">{item.URLRecurso}</span>
+                        <span className="max-w-[200px] truncate">
+                            {item.URLRecurso}
+                        </span>
                     </a>
                 );
             },
@@ -231,7 +235,12 @@ export default function ProyectoActividadRecursoIndex({
             key: 'estatus',
             label: 'Estatus',
             render: (item) => (
-                <EstatusBadge estatus={item.estatus_actual?.Estatus ?? (item as any).estatusActual?.Estatus} />
+                <EstatusBadge
+                    estatus={
+                        item.estatus_actual?.Estatus ??
+                        (item as any).estatusActual?.Estatus
+                    }
+                />
             ),
         },
         {
@@ -255,8 +264,15 @@ export default function ProyectoActividadRecursoIndex({
             <Head title={`Recursos - ${actividad.Nombre}`} />
             <PageShell>
                 <div className="mb-2">
-                    <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-                        <Link href={`/desarrollo/proyectos/${idProyecto}/actividades`}>
+                    <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-muted-foreground"
+                    >
+                        <Link
+                            href={`/desarrollo/proyectos/${idProyecto}/actividades`}
+                        >
                             <ArrowLeft className="size-4" />
                             Volver a Actividades
                         </Link>
@@ -273,7 +289,7 @@ export default function ProyectoActividadRecursoIndex({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setModalEnviarAbierto(true)}
-                                className="gap-1.5 border-blue-500/30 text-blue-700 hover:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/40"
+                                className="gap-1.5 border-blue-500/30 text-blue-700 hover:bg-blue-500/10 dark:border-blue-500/40 dark:text-blue-300"
                             >
                                 <Mail className="size-4" />
                                 Enviar Recursos
@@ -319,14 +335,22 @@ export default function ProyectoActividadRecursoIndex({
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="actividad-recurso-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form
+                        id="actividad-recurso-form"
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-4 px-6 py-4"
+                    >
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="Nombre" required>Nombre del Recurso</FieldLabel>
+                                <FieldLabel htmlFor="Nombre" required>
+                                    Nombre del Recurso
+                                </FieldLabel>
                                 <Input
                                     id="Nombre"
                                     value={form.data.Nombre}
-                                    onChange={(e) => form.setData('Nombre', e.target.value)}
+                                    onChange={(e) =>
+                                        form.setData('Nombre', e.target.value)
+                                    }
                                     placeholder="Ej. Diagrama de arquitectura, API Docs..."
                                     required
                                     autoFocus
@@ -337,34 +361,49 @@ export default function ProyectoActividadRecursoIndex({
                             {!esIndividual && (
                                 <Field>
                                     <FieldLabel htmlFor="IdPersonal">
-                                        Colaborador Asignado {actividad.Tipo === 'Equipo' ? '(del Equipo)' : '(del Proyecto)'}
+                                        Colaborador Asignado{' '}
+                                        {actividad.Tipo === 'Equipo'
+                                            ? '(del Equipo)'
+                                            : '(del Proyecto)'}
                                     </FieldLabel>
                                     <Select
                                         value={form.data.IdPersonal}
-                                        onValueChange={(val) => form.setData('IdPersonal', val)}
+                                        onValueChange={(val) =>
+                                            form.setData('IdPersonal', val)
+                                        }
                                     >
                                         <SelectTrigger id="IdPersonal">
                                             <SelectValue placeholder="Selecciona un colaborador (opcional)..." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {personalDisponibles.map((p) => {
-                                                const nom = `${p.Nombre} ${p.APaterno} ${p.AMaterno ?? ''}`.trim();
+                                                const nom =
+                                                    `${p.Nombre} ${p.APaterno} ${p.AMaterno ?? ''}`.trim();
                                                 return (
-                                                    <SelectItem key={p.IdPersonal} value={String(p.IdPersonal)}>
+                                                    <SelectItem
+                                                        key={p.IdPersonal}
+                                                        value={String(
+                                                            p.IdPersonal,
+                                                        )}
+                                                    >
                                                         {nom}
                                                     </SelectItem>
                                                 );
                                             })}
                                         </SelectContent>
                                     </Select>
-                                    <FieldError>{form.errors.IdPersonal}</FieldError>
+                                    <FieldError>
+                                        {form.errors.IdPersonal}
+                                    </FieldError>
                                 </Field>
                             )}
 
                             <FileOrLinkField
                                 label="Enlace / Archivo del Recurso"
                                 value={form.data.URLRecurso}
-                                onChange={(val) => form.setData('URLRecurso', val)}
+                                onChange={(val) =>
+                                    form.setData('URLRecurso', val)
+                                }
                                 onFileNameChange={(name) => {
                                     if (!form.data.Nombre) {
                                         form.setData('Nombre', name);
@@ -378,10 +417,14 @@ export default function ProyectoActividadRecursoIndex({
 
                             {seleccionado && (
                                 <Field>
-                                    <FieldLabel htmlFor="Estatus">Estatus del Recurso</FieldLabel>
+                                    <FieldLabel htmlFor="Estatus">
+                                        Estatus del Recurso
+                                    </FieldLabel>
                                     <Select
                                         value={form.data.Estatus}
-                                        onValueChange={(val) => form.setData('Estatus', val)}
+                                        onValueChange={(val) =>
+                                            form.setData('Estatus', val)
+                                        }
                                     >
                                         <SelectTrigger id="Estatus">
                                             <SelectValue placeholder="Selecciona un estatus" />

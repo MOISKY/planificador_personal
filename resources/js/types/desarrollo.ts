@@ -30,5 +30,6 @@ export interface CandidatoItem {
     FechaRegistro?: string;
     nombre_completo?: string;
     especialidad?: EspecialidadItem | null;
+    candidato_tipo?: CandidatoTipoItem | null;
     candidatoTipo?: CandidatoTipoItem | null;
 }

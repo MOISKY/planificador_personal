@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\GoogleDriveAuthException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,64 @@ class GoogleDriveService
     public function __construct()
     {
         $this->tokenPath = storage_path('app/google_drive_token.json');
+    }
+
+    public function hasOAuthCredentials(): bool
+    {
+        return ! empty(config('services.google.client_id'))
+            && ! empty(config('services.google.client_secret'))
+            && ! empty(config('services.google.redirect_uri'));
+    }
+
+    public function clearToken(): void
+    {
+        if (file_exists($this->tokenPath)) {
+            @unlink($this->tokenPath);
+        }
+    }
+
+    public function isCredentialOrAuthMessage(string $message): bool
+    {
+        $lower = strtolower($message);
+
+        foreach ([
+            'invalid_grant',
+            'invalid_client',
+            'unauthorized_client',
+            'deleted_client',
+            'invalid credentials',
+            'unauthenticated',
+            'autherror',
+            'invalid_token',
+            'insufficientpermissions',
+            'insufficient_scope',
+            'access_token_scope_insufficient',
+            'access_denied',
+            'token has been expired',
+            'token has been revoked',
+            'no está conectado',
+            'token ha expirado',
+            'credenciales',
+        ] as $needle) {
+            if (str_contains($lower, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function isAuthErrorResponse(int $status, string $body): bool
+    {
+        if ($status === 401) {
+            return true;
+        }
+
+        if (in_array($status, [400, 403], true) && $this->isCredentialOrAuthMessage($body)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function getAuthUrl(): string
@@ -31,6 +90,12 @@ class GoogleDriveService
 
     public function handleCallback(string $code): bool
     {
+        if (! $this->hasOAuthCredentials()) {
+            Log::error('Credenciales de Google Drive incompletas en la configuración.');
+
+            return false;
+        }
+
         $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
             'code' => $code,
             'client_id' => config('services.google.client_id'),
@@ -46,6 +111,12 @@ class GoogleDriveService
         }
 
         $tokenData = $response->json();
+        if (! is_array($tokenData) || empty($tokenData['access_token'])) {
+            Log::error('Respuesta inválida al obtener token de Google Drive.');
+
+            return false;
+        }
+
         $tokenData['created_at'] = time();
 
         if (! is_dir(dirname($this->tokenPath))) {
@@ -65,20 +136,26 @@ class GoogleDriveService
 
         $tokenData = json_decode((string) file_get_contents($this->tokenPath), true);
         if (! is_array($tokenData) || empty($tokenData['access_token'])) {
+            $this->clearToken();
+
             return null;
         }
 
-        $expiresIn = $tokenData['expires_in'] ?? 3600;
-        $createdAt = $tokenData['created_at'] ?? 0;
+        $expiresIn = (int) ($tokenData['expires_in'] ?? 3600);
+        $createdAt = (int) ($tokenData['created_at'] ?? 0);
 
-        // Si expiró o está a menos de 60 segundos de expirar, refrescar
+        // Si expiró o está a menos de 60 segundos de expirar, intentar refrescar o invalidar el token
         if ((time() - $createdAt) > ($expiresIn - 60)) {
             if (! empty($tokenData['refresh_token'])) {
-                $refreshed = $this->refreshToken($tokenData['refresh_token']);
-                if ($refreshed) {
+                $refreshed = $this->refreshToken((string) $tokenData['refresh_token']);
+                if ($refreshed !== null) {
                     return $refreshed;
                 }
             }
+
+            $this->clearToken();
+
+            return null;
         }
 
         return (string) $tokenData['access_token'];
@@ -86,6 +163,12 @@ class GoogleDriveService
 
     protected function refreshToken(string $refreshToken): ?string
     {
+        if (! $this->hasOAuthCredentials()) {
+            Log::error('Credenciales OAuth de Google Drive no configuradas al refrescar token.');
+
+            return null;
+        }
+
         $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
             'client_id' => config('services.google.client_id'),
             'client_secret' => config('services.google.client_secret'),
@@ -95,11 +178,20 @@ class GoogleDriveService
 
         if (! $response->successful()) {
             Log::error('Error refrescando token de Google Drive: '.$response->body());
+            if ($this->isAuthErrorResponse($response->status(), $response->body())) {
+                $this->clearToken();
+            }
 
             return null;
         }
 
         $newToken = $response->json();
+        if (! is_array($newToken) || empty($newToken['access_token'])) {
+            $this->clearToken();
+
+            return null;
+        }
+
         $stored = file_exists($this->tokenPath) ? json_decode((string) file_get_contents($this->tokenPath), true) : [];
         if (! is_array($stored)) {
             $stored = [];
@@ -127,9 +219,13 @@ class GoogleDriveService
      */
     public function uploadFile(UploadedFile $file, ?string $folderName = 'Archivos ERP'): array
     {
+        if (! $this->hasOAuthCredentials()) {
+            throw new GoogleDriveAuthException('Las credenciales de acceso a Google Drive no están configuradas.');
+        }
+
         $accessToken = $this->getAccessToken();
         if (! $accessToken) {
-            throw new \RuntimeException('Google Drive no está conectado o el token ha expirado.');
+            throw new GoogleDriveAuthException('Google Drive no está conectado o el token ha expirado. Autoriza nuevamente.');
         }
 
         // 1. Obtener o crear carpeta contenedora
@@ -160,6 +256,12 @@ class GoogleDriveService
             ->send('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink', [
                 'multipart' => $multipart,
             ]);
+
+        if ($this->isAuthErrorResponse($uploadResponse->status(), $uploadResponse->body())) {
+            $this->clearToken();
+
+            throw new GoogleDriveAuthException('Error de credenciales o autorización en Google Drive. Vuelve a autorizar tu cuenta.');
+        }
 
         if (! $uploadResponse->successful()) {
             throw new \RuntimeException('Error al subir archivo a Google Drive: '.$uploadResponse->body());
@@ -196,6 +298,12 @@ class GoogleDriveService
                 'fields' => 'files(id, name)',
             ]);
 
+            if ($this->isAuthErrorResponse($search->status(), $search->body())) {
+                $this->clearToken();
+
+                throw new GoogleDriveAuthException('Las credenciales de Google Drive expiraron o fueron revocadas. Autoriza nuevamente.');
+            }
+
             if ($search->successful()) {
                 $files = $search->json('files');
                 if (! empty($files) && isset($files[0]['id'])) {
@@ -209,9 +317,17 @@ class GoogleDriveService
                 'mimeType' => 'application/vnd.google-apps.folder',
             ]);
 
+            if ($this->isAuthErrorResponse($create->status(), $create->body())) {
+                $this->clearToken();
+
+                throw new GoogleDriveAuthException('Las credenciales de Google Drive expiraron o fueron revocadas. Autoriza nuevamente.');
+            }
+
             if ($create->successful()) {
                 return (string) $create->json('id');
             }
+        } catch (GoogleDriveAuthException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             Log::warning('No se pudo verificar o crear la carpeta en Google Drive: '.$e->getMessage());
         }

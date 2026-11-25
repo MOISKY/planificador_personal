@@ -32,7 +32,11 @@ import {
 import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { type CandidatoItem, type CandidatoTipoItem, type EspecialidadItem } from '@/types/desarrollo';
+import {
+    type CandidatoItem,
+    type CandidatoTipoItem,
+    type EspecialidadItem,
+} from '@/types/desarrollo';
 import { type PaginatedData } from '@/types/pagination';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
@@ -65,9 +69,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Candidatos', href: '/desarrollo/candidatos' },
 ];
 
-export default function CandidatosIndex({ items, especialidades = [], tipos = [], searchValue }: Props) {
+export default function CandidatosIndex({
+    items,
+    especialidades = [],
+    tipos = [],
+    searchValue,
+}: Props) {
     const [drawerAbierto, setDrawerAbierto] = useState(false);
-    const [seleccionado, setSeleccionado] = useState<CandidatoItem | null>(null);
+    const [seleccionado, setSeleccionado] = useState<CandidatoItem | null>(
+        null,
+    );
 
     const form = useForm({
         Nombre: '',
@@ -79,7 +90,10 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
         CorreoElectronico: '',
         UrlCv: '',
         EActivo: 'Si',
-        IdEspecialidad: especialidades.length > 0 ? String(especialidades[0].IdEspecialidad) : '',
+        IdEspecialidad:
+            especialidades.length > 0
+                ? String(especialidades[0].IdEspecialidad)
+                : '',
         IdCandidatoTipo: '',
     });
 
@@ -96,12 +110,17 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                 UrlCv: seleccionado.UrlCv ?? '',
                 EActivo: seleccionado.EActivo ?? 'Si',
                 IdEspecialidad: String(seleccionado.IdEspecialidad),
-                IdCandidatoTipo: seleccionado.IdCandidatoTipo ? String(seleccionado.IdCandidatoTipo) : '',
+                IdCandidatoTipo: seleccionado.IdCandidatoTipo
+                    ? String(seleccionado.IdCandidatoTipo)
+                    : '',
             });
         } else {
             form.reset();
             if (especialidades.length > 0) {
-                form.setData('IdEspecialidad', String(especialidades[0].IdEspecialidad));
+                form.setData(
+                    'IdEspecialidad',
+                    String(especialidades[0].IdEspecialidad),
+                );
             }
         }
         form.clearErrors();
@@ -118,7 +137,8 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
     };
 
     const eliminar = async (item: CandidatoItem) => {
-        const nombreCompleto = `${item.Nombre} ${item.APaterno} ${item.AMaterno ?? ''}`.trim();
+        const nombreCompleto =
+            `${item.Nombre} ${item.APaterno} ${item.AMaterno ?? ''}`.trim();
         if (
             await confirmDialog(
                 `¿Estás seguro que deseas eliminar al candidato "${nombreCompleto}"? Esta acción no se puede deshacer.`,
@@ -157,17 +177,17 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
             label: 'Candidato',
             render: (item) => (
                 <div className="flex items-center gap-2.5">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary uppercase">
                         {item.Nombre?.charAt(0)}
                         {item.APaterno?.charAt(0)}
                     </div>
                     <div>
-                        <p className="font-semibold text-foreground text-sm">
+                        <p className="text-sm font-semibold text-foreground">
                             {item.Nombre} {item.APaterno} {item.AMaterno ?? ''}
                         </p>
                         {item.CorreoElectronico && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                                <Mail className="size-3 text-muted-foreground shrink-0" />
+                            <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                <Mail className="size-3 shrink-0 text-muted-foreground" />
                                 <span>{item.CorreoElectronico}</span>
                             </p>
                         )}
@@ -179,39 +199,49 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
             key: 'IdEspecialidad',
             label: 'Especialidad',
             render: (item) => (
-                <Badge variant="outline" className="gap-1 font-normal text-xs py-1">
-                    <Award className="size-3 text-primary shrink-0" />
-                    <span>{item.especialidad?.Nombre || 'Sin especialidad'}</span>
+                <Badge
+                    variant="outline"
+                    className="gap-1 py-1 text-xs font-normal"
+                >
+                    <Award className="size-3 shrink-0 text-primary" />
+                    <span>
+                        {item.especialidad?.Nombre || 'Sin especialidad'}
+                    </span>
                 </Badge>
             ),
         },
         {
             key: 'IdCandidatoTipo',
             label: 'Tipo',
-            render: (item) =>
-                item.candidatoTipo ? (
-                    <Badge variant="secondary" className="gap-1 font-normal text-xs py-1">
-                        <Layers className="size-3 text-muted-foreground shrink-0" />
-                        <span>{item.candidatoTipo.Nombre}</span>
+            render: (item) => {
+                const tipo = item.candidato_tipo ?? item.candidatoTipo;
+                return tipo ? (
+                    <Badge
+                        variant="secondary"
+                        className="gap-1 py-1 text-xs font-normal"
+                    >
+                        <Layers className="size-3 shrink-0 text-muted-foreground" />
+                        <span>{tipo.Nombre}</span>
                     </Badge>
                 ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
-                ),
+                    <span className="text-xs text-muted-foreground">—</span>
+                );
+            },
         },
         {
             key: 'Telefono',
             label: 'Contacto',
             render: (item) => (
-                <div className="text-xs space-y-0.5">
+                <div className="space-y-0.5 text-xs">
                     {item.Movil && (
-                        <div className="flex items-center gap-1.5 text-foreground font-medium">
-                            <Smartphone className="size-3.5 text-primary shrink-0" />
+                        <div className="flex items-center gap-1.5 font-medium text-foreground">
+                            <Smartphone className="size-3.5 shrink-0 text-primary" />
                             <span>{item.Movil}</span>
                         </div>
                     )}
                     {item.Telefono && (
                         <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Phone className="size-3.5 text-muted-foreground shrink-0" />
+                            <Phone className="size-3.5 shrink-0 text-muted-foreground" />
                             <span>{item.Telefono}</span>
                         </div>
                     )}
@@ -231,14 +261,14 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                         href={item.UrlCv}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline px-2.5 py-1 rounded-md bg-primary/5 border border-primary/20 transition-colors hover:bg-primary/10"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 hover:underline"
                     >
                         <FileText className="size-3.5" />
                         <span>Ver CV</span>
                         <ExternalLink className="size-3 opacity-70" />
                     </a>
                 ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
+                    <span className="text-xs text-muted-foreground">—</span>
                 ),
         },
         {
@@ -250,7 +280,7 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                     variant={item.EActivo === 'Si' ? 'default' : 'secondary'}
                     className={
                         item.EActivo === 'Si'
-                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                            ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
                             : 'bg-muted text-muted-foreground'
                     }
                 >
@@ -298,7 +328,9 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                     <SheetHeader>
                         <SheetTitle className="flex items-center gap-2">
                             <UserCheck className="size-5 text-primary" />
-                            {seleccionado ? 'Editar Candidato' : 'Nuevo Candidato'}
+                            {seleccionado
+                                ? 'Editar Candidato'
+                                : 'Nuevo Candidato'}
                         </SheetTitle>
                         <SheetDescription>
                             {seleccionado
@@ -307,16 +339,25 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                         </SheetDescription>
                     </SheetHeader>
 
-                    <form id="candidato-form" onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
+                    <form
+                        id="candidato-form"
+                        onSubmit={handleSubmit}
+                        className="flex flex-col gap-4 px-6 py-4"
+                    >
                         <FieldGroup>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <Field>
-                                    <FieldLabel htmlFor="IdEspecialidad" required>
+                                    <FieldLabel
+                                        htmlFor="IdEspecialidad"
+                                        required
+                                    >
                                         Especialidad
                                     </FieldLabel>
                                     <Select
                                         value={String(form.data.IdEspecialidad)}
-                                        onValueChange={(val) => form.setData('IdEspecialidad', val)}
+                                        onValueChange={(val) =>
+                                            form.setData('IdEspecialidad', val)
+                                        }
                                     >
                                         <SelectTrigger id="IdEspecialidad">
                                             <SelectValue placeholder="Selecciona una especialidad" />
@@ -325,14 +366,18 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                             {especialidades.map((esp) => (
                                                 <SelectItem
                                                     key={esp.IdEspecialidad}
-                                                    value={String(esp.IdEspecialidad)}
+                                                    value={String(
+                                                        esp.IdEspecialidad,
+                                                    )}
                                                 >
                                                     {esp.Nombre}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FieldError>{form.errors.IdEspecialidad}</FieldError>
+                                    <FieldError>
+                                        {form.errors.IdEspecialidad}
+                                    </FieldError>
                                 </Field>
 
                                 <Field>
@@ -340,25 +385,42 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                         Tipo de Candidato
                                     </FieldLabel>
                                     <Select
-                                        value={form.data.IdCandidatoTipo ? String(form.data.IdCandidatoTipo) : 'none'}
-                                        onValueChange={(val) => form.setData('IdCandidatoTipo', val === 'none' ? '' : val)}
+                                        value={
+                                            form.data.IdCandidatoTipo
+                                                ? String(
+                                                      form.data.IdCandidatoTipo,
+                                                  )
+                                                : 'none'
+                                        }
+                                        onValueChange={(val) =>
+                                            form.setData(
+                                                'IdCandidatoTipo',
+                                                val === 'none' ? '' : val,
+                                            )
+                                        }
                                     >
                                         <SelectTrigger id="IdCandidatoTipo">
                                             <SelectValue placeholder="Selecciona un tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">Sin tipo asignado</SelectItem>
+                                            <SelectItem value="none">
+                                                Sin tipo asignado
+                                            </SelectItem>
                                             {tipos.map((tipo) => (
                                                 <SelectItem
                                                     key={tipo.IdCandidatoTipo}
-                                                    value={String(tipo.IdCandidatoTipo)}
+                                                    value={String(
+                                                        tipo.IdCandidatoTipo,
+                                                    )}
                                                 >
                                                     {tipo.Nombre}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FieldError>{form.errors.IdCandidatoTipo}</FieldError>
+                                    <FieldError>
+                                        {form.errors.IdCandidatoTipo}
+                                    </FieldError>
                                 </Field>
 
                                 <Field className="sm:col-span-2">
@@ -368,12 +430,19 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                     <Input
                                         id="Nombre"
                                         value={form.data.Nombre}
-                                        onChange={(e) => form.setData('Nombre', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'Nombre',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Ej. Roberto"
                                         required
                                         autoFocus
                                     />
-                                    <FieldError>{form.errors.Nombre}</FieldError>
+                                    <FieldError>
+                                        {form.errors.Nombre}
+                                    </FieldError>
                                 </Field>
 
                                 <Field>
@@ -383,11 +452,18 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                     <Input
                                         id="APaterno"
                                         value={form.data.APaterno}
-                                        onChange={(e) => form.setData('APaterno', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'APaterno',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Ej. Hernández"
                                         required
                                     />
-                                    <FieldError>{form.errors.APaterno}</FieldError>
+                                    <FieldError>
+                                        {form.errors.APaterno}
+                                    </FieldError>
                                 </Field>
 
                                 <Field>
@@ -397,10 +473,17 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                     <Input
                                         id="AMaterno"
                                         value={form.data.AMaterno}
-                                        onChange={(e) => form.setData('AMaterno', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'AMaterno',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Ej. Morales"
                                     />
-                                    <FieldError>{form.errors.AMaterno}</FieldError>
+                                    <FieldError>
+                                        {form.errors.AMaterno}
+                                    </FieldError>
                                 </Field>
 
                                 <Field className="sm:col-span-2">
@@ -411,10 +494,17 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                         id="CorreoElectronico"
                                         type="email"
                                         value={form.data.CorreoElectronico}
-                                        onChange={(e) => form.setData('CorreoElectronico', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'CorreoElectronico',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="candidato@correo.com"
                                     />
-                                    <FieldError>{form.errors.CorreoElectronico}</FieldError>
+                                    <FieldError>
+                                        {form.errors.CorreoElectronico}
+                                    </FieldError>
                                 </Field>
 
                                 <Field>
@@ -424,7 +514,12 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                     <Input
                                         id="Movil"
                                         value={form.data.Movil}
-                                        onChange={(e) => form.setData('Movil', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'Movil',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Ej. 55 1234 5678"
                                     />
                                     <FieldError>{form.errors.Movil}</FieldError>
@@ -437,10 +532,17 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                     <Input
                                         id="Telefono"
                                         value={form.data.Telefono}
-                                        onChange={(e) => form.setData('Telefono', e.target.value)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'Telefono',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Ej. 55 9876 5432"
                                     />
-                                    <FieldError>{form.errors.Telefono}</FieldError>
+                                    <FieldError>
+                                        {form.errors.Telefono}
+                                    </FieldError>
                                 </Field>
 
                                 <Field>
@@ -452,30 +554,48 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                         type="number"
                                         min={0}
                                         value={form.data.IOrden}
-                                        onChange={(e) => form.setData('IOrden', parseInt(e.target.value, 10) || 0)}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'IOrden',
+                                                parseInt(e.target.value, 10) ||
+                                                    0,
+                                            )
+                                        }
                                     />
-                                    <FieldError>{form.errors.IOrden}</FieldError>
+                                    <FieldError>
+                                        {form.errors.IOrden}
+                                    </FieldError>
                                 </Field>
 
                                 <Field className="flex flex-col justify-end">
                                     <div className="flex items-center justify-between rounded-lg border p-3 shadow-xs">
                                         <div>
-                                            <FieldLabel htmlFor="EActivo" className="text-sm font-medium cursor-pointer">
+                                            <FieldLabel
+                                                htmlFor="EActivo"
+                                                className="cursor-pointer text-sm font-medium"
+                                            >
                                                 Candidato Activo
                                             </FieldLabel>
                                             <p className="text-xs text-muted-foreground">
-                                                {form.data.EActivo === 'Si' ? 'Disponible para procesos' : 'Inactivo / No disponible'}
+                                                {form.data.EActivo === 'Si'
+                                                    ? 'Disponible para procesos'
+                                                    : 'Inactivo / No disponible'}
                                             </p>
                                         </div>
                                         <Switch
                                             id="EActivo"
                                             checked={form.data.EActivo === 'Si'}
                                             onCheckedChange={(checked) =>
-                                                form.setData('EActivo', checked ? 'Si' : 'No')
+                                                form.setData(
+                                                    'EActivo',
+                                                    checked ? 'Si' : 'No',
+                                                )
                                             }
                                         />
                                     </div>
-                                    <FieldError>{form.errors.EActivo}</FieldError>
+                                    <FieldError>
+                                        {form.errors.EActivo}
+                                    </FieldError>
                                 </Field>
                             </div>
 
@@ -485,7 +605,9 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
                                     id="UrlCv"
                                     label="Currículum Vitae (CV) - Archivo o URL"
                                     value={form.data.UrlCv}
-                                    onChange={(val) => form.setData('UrlCv', val)}
+                                    onChange={(val) =>
+                                        form.setData('UrlCv', val)
+                                    }
                                     folder="Desarrollo / Candidatos / CVs"
                                     disabled={form.processing}
                                     error={form.errors.UrlCv}
@@ -526,4 +648,3 @@ export default function CandidatosIndex({ items, especialidades = [], tipos = []
         </AppLayout>
     );
 }
-
